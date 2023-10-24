@@ -267,7 +267,8 @@ pip install pytorch-fid
 To compute the FID score between two datasets, where images of each dataset are contained in an individual folder:
 
 ```sh
-python -m pytorch_fid results/next-image/synthetic/original/ results/next-image/synthetic/prediction/ --device cuda:0
+python -m pytorch_fid real_images_folder/ synthetic_images_folder/ --device cuda:0
+
 ```
 
 ### Using different layers for feature maps
