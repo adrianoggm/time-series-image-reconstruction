@@ -2,7 +2,11 @@
 
 [![GitHub stars](https://img.shields.io/github/stars/frangam/diff-tsd.svg)](https://github.com/frangam/diff-tsd/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/frangam/diff-tsd.svg)](https://github.com/frangam/diff-tsd/network/members)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT) <img src="https://img.shields.io/github/release/frangam/diff-tsd.svg"/> [![GitHub all releases](https://img.shields.io/github/downloads/frangam/diff-tsd/total)](https://github.com/frangam/diff-tsd/releases/download/1.0/diff-tsd.zip)
+
+[[`Paper`]Coming Soon] [[`Dataset`](#our-recurrence-plots-dataset)] [[`Citation`](#citation)]
+
+
 
 Welcome to the official implementation repository of our paper titled "Diff-TSD: Modelling Time-series Data Generation with Diffusion Models". This repository provides detailed insights, datasets, and other essential resources related to our research and findings.
 
@@ -74,24 +78,66 @@ $ kill PID
 ## 1. Create Data Splits
 In all bash command, we can combine the use "nohup" command to execute a script withouth interuptions (avoiding terminal disconnections, etc.) and "&" symbol at the end of the command for a background execution. We also can use "> filename.log" to put the results in a log file.
 
-### Sampling techniques
+**Sampling techniques**
 - The Leave-One-Trial-Out (LOTO) approach is a cutting-edge method in sample generation. Each trial encompasses a unique raw activity signal for a single subject, ensuring an impartial evaluation and facilitating the creation of a sufficient number of samples. Additionally, this technique prevents the duplication of trials with identical raw signals (trials of the same label) across both training and testing datasets.
 - The Leave-One-Subject-Out (LOSO) approach is a sampling technique inspired by the Leave-One-Trial-Out method. In this approach, all trials belonging to a single subject are considered as an indivisible unit, ensuring that there are no trials from the same subject duplicated in the training and testing datasets. This technique maintains data integrity and prevents potential biases caused by the presence of trials from the same subject in both datasets, allowing for a more robust and reliable evaluation of the model's performance. This technique is the most strict, which proposes a subject-wise approach instead record-wise, and in the literature is not commonly assessed, maybe due to its resulting lower accuracy.
 
 
-### Our Recurrence plots Dataset 
+### Our Recurrence plots Dataset
 
 We performed two experiments: One using LOTO to compare our results with previous results and the other using LOSO.
 
 The table below presents the 3-fold data distribution for each sampling approach:
 
-| 3-Folds | FNOW + LOTO      |           |         | FNOW + LOSO      |           |         |
-|---------|------------------|-----------|---------|------------------|-----------|---------|
-|         | Train samples    | Test samples | Total  | Train samples    | Test samples | Total  |
-|---------|------------------|-----------|---------|------------------|-----------|---------|
-| Fold-1  | 5392            | 2672     | 8064    | 5408            | 2688     | 8096    |
-| Fold-2  | 5392            | 2688     | 8080    | 5344            | 2768     | 8112    |
-| Fold-3  | 5392            | 2672     | 8064    | 5456            | 2640     | 8096    |
+The table below presents the 3-fold data distribution for each sampling approach:
+
+<table>
+  <thead>
+    <tr>
+      <th rowspan="2">3-Folds</th>
+      <th colspan="3">FNOW + LOTO</th>
+      <th colspan="3">FNOW + LOSO</th>
+    </tr>
+    <tr>
+      <th>Train samples</th>
+      <th>Test samples</th>
+      <th>Total</th>
+      <th>Train samples</th>
+      <th>Test samples</th>
+      <th>Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Fold-1</td>
+      <td>5392</td>
+      <td>2672</td>
+      <td>8064</td>
+      <td>5408</td>
+      <td>2688</td>
+      <td>8096</td>
+    </tr>
+    <tr>
+      <td>Fold-2</td>
+      <td>5392</td>
+      <td>2688</td>
+      <td>8080</td>
+      <td>5344</td>
+      <td>2768</td>
+      <td>8112</td>
+    </tr>
+    <tr>
+      <td>Fold-3</td>
+      <td>5392</td>
+      <td>2672</td>
+      <td>8064</td>
+      <td>5456</td>
+      <td>2640</td>
+      <td>8096</td>
+    </tr>
+  </tbody>
+</table>
+
 
 So, from the WISDEM dataset, we extracted [Recurrence plots](https://ieeexplore.ieee.org/document/8691521/) with a legnth of 129 points (128x128 pixels) were generated for each of the five selected classes across every fold. These plots, inspired by the work of Lu and Tong in "Robust Single Accelerometer-Based Activity Recognition Using Modified Recurrence Plot", are available for download on the Hugging Face platform.
 
@@ -162,6 +208,13 @@ If you want to train only a single class set "--class-names" argument:
 $ nohup accelerate launch ./train.py --config configs/config_wisdm_128x128_loto.json --max-epochs 1000 --batch-size 16 --class-names 4 > train_loto.log &
 ```
 
+
+---
+
+All the models that we've trained, including the 15 models for LOTO and 15 for LOSO, are available on [WandB](https://wandb.ai/frangam/diffusion-ts-rp/table?workspace=user-frangam). To find the specific models you're interested in, simply filter by the tags `sampling-loto` or `sampling-loso`.
+
+---
+
 ## 3. Sampling
 
 Generate "n" samples (in this case, 2.000).
@@ -225,7 +278,8 @@ pip install pytorch-fid
 To compute the FID score between two datasets, where images of each dataset are contained in an individual folder:
 
 ```sh
-python -m pytorch_fid results/next-image/synthetic/original/ results/next-image/synthetic/prediction/ --device cuda:0
+python -m pytorch_fid real_images_folder/ synthetic_images_folder/ --device cuda:0
+
 ```
 
 ### Using different layers for feature maps
