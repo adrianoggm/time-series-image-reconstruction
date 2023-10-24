@@ -7,7 +7,7 @@
 <img src="https://img.shields.io/github/license/frangam/diff-tsd.svg"> [![DOI]()](Paper comming soon)
  <img src="https://img.shields.io/github/release/frangam/diff-tsd.svg"/> [![GitHub all releases](https://img.shields.io/github/downloads/frangam/diff-tsd/total)](https://github.com/frangam/diff-tsd/releases/download/1.0/diff-tsd.zip)
 
-[[`Paper`]Coming Soon] [[`Dataset`](#our-recurrence-plots-dataset)] [[`Citation`](#citation)]
+[[`Paper`]Coming Soon] [[`Dataset`](###our-recurrence-plots-dataset)] [[`Citation`](##citation)]
 
 
 Welcome to the official implementation repository of our paper titled "Diff-TSD: Modelling Time-series Data Generation with Diffusion Models". This repository provides detailed insights, datasets, and other essential resources related to our research and findings.
