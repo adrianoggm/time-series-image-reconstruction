@@ -204,6 +204,13 @@ If you want to train only a single class set "--class-names" argument:
 $ nohup accelerate launch ./train.py --config configs/config_wisdm_128x128_loto.json --max-epochs 1000 --batch-size 16 --class-names 4 > train_loto.log &
 ```
 
+
+---
+
+All the models that we've trained, including the 15 models for LOTO and 15 for LOSO, are available on [WandB](https://wandb.ai/frangam/diffusion-ts-rp/table?workspace=user-frangam). To find the specific models you're interested in, simply filter by the tags `sampling-loto` or `sampling-loso`.
+
+---
+
 ## 3. Sampling
 
 Generate "n" samples (in this case, 2.000).
