@@ -7,7 +7,8 @@
 <img src="https://img.shields.io/github/license/frangam/diff-tsd.svg"> [![DOI]()](Paper comming soon)
  <img src="https://img.shields.io/github/release/frangam/diff-tsd.svg"/> [![GitHub all releases](https://img.shields.io/github/downloads/frangam/diff-tsd/total)](https://github.com/frangam/diff-tsd/releases/download/1.0/diff-tsd.zip)
 
-[[`Paper`]Coming Soon] [[`Dataset`](###our-recurrence-plots-dataset)] [[`Citation`](##citation)]
+[[`Paper`]Coming Soon] [[`Dataset`](#our-recurrence-plots-dataset)] [[`Citation`](#citation)]
+
 
 
 Welcome to the official implementation repository of our paper titled "Diff-TSD: Modelling Time-series Data Generation with Diffusion Models". This repository provides detailed insights, datasets, and other essential resources related to our research and findings.
@@ -85,7 +86,7 @@ In all bash command, we can combine the use "nohup" command to execute a script 
 - The Leave-One-Subject-Out (LOSO) approach is a sampling technique inspired by the Leave-One-Trial-Out method. In this approach, all trials belonging to a single subject are considered as an indivisible unit, ensuring that there are no trials from the same subject duplicated in the training and testing datasets. This technique maintains data integrity and prevents potential biases caused by the presence of trials from the same subject in both datasets, allowing for a more robust and reliable evaluation of the model's performance. This technique is the most strict, which proposes a subject-wise approach instead record-wise, and in the literature is not commonly assessed, maybe due to its resulting lower accuracy.
 
 
-### Our Recurrence plots Dataset 
+### Our Recurrence plots Dataset
 
 We performed two experiments: One using LOTO to compare our results with previous results and the other using LOSO.
 
