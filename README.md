@@ -150,7 +150,36 @@ Below are links to the data for each sampling and fold combination:
 - [Recurrence Plots - LOTO - Fold 2](https://huggingface.co/datasets/frangam/WISDM-mod-recurrence-plot-sampling-loto_fold_2)
 - [Recurrence Plots - LOTO - Fold 3](https://huggingface.co/datasets/frangam/WISDM-mod-recurrence-plot-sampling-loto_fold_3)
 
-Click the respective links to access and download the desired datasets.
+Click the respective links to access and **download** the desired datasets.
+
+Here, an example of the reccurente plots dataset:
+
+<table>
+<tr>
+    <td>
+        <img src="doc/model_fold_0_class_0_demo_00669000.png" alt="Class 0 Image" width="250"/><br>
+        <center>Class 0 (Walking)</center>
+    </td>
+    <td>
+        <img src="doc/model_fold_0_class_1_demo_00659000.png" alt="Class 1 Image" width="250"/><br>
+        <center>Class 1 (Jogging)</center>
+    </td>
+    <td>
+        <img src="doc/model_fold_0_class_2_demo_00669000.png" alt="Class 2 Image" width="250"/><br>
+        <center>Class 2 (Stairs)</center>
+    </td>
+</tr>
+<tr>
+    <td>
+        <img src="doc/model_fold_0_class_3_demo_00679000.png" alt="Class 3 Image" width="250"/><br>
+        <center>Class 3 (Sitting)</center>
+    </td>
+    <td>
+        <img src="doc/model_fold_0_class_4_demo_00689000.png" alt="Class 4 Image" width="250"/><br>
+        <center>Class 4 (Standing)</center>
+    </td>
+</tr>
+</table>
 
 
 
