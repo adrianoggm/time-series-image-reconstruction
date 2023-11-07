@@ -60,10 +60,10 @@ def process_sampling_epochs(sampling, prefix_folder, synthetic_data=True):
     metrics_cols = ['Avg Accuracy', 'Avg F1-Score', 'Avg Precision', 'Avg Recall', 'Avg Specificity']
     std_cols = ['Std Accuracy', 'Std F1-Score', 'Std Precision', 'Std Recall', 'Std Specificity']
     df[metrics_cols] = df[metrics_cols].round(4)
-    df[std_cols] = df[std_cols].round(2)
+    df[std_cols] = df[std_cols].round(4)
 
-    df.to_csv(os.path.join(path, f'{prefix_folder}_performace_average_results.csv'), index=False)
-    df.to_excel(os.path.join(path, f'{prefix_folder}_performace_average_results.xlsx'), index=False, engine='openpyxl')  # Línea para exportar a Excel
+    df.to_csv(os.path.join(path, f'{sampling}_{prefix_folder}_performace_average_results.csv'), index=False)
+    df.to_excel(os.path.join(path, f'{sampling}_{prefix_folder}_performace_average_results.xlsx'), index=False, engine='openpyxl')  # Línea para exportar a Excel
 
 
 
@@ -71,6 +71,12 @@ for epochs in range(1000, 11000, 1000):
     print("epochs:", epochs)
     process_sampling_epochs('loto', f'epochs-{epochs}')
 
-# process_sampling_epochs('loso', 'real-train-data', synthetic_data=False)
-# process_sampling_epochs('loto', 'real-train-data', synthetic_data=False)
+
+
+for epochs in range(1000, 11000, 1000):
+    print("epochs:", epochs)
+    process_sampling_epochs('loso', f'epochs-{epochs}')
+
+process_sampling_epochs('loso', 'real-train-data', synthetic_data=False)
+process_sampling_epochs('loto', 'real-train-data', synthetic_data=False)
 
