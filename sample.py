@@ -10,7 +10,9 @@ import pandas as pd
 import k_diffusion as K
 from tgen.utils import set_gpu
 
+""" ./tgen/upload_recurrence_plots_to_huggingface.py --sampling loto --huggingface-token ***REMOVED-HF-TOKEN*** > upload_rp_loto.log &
 
+ """
 def main():
     '''Examples of runs:
     $  nohup ./sample.py --config configs/config_wisdm_128x128_loto.json -n 2000  > sample-loto.log &
