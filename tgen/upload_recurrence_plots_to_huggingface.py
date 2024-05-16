@@ -51,14 +51,13 @@ def upload_data(dataset_name="WISDM", dataset_folder="/home/adriano/Escritorio/T
         # val_dataset.push_to_hub(HUGG_DATASET_NAME, private=True)
     else:
         print("Uploading k-fold dataset")
-        train_dataset = load_dataset("imagefolder", data_dir=f"/home/adriano/Escritorio/TFG/data/WISDM/plots/recurrence_plot/sampling_loto/3-fold/fold-0/train")
         for fold in tqdm(range(FOLDS_N), "Uploading Fold"):
             print("fold:", fold)
-            print(f"{DRIVE_RP_FOLDER}/{FOLDS_N}-fold/fold-{fold}")
-            
-            #train_dataset.push_to_hub(f"{HUGG_DATASET_NAME}_fold_{fold}", private=HUGG_DATASET_IS_PRIVATE)
-            #train_dataset = load_dataset("imagefolder", data_dir=f"{DRIVE_RP_FOLDER}/{FOLDS_N}-fold/fold-{fold}", split=f"test")
-            #train_dataset.push_to_hub(f"{HUGG_DATASET_NAME}_fold_{fold}", private=HUGG_DATASET_IS_PRIVATE)
+            #print(f"{DRIVE_RP_FOLDER}/{FOLDS_N}-fold/fold-{fold}")
+            train_dataset = load_dataset("imagefolder",data_dir=f"{DRIVE_RP_FOLDER}/{FOLDS_N}-fold/fold-{fold}", split=f"train")
+            train_dataset.push_to_hub(f"{HUGG_DATASET_NAME}_fold_{fold}", private=HUGG_DATASET_IS_PRIVATE)
+            train_dataset = load_dataset("imagefolder", data_dir=f"{DRIVE_RP_FOLDER}/{FOLDS_N}-fold/fold-{fold}", split=f"test")
+            train_dataset.push_to_hub(f"{HUGG_DATASET_NAME}_fold_{fold}", private=HUGG_DATASET_IS_PRIVATE)
 
             # #upload Validation dataset
             # print("Uploading Validation dataset")

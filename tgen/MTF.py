@@ -1,9 +1,11 @@
 #!/home/adriano/Escritorio/TFG/venv/bin/python3
+from math import sqrt
 import numpy as np
 import matplotlib.pyplot as plt
 import activity_data as act
 import recurrence_plots as rec
 from pyts.image import MarkovTransitionField
+from scipy.sparse.csgraph import dijkstra
 from PIL import Image
 def NormalizeMatrix_Adri(_r):
     dimR = _r.shape[0]
@@ -15,7 +17,46 @@ def NormalizeMatrix_Adri(_r):
         for j in range(dimR):
             _normalizedRP[i][j] = (_r[i][j]-_min)/_max_min
     return _normalizedRP
-    
+
+
+def RecurrrenceTreshold(rp,X):
+    distances=np.abs(rp)
+    epsilon_X=np.percentile(distances,X)
+    return epsilon_X
+
+def FuncionC(rp,cord1,cord2,method="Euclid"):
+    if(method=="Euclid"):
+       THRESHOLD=RecurrrenceTreshold(rp,40)
+       valor=0
+       d=rp[cord1][cord2]
+       if((d<=THRESHOLD)and(d>=(-THRESHOLD))):
+          valor=1
+    return valor  
+def CreateCostMatrix(rp) :
+    CostM=np.zeros_like(rp)
+    N,M=CostM.shape
+    for i in range(N):
+         for j in range(M):
+             CostM[i][j]=FuncionC(rp,i,j,"Euclid")
+    return CostM
+def weigthed_graphRP(rp):
+    CostM=CreateCostMatrix(rp)
+    weighted_adjacency_matrix = np.zeros_like(rp) 
+    nonzero_indices = np.nonzero(CostM)
+
+    for i, j in zip(*nonzero_indices):
+        Gi = np.nonzero(CostM[i])[0]
+        Gj = np.nonzero(CostM[j])[0]
+        intersection = len(np.intersect1d(Gi, Gj))
+        union = len(np.union1d(Gi, Gj))
+        weighted_adjacency_matrix[i, j] = 1 - (intersection / union)
+                
+    return weighted_adjacency_matrix
+
+def calculate_shortest_path_matrix(Wg):
+    shortest_path_matrix = dijkstra(Wg, directed=True)
+    return shortest_path_matrix + 1e-10
+
 def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=129):
     if not all([(x==0).all()]):
      _r = rec.varRP(x,'x', TIME_STEPS)
@@ -25,7 +66,7 @@ def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, save
      #print("X", _r)
      #print("Y", _g)
      #print("Z", _b)
-
+     
      # plt.close('all')
      # plt.figure(figsize=(1,1))
      # plt.axis('off')
@@ -33,7 +74,7 @@ def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, save
      # plt.gca().xaxis.set_major_locator(plt.NullLocator())
      # plt.gca().yaxis.set_major_locator(plt.NullLocator())
 
-     print("fig size: width=", plt.figure().get_figwidth(), "height=", plt.figure().get_figheight())
+     #print("fig size: width=", plt.figure().get_figwidth(), "height=", plt.figure().get_figheight())
 
      if normalized:
           newImage = rec.RGBfromRPMatrix_of_XYZ(NormalizeMatrix_Adri(_r), NormalizeMatrix_Adri(_g), NormalizeMatrix_Adri(_b))
@@ -56,6 +97,21 @@ def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, save
      return newImage
     else:
      return None
+    
+#REVISAR
+def construct_weighted_graph(rp):
+    n = rp.shape[0]
+    weighted_adjacency_matrix = np.zeros((n, n))
+    
+    nonzero_indices = np.nonzero(rp)
+    for i, j in zip(*nonzero_indices):
+        Gi = np.nonzero(rp[i])[0]
+        Gj = np.nonzero(rp[j])[0]
+        intersection = len(np.intersect1d(Gi, Gj))
+        union = len(np.union1d(Gi, Gj))
+        weighted_adjacency_matrix[i, j] = 1 - (intersection / union)
+                
+    return weighted_adjacency_matrix
 def main():
      """
     X_train = np.load("./data/WISDM/numpies/train/windowed/0/1600/x.npy")
@@ -134,9 +190,9 @@ def main():
      #voy a  obtener el maximo de todo el data set.
      X_train, y_train, sj_train = act.load_numpy_datasets(data_name, data_folder, USE_RECONSTRUCTED_DATA=False)
      print("X_train", X_train.shape, "y_train", y_train.shape, "sj_train", sj_train.shape)
-     print(sj_train[:,0])
-     print(y_train[:,0])
-     print(X_train)
+     #print(sj_train[:,0])
+     #print(y_train[:,0])
+     #print(X_train)
      print("minimo",np.min(X_train))
      print("maximo",np.max(X_train))
      MAX=np.max(X_train)
@@ -146,6 +202,7 @@ def main():
      sj = sj_train[0][0]
      w_y = y_train[0]
      w_y_no_cat = np.argmax(w_y)
+     print(w.shape)
      img = SavevarRP_XYZ(w, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129)
 
 if __name__ == '__main__':
