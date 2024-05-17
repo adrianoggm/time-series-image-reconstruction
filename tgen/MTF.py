@@ -7,17 +7,35 @@ import recurrence_plots as rec
 from pyts.image import MarkovTransitionField
 from scipy.sparse.csgraph import dijkstra
 from PIL import Image
+import cv2
+from sklearn.manifold import MDS
+
 def NormalizeMatrix_Adri(_r):
     dimR = _r.shape[0]
     _max=66.615074
     _min =  -78.47761
     _max_min = _max - _min
+    #_normalizedRP=np.interp(_r,(_min,_max),(0,1))
+    
     _normalizedRP = np.zeros((dimR,dimR))
     for i in range(dimR):
         for j in range(dimR):
             _normalizedRP[i][j] = (_r[i][j]-_min)/_max_min
+    
     return _normalizedRP
-
+def DesNormalizeMatrix_Adri(_r):
+    dimR = _r.shape[0]
+    _max=66.615074
+    _min =  -78.47761
+    _max_min = _max - _min
+    
+    
+    _desnormalizedRP = np.zeros((dimR,dimR))
+    for i in range(dimR):
+        for j in range(dimR):
+            _desnormalizedRP[i][j] = ((_r[i][j]*_max_min)+_min)
+    
+    return _desnormalizedRP
 
 def RecurrrenceTreshold(rp,X):
     distances=np.abs(rp)
@@ -57,13 +75,16 @@ def calculate_shortest_path_matrix(Wg):
     shortest_path_matrix = dijkstra(Wg, directed=True)
     return shortest_path_matrix + 1e-10
 
+
 def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=129):
     if not all([(x==0).all()]):
      _r = rec.varRP(x,'x', TIME_STEPS)
      _g = rec.varRP(x,'y', TIME_STEPS)
      _b = rec.varRP(x,'z', TIME_STEPS)
 
-     #print("X", _r)
+     print("X", _r[1][4])
+     print("Y", _g[1][4])
+     print("Z", _b[1][4])
      #print("Y", _g)
      #print("Z", _b)
      
@@ -80,8 +101,10 @@ def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, save
           newImage = rec.RGBfromRPMatrix_of_XYZ(NormalizeMatrix_Adri(_r), NormalizeMatrix_Adri(_g), NormalizeMatrix_Adri(_b))
           #newImage = RGBfromRPMatrix_of_XYZ(_r, _g, _b)
           # print(newImage.shape)
+          print(newImage[1][4][0]* 255)
           newImage = Image.fromarray((newImage * 255).astype(np.uint8))
           # plt.imshow(newImage)
+          
           if saveImage:
                # plt.savefig(f"{path}{sj}{action}{item_idx}.png",bbox_inches='tight',pad_inches = 0, dpi='figure')
                newImage.save(f"{path}{sj}{action}{item_idx}.png")
@@ -98,20 +121,102 @@ def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, save
     else:
      return None
     
-#REVISAR
-def construct_weighted_graph(rp):
-    n = rp.shape[0]
-    weighted_adjacency_matrix = np.zeros((n, n))
-    
-    nonzero_indices = np.nonzero(rp)
+def weigthed_graphRP(rp):
+    CostM=CreateCostMatrix(rp)
+    weighted_adjacency_matrix = np.zeros_like(rp) 
+    nonzero_indices = np.nonzero(CostM)
+
     for i, j in zip(*nonzero_indices):
-        Gi = np.nonzero(rp[i])[0]
-        Gj = np.nonzero(rp[j])[0]
+        Gi = np.nonzero(CostM[i])[0]
+        Gj = np.nonzero(CostM[j])[0]
         intersection = len(np.intersect1d(Gi, Gj))
         union = len(np.union1d(Gi, Gj))
         weighted_adjacency_matrix[i, j] = 1 - (intersection / union)
                 
     return weighted_adjacency_matrix
+    
+def reconstruct_time_series(shortest_path_matrix, ep=0.0, small_constant=1e-10):
+    # Forzar la simetría en la matriz
+    symmetric_shortest_path_matrix = 0.5 * (shortest_path_matrix + shortest_path_matrix.T)
+
+    # Reemplazar los infinitos en la matriz con un valor grande pero finito
+    finite_shortest_path_matrix = np.where(
+        np.isfinite(symmetric_shortest_path_matrix),
+        symmetric_shortest_path_matrix,
+        ep  # Ajusta este valor según sea necesario
+    )
+
+    # print(finite_shortest_path_matrix)
+
+     # Add a small constant to avoid division by zero
+    finite_shortest_path_matrix += small_constant    
+
+    # Apply MDS to get a 2D representation of the shortest path matrix
+    mds = MDS(n_components=2, dissimilarity='precomputed')
+    embedded_coords = mds.fit_transform(finite_shortest_path_matrix)
+
+    #----
+    # Calcular la matriz de covarianza
+    cov_matrix = np.cov(embedded_coords, rowvar=False)
+
+    # Calcular los valores y vectores propios de la matriz de covarianza
+    eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
+
+    # Encontrar el índice del valor propio más grande
+    max_eigenvalue_index = np.argmax(eigenvalues)
+
+    # Seleccionar la columna correspondiente al valor propio más grande en la matriz embedded_coords
+    selected_column = embedded_coords[:, max_eigenvalue_index][:, np.newaxis]
+
+    return selected_column
+def Reconstruct_RP(img):
+    _r= img[:,:,0].astype('float')
+    _g= img[:,:,1].astype('float')
+    _b= img[:,:,2].astype('float')
+    #Obtengo cada una de las recurrence plots
+    _max=66.615074
+    _min =  -78.47761
+    print("X2",_r[1][4])
+    ##PREGUNTAR SI ES LO MISMO O HABRIA QUE PASAR de 255 a [0-1] y posteriormente a min max
+    _r=np.interp(_r,(0,255),(_min,_max))
+    _g=np.interp(_g,(0,255),(_min,_max))
+    _b=np.interp(_b,(0,255),(_min,_max))
+    print("X2 post normalizacion",_r[1][4])
+    
+    R= []
+    R.append(_r)
+    R.append(_g)
+    R.append(_b)
+    n=len(R)
+    N=[]
+    for i in range(0,n):
+        wg=weigthed_graphRP(R[i]) 
+        spm=calculate_shortest_path_matrix(wg)  
+        ##we multiply * -1 ya que se invierte al calcular los valores propios
+        rp=reconstruct_time_series(spm, ep=0.0)
+        
+        N.append(rp)
+    return N
+
+def calcular_errores(valores_verdaderos, valores_aproximados):
+    # Convertir las listas a arrays de numpy para facilitar los cálculos
+    valores_verdaderos = np.array(valores_verdaderos)
+    valores_aproximados = np.array(valores_aproximados)
+    
+    # Calcular el error absoluto
+    errores_absolutos = np.abs(valores_verdaderos - valores_aproximados)
+    
+    # Calcular el error relativo (evitando la división por cero)
+    errores_relativos = np.abs(errores_absolutos / valores_verdaderos)
+    
+    # Calcular el error absoluto promedio
+    error_absoluto_promedio = np.mean(errores_absolutos)
+    
+    # Calcular el error relativo promedio
+    error_relativo_promedio = np.mean(errores_relativos)
+    
+    return error_absoluto_promedio, error_relativo_promedio
+
 def main():
      """
     X_train = np.load("./data/WISDM/numpies/train/windowed/0/1600/x.npy")
@@ -198,12 +303,69 @@ def main():
      MAX=np.max(X_train)
      MIN=np.min(X_train)
      #he obtenido el máximo y el minimo del dataset minimo -78.47761 maximo 66.615074
-     w = X_train[0]
+     w = X_train[1]
      sj = sj_train[0][0]
-     w_y = y_train[0]
+     w_y = y_train[1]
      w_y_no_cat = np.argmax(w_y)
      print(w.shape)
      img = SavevarRP_XYZ(w, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129)
+     #parte de reconstruccion
+     #primero genero la RP a partir de la imagen
+     imagen = cv2.imread("./1600x0.png")  
+     imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
+     print("Image shape",imagen.shape)
+     rp=Reconstruct_RP(imagen)
+     rp[0]=-1*rp[0]
+     #
+     _max=np.max(w[:,0])
+     _min=np.min(w[:,0])
+     s=np.interp(rp[0],(np.min(rp[0]),np.max(rp[0])),(_min,_max)).reshape(128)
 
+     plt.plot(w[:,0], marker='o')
+     # Etiquetas del gráfico
+     plt.title('original')
+     plt.xlabel("tiempo")
+     plt.ylabel('Índice X')
+     plt.savefig('original.png')
+     plt.clf() 
+
+     plt.plot(s, marker='o')
+    
+     # Etiquetas del gráfico
+     plt.title('reconstruccion')
+     plt.xlabel('tiempo')
+     plt.ylabel('Índice X')
+     plt.savefig('reconstruccion.png')
+    
+     plt.clf() 
+
+     plt.plot(w[:,0], marker='o',label='original', color='blue')
+     # Etiquetas del gráfico
+     plt.title('Comparativa')
+     plt.xlabel("tiempo")
+     plt.ylabel('Índice X')
+     plt.plot(s, marker='o',label='reconstruccion', color='red')
+     plt.legend()   
+     plt.savefig('Comparativa.png')
+     
+     f=np.array(w[:,0])
+     f=f[1:]
+     print(f.shape)
+     error_absoluto, error_relativo = calcular_errores(f, s)
+     print(f"Error Absoluto Promedio: {error_absoluto}")
+     print(f"Error Relativo Promedio: {error_relativo}")
+     print(f"Coeficiente de correlación: {np.corrcoef(f, s)[0,1]}")
+    #Error Absoluto Promedio: 1.2916679603210046
+    #Error Relativo Promedio: 0.10410946116987463
+    #Coeficiente de correlación: 0.9152496948611255
+
+
+    
+       
+# Guardar el gráfico como una imagen
+    
+
+# Mostrar el gráfico (opcional)
+plt.show()
 if __name__ == '__main__':
     main()
