@@ -13,6 +13,39 @@ from sklearn.model_selection import StratifiedGroupKFold, GroupKFold
 
 from PIL import Image
 
+def varRP2(data, TIME_STEPS=129):#dim:=x,y,z
+    x = data
+    
+    
+    s = []
+    for i in range(len(x)-1):
+    # for i in range(len(x)):
+
+        _s = []
+        _s.append(x[i])
+        _s.append(x[i+1])
+        s.append(_s)
+    
+        
+    #print s
+    # dimR = len(x)-1
+    dimR = len(s)
+
+    #R = np.zeros((dimR,dimR))
+    R = np.eye(dimR)
+    for i in range(dimR):
+        for j in range(dimR):
+            # if i==0 and j==0:
+              # print("s[i]", s[i], "s[j]", s[j])
+              # print(list(zip(s[i], s[j])))
+              # print(list(map(lambda x:x[0]-x[1], zip(s[i], s[j]))))
+            if Cosin2vec(list(map(lambda x:x[0]-x[1], zip(s[i], s[j]))), [1,1]) >= pow(2, 0.5)/2:
+                sign =1.0
+            else:
+                sign =-1.0
+            R[i][j] = sign*Distance2dim(s[i],s[j])
+            # R[i][j] = Distance2dim(s[i],s[j])
+    return R
 def vector_magnitude(vector):
     x, y = vector  # unpack the vector into its two components
     magnitude = math.sqrt(x**2 + y**2)  # calculate the magnitude using the formula

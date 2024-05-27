@@ -44,7 +44,7 @@ def RecurrrenceTreshold(rp,X):
 
 def FuncionC(rp,cord1,cord2,method="Euclid"):
     if(method=="Euclid"):
-       THRESHOLD=RecurrrenceTreshold(rp,40)
+       THRESHOLD=RecurrrenceTreshold(rp,20)
        valor=0
        d=rp[cord1][cord2]
        if((d<=THRESHOLD)and(d>=(-THRESHOLD))):
@@ -57,19 +57,7 @@ def CreateCostMatrix(rp) :
          for j in range(M):
              CostM[i][j]=FuncionC(rp,i,j,"Euclid")
     return CostM
-def weigthed_graphRP(rp):
-    CostM=CreateCostMatrix(rp)
-    weighted_adjacency_matrix = np.zeros_like(rp) 
-    nonzero_indices = np.nonzero(CostM)
 
-    for i, j in zip(*nonzero_indices):
-        Gi = np.nonzero(CostM[i])[0]
-        Gj = np.nonzero(CostM[j])[0]
-        intersection = len(np.intersect1d(Gi, Gj))
-        union = len(np.union1d(Gi, Gj))
-        weighted_adjacency_matrix[i, j] = 1 - (intersection / union)
-                
-    return weighted_adjacency_matrix
 
 def calculate_shortest_path_matrix(Wg):
     shortest_path_matrix = dijkstra(Wg, directed=True)
@@ -78,13 +66,12 @@ def calculate_shortest_path_matrix(Wg):
 
 def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=129):
     if not all([(x==0).all()]):
+     print(x.shape)
      _r = rec.varRP(x,'x', TIME_STEPS)
      _g = rec.varRP(x,'y', TIME_STEPS)
      _b = rec.varRP(x,'z', TIME_STEPS)
 
-     print("X", _r[1][4])
-     print("Y", _g[1][4])
-     print("Z", _b[1][4])
+     
      #print("Y", _g)
      #print("Z", _b)
      
@@ -120,7 +107,7 @@ def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, save
      return newImage
     else:
      return None
-    
+   
 def weigthed_graphRP(rp):
     CostM=CreateCostMatrix(rp)
     weighted_adjacency_matrix = np.zeros_like(rp) 
@@ -146,19 +133,19 @@ def reconstruct_time_series(shortest_path_matrix, ep=0.0, small_constant=1e-10):
         ep  # Ajusta este valor según sea necesario
     )
 
-    # print(finite_shortest_path_matrix)
+    #print("mfinita",finite_shortest_path_matrix)
 
      # Add a small constant to avoid division by zero
     finite_shortest_path_matrix += small_constant    
 
     # Apply MDS to get a 2D representation of the shortest path matrix
-    mds = MDS(n_components=2, dissimilarity='precomputed')
+    mds = MDS(n_components=2, dissimilarity='precomputed',random_state=1)
     embedded_coords = mds.fit_transform(finite_shortest_path_matrix)
-
+    
     #----
     # Calcular la matriz de covarianza
     cov_matrix = np.cov(embedded_coords, rowvar=False)
-
+    #print("mds",embedded_coords)
     # Calcular los valores y vectores propios de la matriz de covarianza
     eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
 
@@ -194,10 +181,45 @@ def Reconstruct_RP(img):
         spm=calculate_shortest_path_matrix(wg)  
         ##we multiply * -1 ya que se invierte al calcular los valores propios
         rp=reconstruct_time_series(spm, ep=0.0)
-        
+        rp=fix_rotationscale(R[i],rp,i)
         N.append(rp)
     return N
-
+def fix_rotationscale(rporiginal,seriereconstruida,i,TIME_STEPS=129):
+     MAX=[10.657428709640488,3.0590269720681738,7.629156537079175] 
+     MIN=[-4.128293834805366,-11.814377181580914,-5.316818145702738]
+     MEAN=[3.451300189402157,-4.152375746050367, 1.2525971513133263]
+     #escalo la serie para que tenga los valores 
+     
+     
+     print(seriereconstruida.shape)
+     #Scaling part
+     n=np.append(seriereconstruida,np.mean(seriereconstruida))
+     #n=seriereconstruida
+     print(n.shape)
+     posi=np.interp(n,(np.min(n),np.max(n)),(MIN[i],MAX[i])).reshape(129)
+     meandiff=MEAN[i]- np.mean(posi[i])    
+     posi=posi+meandiff 
+     rposi=rec.varRP2(posi, TIME_STEPS=129)    
+     
+     n=n*-1  
+     nega=np.interp(n,(np.min(n),np.max(n)),(MIN[i],MAX[i])).reshape(129)
+     meandiff=MEAN[i]- np.mean(nega[i])  
+     nega=nega+meandiff  
+     rnega=rec.varRP2(nega, TIME_STEPS=129)
+     
+     rp=[]
+     print(rporiginal.shape,posi.shape)
+     
+     error_absolutoa, error_relativoa= calcular_errores(rporiginal, rposi)
+     error_absolutob, error_relativob= calcular_errores(rporiginal, rnega)
+     if error_relativob<error_relativoa :
+         rp=nega[:128]
+         print("nega")
+     else :
+        rp=posi[:128]
+        print("posi")
+        
+     return  rp 
 def calcular_errores(valores_verdaderos, valores_aproximados):
     # Convertir las listas a arrays de numpy para facilitar los cálculos
     valores_verdaderos = np.array(valores_verdaderos)
@@ -303,9 +325,9 @@ def main():
      MAX=np.max(X_train)
      MIN=np.min(X_train)
      #he obtenido el máximo y el minimo del dataset minimo -78.47761 maximo 66.615074
-     w = X_train[1]
+     w = X_train[0]
      sj = sj_train[0][0]
-     w_y = y_train[1]
+     w_y = y_train[0]
      w_y_no_cat = np.argmax(w_y)
      print(w.shape)
      img = SavevarRP_XYZ(w, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129)
@@ -315,53 +337,111 @@ def main():
      imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
      print("Image shape",imagen.shape)
      rp=Reconstruct_RP(imagen)
-     rp[0]=-1*rp[0]
+     
+     """
+     #5493 para el max 
      #
+     vmax=[]
+     vmin=[]
+     vmed=[]
+     print(X_train.shape)
+     for x in X_train:
+         
+         vmax.append(np.max(x[:,:]))
+         vmin.append(np.min(x[:,:]))
+         
+     print("media Max",np.max(vmax))
+     vmax=np.array(vmax)
+     indices = [i for i, x in enumerate(vmax) if x >= 66.60]
+     print(indices)
+     print("media Min",np.mean(vmin)) 
+     print(np.mean(X_train[:,:,0]),np.mean(X_train[:,:,1]),np.mean(X_train[:,:,2]))
+     _max=np.mean(vmax)
+     _min=np.mean(vmin)
+     
+     
+        
+        
+     
+     rp[0]=-1*rp[0]
      _max=np.max(w[:,0])
      _min=np.min(w[:,0])
      s=np.interp(rp[0],(np.min(rp[0]),np.max(rp[0])),(_min,_max)).reshape(128)
+     _max=np.max(w[:,1])
+     _min=np.min(w[:,1])
+     s1=np.interp(rp[1],(np.min(rp[1]),np.max(rp[1])),(_min,_max)).reshape(128)
+     _max=np.max(w[:,2])
+     _min=np.min(w[:,2])
+     s2=np.interp(rp[2],(np.min(rp[2]),np.max(rp[2])),(_min,_max)).reshape(128)
+    """ 
+    # Configurar el estilo de los gráficos
+     plt.style.use("ggplot")  
 
-     plt.plot(w[:,0], marker='o')
-     # Etiquetas del gráfico
-     plt.title('original')
-     plt.xlabel("tiempo")
-     plt.ylabel('Índice X')
-     plt.savefig('original.png')
-     plt.clf() 
+    # Gráfico original
+     plt.figure(figsize=(10, 6))
+     plt.plot(w[:, 0], marker='o', color='blue')
+     plt.title('Original', fontsize=18,fontweight="bold")
+     plt.xlabel("Tiempo", fontsize=12)
+     plt.ylabel('Índice X', fontsize=12)
+     plt.grid(True)
+     plt.tight_layout()
+     plt.savefig('original.png', bbox_inches='tight', pad_inches=0)
+     plt.clf()
 
-     plt.plot(s, marker='o')
-    
-     # Etiquetas del gráfico
-     plt.title('reconstruccion')
-     plt.xlabel('tiempo')
-     plt.ylabel('Índice X')
-     plt.savefig('reconstruccion.png')
-    
-     plt.clf() 
+    # Gráfico reconstrucción
+     plt.figure(figsize=(10, 6))
+     plt.plot(rp[0], marker='o', color='green')
+     plt.title('Reconstrucción', fontsize=18,fontweight="bold")
+     plt.xlabel('Tiempo', fontsize=12)
+     plt.ylabel('Índice X', fontsize=12)
+     plt.grid(True)
+     plt.tight_layout()
+     plt.savefig('reconstruccion.png', bbox_inches='tight', pad_inches=0)
+     plt.clf()
 
-     plt.plot(w[:,0], marker='o',label='original', color='blue')
-     # Etiquetas del gráfico
-     plt.title('Comparativa')
-     plt.xlabel("tiempo")
-     plt.ylabel('Índice X')
-     plt.plot(s, marker='o',label='reconstruccion', color='red')
-     plt.legend()   
-     plt.savefig('Comparativa.png')
+    # Gráfico comparativa
+     plt.figure(figsize=(10, 6))
+     plt.plot(w[:, 0], marker='o', label='Original', color='blue')
+     plt.plot(rp[0], marker='o', label='Reconstrucción', color='green')
+     plt.title('Comparativa', fontsize=18,fontweight="bold")
+     plt.xlabel("Tiempo", fontsize=12)
+     plt.ylabel('Índice X', fontsize=12)
+     plt.legend(fontsize=12)
+     plt.grid(True)
+     plt.tight_layout()
+     plt.savefig('Comparativa.png', bbox_inches='tight', pad_inches=0)
+     plt.clf()
      
      f=np.array(w[:,0])
      f=f[1:]
      print(f.shape)
-     error_absoluto, error_relativo = calcular_errores(f, s)
+     error_absoluto, error_relativo = calcular_errores(f, rp[0])
      print(f"Error Absoluto Promedio: {error_absoluto}")
      print(f"Error Relativo Promedio: {error_relativo}")
-     print(f"Coeficiente de correlación: {np.corrcoef(f, s)[0,1]}")
+     print(f"Coeficiente de correlación: {np.corrcoef(f, rp[0])[0,1]}")
+     """
+     a=0
+     b=0 
+     c=0 
+     s=np.append(s.astype(np.float64),a)
+     s1=np.append(s1.astype(np.float64),b)
+     s2=np.append(s2.astype(np.float64),c)
+
+     w2=np.zeros(w.shape)
+     print(w2.dtype)
+     for i in range(0,129):
+        w2[i][0]=s[i]
+        w2[i][1]=s1[i]
+        w2[i][2]=s2[i]
+   
+    
+     img = SavevarRP_XYZ(w2, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129)
     #Error Absoluto Promedio: 1.2916679603210046
     #Error Relativo Promedio: 0.10410946116987463
     #Coeficiente de correlación: 0.9152496948611255
-
-
-    
-       
+    """
+     
+     
 # Guardar el gráfico como una imagen
     
 
