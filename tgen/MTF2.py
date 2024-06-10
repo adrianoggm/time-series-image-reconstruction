@@ -21,9 +21,9 @@ def varMTF2(data, dim,TIME_STEPS):
     
     x=np.array(data[:,k]).reshape(1,-1)
     num_states = TIME_STEPS//4
-    mtf = MarkovTransitionField(image_size=TIME_STEPS,overlapping=True,n_bins=5)
+    mtf = MarkovTransitionField(image_size=num_states,overlapping=True,n_bins=num_states)
     
-    X_mtf = mtf.fit_transform(x).reshape(TIME_STEPS, TIME_STEPS)
+    X_mtf = mtf.fit_transform(x).reshape(num_states, num_states)
     
     return X_mtf
 def NormalizeMatrix_Adri(_r):
@@ -43,7 +43,7 @@ def RGBfromMTFMatrix_of_XYZ(X,Y,Z):
     if X.shape != Y.shape or X.shape != Z.shape or Y.shape != Z.shape:
         print('XYZ should be in same shape!')
         return 0
-    print(X.shape)
+    #print(X.shape)
     dimImage = X.shape[0]
     newImage = np.zeros((dimImage,dimImage,3))
     for i in range(dimImage):
@@ -94,11 +94,11 @@ def varMTF(data, dim,TIME_STEPS):
 
 def SavevarMTF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=129):
     if not all([(x==0).all()]):
-     _r = varMTF(x,'x', TIME_STEPS)
-     _g = varMTF(x,'y', TIME_STEPS)
-     _b = varMTF(x,'z', TIME_STEPS)
+     _r = varMTF2(x,'x', TIME_STEPS)
+     _g = varMTF2(x,'y', TIME_STEPS)
+     _b = varMTF2(x,'z', TIME_STEPS)
 
-     print("X", _r[0][0])
+     print("X", _r[0])
      #print("Y", _g[1][4])
      #print("Z", _b[1][4])
      #print("Y", _g)
@@ -118,7 +118,7 @@ def SavevarMTF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, sav
           #newImage = RGBfromRPMatrix_of_XYZ(_r, _g, _b)
           # print(newImage.shape)
           #print(newImage[1][4][0]* 255)
-          newImage = Image.fromarray((newImage * 255).astype(np.uint8))
+          newImage = Image.fromarray((np.round(newImage * 255)).astype(np.uint8))
           # plt.imshow(newImage)
           
           if saveImage:
@@ -155,7 +155,66 @@ def calcular_errores(valores_verdaderos, valores_aproximados):
     error_relativo_promedio = np.mean(errores_relativos)
     
     return error_absoluto_promedio, error_relativo_promedio
+def Reconstruct_MTF(img):
+    _r= img[:,:,0].astype('float')
+    _g= img[:,:,1].astype('float')
+    _b= img[:,:,2].astype('float')
+    
+    _r=np.interp(_r,(0,255),(0,1))
+    _g=np.interp(_g,(0,255),(0,1))
+    _b=np.interp(_b,(0,255),(0,1))
+    print(_r)
+    r=MTF_to_TS(_r,16,0)
+    g=MTF_to_TS(_g,3,1)
+    b=MTF_to_TS(_b,3,2)
+    N=[]
+    N.append(r)
+    N.append(g)
+    N.append(b)
+    return N
+def MTF_to_TS(mtf,initialstate=3,index=0,numstates=32,TIMESTEPS=129):
+    mtf2=np.zeros_like(mtf)
+    for i in range(0,numstates): 
+        
+        v=1-np.sum(mtf[i])
+        if(v>=0):
+            mtf2[i]=mtf[i]+(v/numstates)
+            
+        if(v<0):
+            mtf2[i]=mtf[i]
+            for j in range(0,numstates):
+                if mtf2[i][j]+v>=0:
+                    mtf2[i][j]+=v
+                    break        
+        print(np.sum(mtf2[i]))            
+    
+    states=np.arange(numstates)
+    generated_series=[]
+    generated_series.append(initialstate)
+    current_state=initialstate
+    np.random.seed(0)   
+    for _ in range(0,TIMESTEPS-1):
+        current_index = current_state
+        next_state = np.random.choice(states, p=mtf2[current_index])
+        generated_series.append(next_state)
+        current_state = next_state
+    
+    #RECONSTRUCCIÓN DISCRETA DE LOS ESTADOS:
+    #Sabemos que el valor medio de los datos maximos es 
+    MAX=[10.657428709640488,3.0590269720681738,7.629156537079175] 
+    MIN=[-4.128293834805366,-11.814377181580914,-5.316818145702738]
 
+    tam=MAX[index]-MIN[index]
+    estadosdiscretos=np.zeros(numstates)
+    estadosdiscretos[0]=MIN[index]
+    a=MIN[index]
+    for i in range(1,numstates):
+       a=a+tam/numstates
+       estadosdiscretos[i]=a
+    serie=np.zeros(128)
+    for i in range(0,TIMESTEPS-1):
+        serie[i]=estadosdiscretos[generated_series[i]]
+    return serie
 def main():
      data_name="WISDM"
      data_folder="/home/adriano/Escritorio/TFG/data/WISDM/"
@@ -176,7 +235,55 @@ def main():
      w_y_no_cat = np.argmax(w_y)
      print(w.shape)
      img = SavevarMTF_XYZ(w, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129) 
+     imagen = cv2.imread("./1600x0mtf.png")  
+     imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
+     print("Image shape",imagen.shape)
+     rp=Reconstruct_MTF(imagen)
+     # Configurar el estilo de los gráficos
+     plt.style.use("ggplot")  
+
+    # Gráfico original
+     plt.figure(figsize=(10, 6))
+     plt.plot(w[:, 0], marker='o', color='blue')
+     plt.title('Original', fontsize=18,fontweight="bold")
+     plt.xlabel("Tiempo", fontsize=12)
+     plt.ylabel('Índice X', fontsize=12)
+     plt.grid(True)
+     plt.tight_layout()
+     plt.savefig('original.png', bbox_inches='tight', pad_inches=0)
+     plt.clf()
+
+    # Gráfico reconstrucción
+     plt.figure(figsize=(10, 6))
+     plt.plot(rp[0], marker='o', color='green')
+     plt.title('Reconstrucción', fontsize=18,fontweight="bold")
+     plt.xlabel('Tiempo', fontsize=12)
+     plt.ylabel('Índice X', fontsize=12)
+     plt.grid(True)
+     plt.tight_layout()
+     plt.savefig('reconstruccion.png', bbox_inches='tight', pad_inches=0)
+     plt.clf()
+
+    # Gráfico comparativa
+     plt.figure(figsize=(10, 6))
+     plt.plot(w[:, 0], marker='o', label='Original', color='blue')
+     plt.plot(rp[0], marker='o', label='Reconstrucción', color='green')
+     plt.title('Comparativa', fontsize=18,fontweight="bold")
+     plt.xlabel("Tiempo", fontsize=12)
+     plt.ylabel('Índice X', fontsize=12)
+     plt.legend(fontsize=12)
+     plt.grid(True)
+     plt.tight_layout()
+     plt.savefig('Comparativa.png', bbox_inches='tight', pad_inches=0)
+     plt.clf()
      
+     f=np.array(w[:,0])
+     f=f[1:]
+     print(f.shape)
+     error_absoluto, error_relativo = calcular_errores(f, rp[0])
+     print(f"Error Absoluto Promedio: {error_absoluto}")
+     print(f"Error Relativo Promedio: {error_relativo}")
+     print(f"Coeficiente de correlación: {np.corrcoef(f, rp[0])[0,1]}")
 plt.show()
 if __name__ == '__main__':
     main()

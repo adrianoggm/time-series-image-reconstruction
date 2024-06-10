@@ -9,7 +9,7 @@ from scipy.sparse.csgraph import dijkstra
 from PIL import Image
 import cv2
 from sklearn.manifold import MDS
-
+from dtaidistance import dtw
 def NormalizeMatrix_Adri(_r):
     dimR = _r.shape[0]
     _max=66.615074
@@ -374,6 +374,9 @@ def main():
      _min=np.min(w[:,2])
      s2=np.interp(rp[2],(np.min(rp[2]),np.max(rp[2])),(_min,_max)).reshape(128)
     """ 
+
+
+     
     # Configurar el estilo de los gráficos
      plt.style.use("ggplot")  
 
@@ -416,8 +419,10 @@ def main():
      f=f[1:]
      print(f.shape)
      error_absoluto, error_relativo = calcular_errores(f, rp[0])
+     d = dtw.distance_fast(f, rp[0], use_pruning=True)
      print(f"Error Absoluto Promedio: {error_absoluto}")
      print(f"Error Relativo Promedio: {error_relativo}")
+     print(f"Error DTW: {d}")
      print(f"Coeficiente de correlación: {np.corrcoef(f, rp[0])[0,1]}")
      """
      a=0
