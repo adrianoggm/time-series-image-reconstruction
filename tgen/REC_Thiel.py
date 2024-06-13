@@ -116,7 +116,7 @@ def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, save
           #newImage = RGBfromRPMatrix_of_XYZ(_r, _g, _b)
           # print(newImage.shape)
           print(newImage[1][4][0]* 255)
-          newImage = Image.fromarray((newImage * 255).astype(np.uint8))
+          newImage = Image.fromarray((np.round(newImage * 255)).astype(np.uint8))
           # plt.imshow(newImage)
           
           if saveImage:
@@ -125,7 +125,7 @@ def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, save
           # plt.close('all')
      else:
           newImage = rec.RGBfromRPMatrix_of_XYZ(_r, _g, _b)
-          newImage = Image.fromarray((newImage * 255).astype(np.uint8))
+          newImage = Image.fromarray((np.round(newImage * 255)).astype(np.uint8))
           # plt.imshow(newImage)
           if saveImage:
                # plt.savefig(f"{path}{sj}{action}{item_idx}.png",bbox_inches='tight',pad_inches = 0, dpi='figure') #dpi='figure' for preserve the correct pixel size (TIMESTEPS x TIMESTEPS)

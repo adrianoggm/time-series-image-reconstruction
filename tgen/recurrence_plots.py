@@ -12,7 +12,19 @@ import seaborn as sns
 from sklearn.model_selection import StratifiedGroupKFold, GroupKFold
 
 from PIL import Image
-
+def NormalizeMatrix_Adri(_r):
+    dimR = _r.shape[0]
+    _max=66.615074
+    _min =  -78.47761
+    _max_min = _max - _min
+    #_normalizedRP=np.interp(_r,(_min,_max),(0,1))
+    
+    _normalizedRP = np.zeros((dimR,dimR))
+    for i in range(dimR):
+        for j in range(dimR):
+            _normalizedRP[i][j] = (_r[i][j]-_min)/_max_min
+    
+    return _normalizedRP
 def varRP2(data, TIME_STEPS=129):#dim:=x,y,z
     x = data
     
@@ -273,10 +285,9 @@ def SaveRP_XYZ(x, sj, item_idx, action, normalized, path, saveImage=True, TIME_S
     # plt.gca().xaxis.set_major_locator(plt.NullLocator())
     # plt.gca().yaxis.set_major_locator(plt.NullLocator())
     if normalized:
-        newImage = RGBfromRPMatrix_of_XYZ(NormalizeMatrix(_r), NormalizeMatrix(_g), NormalizeMatrix(_b))
-        #newImage = RGBfromRPMatrix_of_XYZ(_r, _g, _b)
+        newImage = RGBfromRPMatrix_of_XYZ(NormalizeMatrix_Adri(_r), NormalizeMatrix_Adri(_g), NormalizeMatrix_Adri(_b))#newImage = RGBfromRPMatrix_of_XYZ(_r, _g, _b)
 
-        newImage = Image.fromarray((newImage * 255).astype(np.uint8))
+        newImage = Image.fromarray((np.round(newImage * 255)).astype(np.uint8))
 
         # plt.imshow(newImage)
         if saveImage:
@@ -285,7 +296,7 @@ def SaveRP_XYZ(x, sj, item_idx, action, normalized, path, saveImage=True, TIME_S
         # plt.close('all')
     else:
         newImage = RGBfromRPMatrix_of_XYZ(_r, _g, _b)
-        newImage = Image.fromarray((newImage * 255).astype(np.uint8))
+        newImage = Image.fromarray((np.round(newImage * 255)).astype(np.uint8))
 
         # plt.imshow(newImage)
         if saveImage:
@@ -314,10 +325,10 @@ def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, save
     print("fig size: width=", plt.figure().get_figwidth(), "height=", plt.figure().get_figheight())
 
     if normalized:
-        newImage = RGBfromRPMatrix_of_XYZ(NormalizeMatrix(_r), NormalizeMatrix(_g), NormalizeMatrix(_b))
+        newImage = RGBfromRPMatrix_of_XYZ(NormalizeMatrix_Adri(_r), NormalizeMatrix_Adri(_g), NormalizeMatrix_Adri(_b))
         #newImage = RGBfromRPMatrix_of_XYZ(_r, _g, _b)
         # print(newImage.shape)
-        newImage = Image.fromarray((newImage * 255).astype(np.uint8))
+        newImage = Image.fromarray((np.round(newImage * 255)).astype(np.uint8))
         # plt.imshow(newImage)
         if saveImage:
           # plt.savefig(f"{path}{sj}{action}{item_idx}.png",bbox_inches='tight',pad_inches = 0, dpi='figure')
@@ -325,7 +336,7 @@ def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, save
         # plt.close('all')
     else:
         newImage = RGBfromRPMatrix_of_XYZ(_r, _g, _b)
-        newImage = Image.fromarray((newImage * 255).astype(np.uint8))
+        newImage = Image.fromarray((np.round(newImage * 255)).astype(np.uint8))
         # plt.imshow(newImage)
         if saveImage:
           # plt.savefig(f"{path}{sj}{action}{item_idx}.png",bbox_inches='tight',pad_inches = 0, dpi='figure') #dpi='figure' for preserve the correct pixel size (TIMESTEPS x TIMESTEPS)

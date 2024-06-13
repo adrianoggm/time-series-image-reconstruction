@@ -1,7 +1,8 @@
+#!/home/adriano/Escritorio/TFG/venv/bin/python3
 from keras.utils import to_categorical
 import argparse
 import tgen.activity_data as act
-import tgen.recurrence_plots as rec
+import tgen.activity_data_tseries as ts
 def main():
     '''Examples of runs:
     - load LOSO numpies
@@ -42,7 +43,7 @@ def main():
         y_train = to_categorical(y_train, dtype='uint8') 
     print("X_train", X_train.shape, "y_train", y_train.shape, "sj_train", sj_train.shape)
     
-    rec.generate_all_recurrence_plots(X_train, y_train, sj_train, data_folder, TIME_STEPS, FOLDS_N, args.sampling)
+    ts.generate_all_time_series(X_train, y_train, sj_train, data_folder, TIME_STEPS, FOLDS_N, args.sampling)
 
 
 if __name__ == '__main__':

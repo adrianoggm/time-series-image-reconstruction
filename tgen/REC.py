@@ -2,8 +2,8 @@
 from math import sqrt
 import numpy as np
 import matplotlib.pyplot as plt
-import activity_data as act
-import recurrence_plots as rec
+import tgen.activity_data as act
+import tgen.recurrence_plots as rec
 from pyts.image import MarkovTransitionField
 from scipy.sparse.csgraph import dijkstra
 from PIL import Image
@@ -89,7 +89,7 @@ def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, save
           #newImage = RGBfromRPMatrix_of_XYZ(_r, _g, _b)
           # print(newImage.shape)
           print(newImage[1][4][0]* 255)
-          newImage = Image.fromarray((newImage * 255).astype(np.uint8))
+          newImage = Image.fromarray((np.round(newImage * 255)).astype(np.uint8))
           # plt.imshow(newImage)
           
           if saveImage:
@@ -98,7 +98,7 @@ def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, save
           # plt.close('all')
      else:
           newImage = rec.RGBfromRPMatrix_of_XYZ(_r, _g, _b)
-          newImage = Image.fromarray((newImage * 255).astype(np.uint8))
+          newImage = Image.fromarray((np.round(newImage * 255)).astype(np.uint8))
           # plt.imshow(newImage)
           if saveImage:
                # plt.savefig(f"{path}{sj}{action}{item_idx}.png",bbox_inches='tight',pad_inches = 0, dpi='figure') #dpi='figure' for preserve the correct pixel size (TIMESTEPS x TIMESTEPS)
@@ -183,6 +183,7 @@ def Reconstruct_RP(img):
         rp=reconstruct_time_series(spm, ep=0.0)
         rp=fix_rotationscale(R[i],rp,i)
         N.append(rp)
+    N=np.array(N)
     return N
 def fix_rotationscale(rporiginal,seriereconstruida,i,TIME_STEPS=129):
      MAX=[10.657428709640488,3.0590269720681738,7.629156537079175] 
@@ -208,16 +209,16 @@ def fix_rotationscale(rporiginal,seriereconstruida,i,TIME_STEPS=129):
      rnega=rec.varRP2(nega, TIME_STEPS=129)
      
      rp=[]
-     print(rporiginal.shape,posi.shape)
+     print(rporiginal.shape,rposi.shape)
      
      error_absolutoa, error_relativoa= calcular_errores(rporiginal, rposi)
      error_absolutob, error_relativob= calcular_errores(rporiginal, rnega)
      if error_relativob<error_relativoa :
          rp=nega[:128]
-         print("nega")
+         #print("nega")
      else :
         rp=posi[:128]
-        print("posi")
+        #print("posi")
         
      return  rp 
 def calcular_errores(valores_verdaderos, valores_aproximados):
