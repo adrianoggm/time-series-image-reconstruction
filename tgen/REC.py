@@ -66,7 +66,7 @@ def calculate_shortest_path_matrix(Wg):
 
 def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=129):
     if not all([(x==0).all()]):
-     print(x.shape)
+     #print(x.shape)
      _r = rec.varRP(x,'x', TIME_STEPS)
      _g = rec.varRP(x,'y', TIME_STEPS)
      _b = rec.varRP(x,'z', TIME_STEPS)
@@ -88,7 +88,7 @@ def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, save
           newImage = rec.RGBfromRPMatrix_of_XYZ(NormalizeMatrix_Adri(_r), NormalizeMatrix_Adri(_g), NormalizeMatrix_Adri(_b))
           #newImage = RGBfromRPMatrix_of_XYZ(_r, _g, _b)
           # print(newImage.shape)
-          print(newImage[1][4][0]* 255)
+          #print(newImage[1][4][0]* 255)
           newImage = Image.fromarray((np.round(newImage * 255)).astype(np.uint8))
           # plt.imshow(newImage)
           
@@ -163,12 +163,12 @@ def Reconstruct_RP(img):
     #Obtengo cada una de las recurrence plots
     _max=66.615074
     _min =  -78.47761
-    print("X2",_r[1][4])
+    #print("X2",_r[1][4])
     ##PREGUNTAR SI ES LO MISMO O HABRIA QUE PASAR de 255 a [0-1] y posteriormente a min max
     _r=np.interp(_r,(0,255),(_min,_max))
     _g=np.interp(_g,(0,255),(_min,_max))
     _b=np.interp(_b,(0,255),(_min,_max))
-    print("X2 post normalizacion",_r[1][4])
+    #print("X2 post normalizacion",_r[1][4])
     
     R= []
     R.append(_r)
@@ -192,11 +192,11 @@ def fix_rotationscale(rporiginal,seriereconstruida,i,TIME_STEPS=129):
      #escalo la serie para que tenga los valores 
      
      
-     print(seriereconstruida.shape)
+     #print(seriereconstruida.shape)
      #Scaling part
      n=np.append(seriereconstruida,np.mean(seriereconstruida))
      #n=seriereconstruida
-     print(n.shape)
+     #print(n.shape)
      posi=np.interp(n,(np.min(n),np.max(n)),(MIN[i],MAX[i])).reshape(129)
      meandiff=MEAN[i]- np.mean(posi[i])    
      posi=posi+meandiff 
@@ -209,7 +209,7 @@ def fix_rotationscale(rporiginal,seriereconstruida,i,TIME_STEPS=129):
      rnega=rec.varRP2(nega, TIME_STEPS=129)
      
      rp=[]
-     print(rporiginal.shape,rposi.shape)
+     #print(rporiginal.shape,rposi.shape)
      
      error_absolutoa, error_relativoa= calcular_errores(rporiginal, rposi)
      error_absolutob, error_relativob= calcular_errores(rporiginal, rnega)
