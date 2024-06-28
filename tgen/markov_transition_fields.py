@@ -138,7 +138,7 @@ def SavevarMTF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, sav
           
           if saveImage:
                # plt.savefig(f"{path}{sj}{action}{item_idx}.png",bbox_inches='tight',pad_inches = 0, dpi='figure')
-               newImage.save(f"{path}{sj}{action}{item_idx}mtf.png")
+               newImage.save(f"{path}{sj}{action}{item_idx}.png")
           # plt.close('all')
      else:
           newImage = RGBfromMTFMatrix_of_XYZ(_r, _g, _b)
@@ -146,7 +146,7 @@ def SavevarMTF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, sav
           # plt.imshow(newImage)
           if saveImage:
                # plt.savefig(f"{path}{sj}{action}{item_idx}.png",bbox_inches='tight',pad_inches = 0, dpi='figure') #dpi='figure' for preserve the correct pixel size (TIMESTEPS x TIMESTEPS)
-               newImage.save(f"{path}{sj}{action}{item_idx}mtf.png")
+               newImage.save(f"{path}{sj}{action}{item_idx}.png")
           # plt.close('all')
      return newImage
     else:

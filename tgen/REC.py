@@ -221,16 +221,17 @@ def fix_rotationscale(rporiginal,seriereconstruida,i,TIME_STEPS=129):
         #print("posi")
         
      return  rp 
-def calcular_errores(valores_verdaderos, valores_aproximados):
+def calcular_errores(valores_verdaderos, valores_aproximados,small_constant=1e-10):
     # Convertir las listas a arrays de numpy para facilitar los cálculos
     valores_verdaderos = np.array(valores_verdaderos)
     valores_aproximados = np.array(valores_aproximados)
     
     # Calcular el error absoluto
     errores_absolutos = np.abs(valores_verdaderos - valores_aproximados)
-    
+     # Add a small constant to avoid division by zero
+     
     # Calcular el error relativo (evitando la división por cero)
-    errores_relativos = np.abs(errores_absolutos / valores_verdaderos)
+    errores_relativos = np.abs(errores_absolutos / (valores_verdaderos+small_constant))
     
     # Calcular el error absoluto promedio
     error_absoluto_promedio = np.mean(errores_absolutos)

@@ -6,7 +6,9 @@ import tgen.activity_data_tseries as ts
 def main():
     '''Examples of runs:
     - load LOSO numpies
-    nohup ./generate_recurrence_plots.py --data-name WISDM --n-folds 3 --data-folder /home/adriano/Escritorio/TFG/data/WISDM/ --sampling loso  > recurrence_plots_loso.log &
+    ./generate_time_series.py --data-name WISDM --n-folds 3 --data-folder /home/adriano/Escritorio/TFG/data/WISDM/  --sampling loto > ts_plots_loto.log &
+
+
     
     
     $ nohup ./generate_recurrence_plots.py --data-name WISDM --n-folds 3 --data-folder /home/adriano/Escritorio/TFG/data/WISDM/  --sampling loso  > recurrence_plots_loso.log &

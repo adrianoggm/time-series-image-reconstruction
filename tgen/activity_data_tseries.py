@@ -35,17 +35,17 @@ def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_
     start_gl=time.time()
     #Colocar timer
     for i in p_bar:
-      start=time.time()
+      #start=time.time()
       w = training_data[i]
       sj = sj_train[i][0]
       w_y = y_data[i]
       w_y_no_cat = np.argmax(w_y)
-      print("w_y", w_y, "w_y_no_cat", w_y_no_cat)
-      print("w", w.shape)
+      #print("w_y", w_y, "w_y_no_cat", w_y_no_cat)
+      #print("w", w.shape)
       error=[]
       # Update Progress Bar after a while
-      time.sleep(0.01)
-      p_bar.set_description(f'[{data_type} | FOLD {fold} | Class {w_y_no_cat}] Subject {sj}')
+      #time.sleep(0.01)
+      #p_bar.set_description(f'[{data_type} | FOLD {fold} | Class {w_y_no_cat}] Subject {sj}')
       path=f"{dataset_folder}plots/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/"
       path=f"{path}{sj}x{subject_samples}.png"  
       imagen = cv2.imread(path)  
@@ -53,38 +53,44 @@ def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_
       ##We need to change path 
       path=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/{sj}x{subject_samples}.npy"
       rp=rpts.Reconstruct_RP(imagen)
-      end=time.time()
-      tiempo=end-start
-      np.append(tiempos,tiempo)
+      #end=time.time()
+      #Si queremos guardar los datos
+      #np.save(path, np.array(rp))
+      
+      #print(rp)
+      X_all_rec.append(rp)
+      #print("X_ALL",np.array(X_all_rec))
+      #tiempo=end-start
+      #tiempos.append(tiempo)
       #Guardar la rp en el path indicado con un nombre adecuado
-      np.save(path, np.array(rp))
-      np.append(X_all_rec,rp)
+      #print(tiempos)
       #w=w.reshape(3,129)
       #w=w[:, 0]
       #w=w[1:]
-      print("Forma del RP original y calculada",w.shape,rp.shape)
+      #print("Forma del RP original y calculada",w.shape,rp.shape)
       
-      #print(,w,"calculada",rp)
+      #print("normal",w,"calculada",rp)
       error_abs,error_r,error_d,error_p=ts_error(w,rp)
-      np.append(error,error_abs)
-      np.append(error,error_r)
-      np.append(error,error_d)
-      np.append(error,error_p)
-      np.append(errores,error)
+      error.append(error_abs)
+      error.append(error_r)
+      error.append(error_d)
+      error.append(error_p)
+      errores.append(error)
       
+      #print("errores",np.array(errores))
       subject_samples += 1
     end_gl=time.time()
     ttotal=end_gl-start_gl
 
     #maybe we should calculate here the global of errors and the mean.
-    archivoX_all=f"{dataset_folder}plots/recurrence_plot/sampling_{sampling}/X_all_rec.npy"
+    archivoX_all=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/X_all_rec.npy"
     np.save(archivoX_all,np.array(X_all_rec))
-    archivoerrores=f"{dataset_folder}plots/recurrence_plot/sampling_{sampling}/errores_rec.npy"
+    archivoerrores=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/errores_rec.npy"
     np.save(archivoerrores,np.array(errores))
-    archivotiempos=f"{dataset_folder}plots/recurrence_plot/sampling_{sampling}/tiempos_rec.npy"
-    np.save(archivotiempos,np.array(tiempos))
-    print("Tiempo medio",np.mean(tiempos))
-    print("Tiempo total",np.mean(ttotal))
+    #archivotiempos=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/tiempos_rec.npy"
+    #np.save(archivotiempos,np.array(ttotal/subject_samples))
+    #print("Tiempo medio",np.mean(tiempos))
+    print("Tiempo medio total",np.mean(ttotal/subject_samples))
     return X_all_rec,errores
 
 ##Calculates all different error measures for each channel returning them in n-channel tuples   
@@ -97,14 +103,14 @@ def ts_error(original,creada):
       error_absoluto, error_relativo = rpts.calcular_errores(original[1:,i], creada[i])
       d = dtw.distance_fast(original[1:,i], creada[i], use_pruning=True)
       pearson=np.corrcoef(original[1:,i], creada[i])[0,1]
-      print(f"Error Absoluto Promedio: {error_absoluto}")
-      print(f"Error Relativo Promedio: {error_relativo}")
-      print(f"Error DTW: {d}")
-      print(f"Coeficiente de correlación: {pearson}")
-      np.append(errores_absolutos,error_absoluto)
-      np.append(errores_relativos,error_relativo)
-      np.append(errores_d,d)
-      np.append(errores_pearson,pearson)
+      #print(f"Error Absoluto Promedio: {error_absoluto}")
+      #print(f"Error Relativo Promedio: {error_relativo}")
+      #print(f"Error DTW: {d}")
+      #print(f"Coeficiente de correlación: {pearson}")
+      errores_absolutos=np.append(errores_absolutos,error_absoluto)
+      errores_relativos=np.append(errores_relativos,error_relativo)
+      errores_d=np.append(errores_d,d)
+      errores_pearson=np.append(errores_pearson,pearson)
     return  errores_absolutos, errores_relativos,errores_d,errores_pearson   
 
 #Generates all time series
@@ -159,4 +165,6 @@ def generate_all_time_series(X_train, y_train, sj_train, dataset_folder="/home/a
     ##aqui añadir una opcion si quieres todas o una en especifico
     if reconstruction=="all":
       generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_training_data, sj_training_data, TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+      print("se hace 1 vez")
+      break
       #generate_and_save_time_series_fromRP(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data, TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)

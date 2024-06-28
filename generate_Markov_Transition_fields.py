@@ -2,15 +2,12 @@
 from keras.utils import to_categorical
 import argparse
 import tgen.activity_data as act
-import tgen.recurrence_plots as rec
+import tgen.markov_transition_fields as mtf
 def main():
     '''Examples of runs:
-    - load LOSO numpies
-    nohup ./generate_recurrence_plots.py --data-name WISDM --n-folds 3 --data-folder /home/adriano/Escritorio/TFG/data/WISDM/ --sampling loso  > recurrence_plots_loso.log &
-    
-    
-    $ nohup ./generate_recurrence_plots.py --data-name WISDM --n-folds 3 --data-folder /home/adriano/Escritorio/TFG/data/WISDM/  --sampling loso  > recurrence_plots_loso.log &
-    
+    - load LOTO numpies
+    ./generate_Markov_Transition_fields.py --data-name WISDM --n-folds 3 --data-folder /home/adriano/Escritorio/TFG/data/WISDM/  --sampling loto > ts_plots_loto.log &
+       
     - Create numpies included
     $ nohup ./generate_recurrence_plots.py --create-numpies --data-name WISDM --n-folds 3 --data-folder /home/adriano/Escritorio/TFG/data/WISDM/  --sampling loso > recurrence_plots_loto.log &
     $ nohup ./generate_recurrence_plots.py --create-numpies --data-name WISDM --n-folds 3 --data-folder /home/adriano/Escritorio/TFG/data/WISDM/  --sampling loto > recurrence_plots_loto.log &
@@ -43,7 +40,7 @@ def main():
         y_train = to_categorical(y_train, dtype='uint8') 
     print("X_train", X_train.shape, "y_train", y_train.shape, "sj_train", sj_train.shape)
     
-    rec.generate_all_recurrence_plots(X_train, y_train, sj_train, data_folder, TIME_STEPS, FOLDS_N, args.sampling)
+    mtf.generate_all_markov_transition_field(X_train, y_train, sj_train, data_folder, TIME_STEPS, FOLDS_N, args.sampling)
 
 
 if __name__ == '__main__':
