@@ -98,7 +98,7 @@ def SavevarMTF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, sav
      _g = varMTF2(x,'y', TIME_STEPS)
      _b = varMTF2(x,'z', TIME_STEPS)
 
-     print("X", _r[0])
+     #print("X", _r[0])
      #print("Y", _g[1][4])
      #print("Z", _b[1][4])
      #print("Y", _g)
@@ -165,14 +165,14 @@ def Reconstruct_MTF(img):
     _b=np.interp(_b,(0,255),(0,1))
     print(_r)
     r=MTF_to_TS(_r,16,0)
-    g=MTF_to_TS(_g,3,1)
-    b=MTF_to_TS(_b,3,2)
+    g=MTF_to_TS(_g,16,1)
+    b=MTF_to_TS(_b,16,2)
     N=[]
     N.append(r)
     N.append(g)
     N.append(b)
     return N
-def MTF_to_TS(mtf,initialstate=3,index=0,numstates=32,TIMESTEPS=129):
+def MTF_to_TS(mtf,initialstate=16,index=0,numstates=32,TIMESTEPS=129):
     mtf2=np.zeros_like(mtf)
     for i in range(0,numstates): 
         
