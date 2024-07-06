@@ -2,8 +2,11 @@
 from math import sqrt
 import numpy as np
 import matplotlib.pyplot as plt
+
 import tgen.activity_data as act
+#import activity_data as act
 import tgen.recurrence_plots as rec
+#import recurrence_plots as rec
 from pyts.image import MarkovTransitionField
 from scipy.sparse.csgraph import dijkstra
 from PIL import Image
@@ -15,13 +18,13 @@ def NormalizeMatrix_Adri(_r):
     _max=66.615074
     _min =  -78.47761
     _max_min = _max - _min
-    #_normalizedRP=np.interp(_r,(_min,_max),(0,1))
-    
+    _normalizedRP=np.interp(_r,(_min,_max),(0,1))
+    """
     _normalizedRP = np.zeros((dimR,dimR))
     for i in range(dimR):
         for j in range(dimR):
             _normalizedRP[i][j] = (_r[i][j]-_min)/_max_min
-    
+    """
     return _normalizedRP
 def DesNormalizeMatrix_Adri(_r):
     dimR = _r.shape[0]
@@ -327,15 +330,17 @@ def main():
      MAX=np.max(X_train)
      MIN=np.min(X_train)
      #he obtenido el máximo y el minimo del dataset minimo -78.47761 maximo 66.615074
-     w = X_train[0]
-     sj = sj_train[0][0]
-     w_y = y_train[0]
+     a=2721+2026
+     w = X_train[a]
+     sj = sj_train[a][0]
+     w_y = y_train[a]
      w_y_no_cat = np.argmax(w_y)
+     
      print(w.shape)
      img = SavevarRP_XYZ(w, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129)
      #parte de reconstruccion
      #primero genero la RP a partir de la imagen
-     imagen = cv2.imread("./1600x0.png")  
+     imagen = cv2.imread("./1632x0.png")  
      imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
      print("Image shape",imagen.shape)
      rp=Reconstruct_RP(imagen)
@@ -384,7 +389,7 @@ def main():
 
     # Gráfico original
      plt.figure(figsize=(10, 6))
-     plt.plot(w[:, 0], marker='o', color='blue')
+     plt.plot(w[:, 1], marker='o', color='blue')
      plt.title('Original', fontsize=18,fontweight="bold")
      plt.xlabel("Tiempo", fontsize=12)
      plt.ylabel('Índice X', fontsize=12)
@@ -406,8 +411,8 @@ def main():
 
     # Gráfico comparativa
      plt.figure(figsize=(10, 6))
-     plt.plot(w[:, 0], marker='o', label='Original', color='blue')
-     plt.plot(rp[0], marker='o', label='Reconstrucción', color='green')
+     plt.plot(w[:, 1], marker='o', label='Original', color='blue')
+     plt.plot(rp[1], marker='o', label='Reconstrucción', color='green')
      plt.title('Comparativa', fontsize=18,fontweight="bold")
      plt.xlabel("Tiempo", fontsize=12)
      plt.ylabel('Índice X', fontsize=12)
@@ -417,15 +422,15 @@ def main():
      plt.savefig('Comparativa.png', bbox_inches='tight', pad_inches=0)
      plt.clf()
      
-     f=np.array(w[:,0])
+     f=np.array(w[:,1])
      f=f[1:]
      print(f.shape)
-     error_absoluto, error_relativo = calcular_errores(f, rp[0])
-     d = dtw.distance_fast(f, rp[0], use_pruning=True)
+     error_absoluto, error_relativo = calcular_errores(f, rp[1])
+     d = dtw.distance_fast(f, rp[1], use_pruning=True)
      print(f"Error Absoluto Promedio: {error_absoluto}")
      print(f"Error Relativo Promedio: {error_relativo}")
      print(f"Error DTW: {d}")
-     print(f"Coeficiente de correlación: {np.corrcoef(f, rp[0])[0,1]}")
+     print(f"Coeficiente de correlación: {np.corrcoef(f, rp[1])[0,1]}")
      """
      a=0
      b=0 
@@ -448,6 +453,14 @@ def main():
     #Coeficiente de correlación: 0.9152496948611255
     """
      
+     """
+        Para justificar el uso de DTW ya que hay casos que pearson nos falla 
+        los errores de coef negativos.
+        Error Absoluto Promedio: 5.052858674215544
+        Error Relativo Promedio: 0.6701568575233152
+        Error DTW: 59.06420078768721
+        Coeficiente de correlación: -0.8002989367032173
+     """
      
 # Guardar el gráfico como una imagen
     

@@ -27,6 +27,7 @@ import os
     track of the acuracy and the metrics from the original Time series
 """
 def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_data, sj_train, TIME_STEPS=129, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
+    
     subject_samples = 0
     p_bar = tqdm(range(len(training_data)))
     errores=[]
@@ -51,11 +52,12 @@ def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_
       imagen = cv2.imread(path)  
       imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
       ##We need to change path 
-      path=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/{sj}x{subject_samples}.npy"
       rp=rpts.Reconstruct_RP(imagen)
       #end=time.time()
+      
       #Si queremos guardar los datos
-      #np.save(path, np.array(rp))
+      path=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/{sj}x{subject_samples}.npy"
+      np.save(path, np.array(rp))
       
       #print(rp)
       X_all_rec.append(rp)
@@ -100,9 +102,9 @@ def ts_error(original,creada):
     errores_d=[]
     errores_pearson =[]
     for i in range(0,3):
-      error_absoluto, error_relativo = rpts.calcular_errores(original[1:,i], creada[i])
-      d = dtw.distance_fast(original[1:,i], creada[i], use_pruning=True)
-      pearson=np.corrcoef(original[1:,i], creada[i])[0,1]
+      error_absoluto, error_relativo = rpts.calcular_errores(original[:-1,i], creada[i])
+      d = dtw.distance_fast(original[:-1,i], creada[i], use_pruning=True)
+      pearson=np.corrcoef(original[:-1,i], creada[i])[0,1]
       #print(f"Error Absoluto Promedio: {error_absoluto}")
       #print(f"Error Relativo Promedio: {error_relativo}")
       #print(f"Error DTW: {d}")
@@ -165,6 +167,9 @@ def generate_all_time_series(X_train, y_train, sj_train, dataset_folder="/home/a
     ##aqui añadir una opcion si quieres todas o una en especifico
     if reconstruction=="all":
       generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_training_data, sj_training_data, TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+      #print(train_index[0:6])
+      #arch_training_data=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/training_data.npy"
+      #np.save(arch_training_data,np.array(training_data))
       print("se hace 1 vez")
       break
       #generate_and_save_time_series_fromRP(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data, TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
