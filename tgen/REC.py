@@ -3,10 +3,10 @@ from math import sqrt
 import numpy as np
 import matplotlib.pyplot as plt
 
-import tgen.activity_data as act
-#import activity_data as act
-import tgen.recurrence_plots as rec
-#import recurrence_plots as rec
+#import tgen.activity_data as act
+import activity_data as act
+#import tgen.recurrence_plots as rec
+import recurrence_plots as rec
 from pyts.image import MarkovTransitionField
 from scipy.sparse.csgraph import dijkstra
 from PIL import Image
@@ -330,13 +330,14 @@ def main():
      MAX=np.max(X_train)
      MIN=np.min(X_train)
      #he obtenido el máximo y el minimo del dataset minimo -78.47761 maximo 66.615074
-     a=2721+2026
+     a=0
      w = X_train[a]
      sj = sj_train[a][0]
      w_y = y_train[a]
      w_y_no_cat = np.argmax(w_y)
      
      print(w.shape)
+     
      img = SavevarRP_XYZ(w, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129)
      #parte de reconstruccion
      #primero genero la RP a partir de la imagen
@@ -344,27 +345,16 @@ def main():
      imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
      print("Image shape",imagen.shape)
      rp=Reconstruct_RP(imagen)
-     
      """
-     #5493 para el max 
-     #
-     vmax=[]
-     vmin=[]
-     vmed=[]
-     print(X_train.shape)
-     for x in X_train:
-         
-         vmax.append(np.max(x[:,:]))
-         vmin.append(np.min(x[:,:]))
-         
-     print("media Max",np.max(vmax))
-     vmax=np.array(vmax)
-     indices = [i for i, x in enumerate(vmax) if x >= 66.60]
-     print(indices)
-     print("media Min",np.mean(vmin)) 
-     print(np.mean(X_train[:,:,0]),np.mean(X_train[:,:,1]),np.mean(X_train[:,:,2]))
-     _max=np.mean(vmax)
-     _min=np.mean(vmin)
+     
+     valoresa=np.linspace(-5, 20, 129)
+     valoresb=np.linspace(-20, 50, 129)
+     valoresc=np.linspace(-10, 3, 129)
+     experimento=np.array([valoresa,valoresb,valoresc]).reshape(129,3)
+     experimentoinv=np.array([valoresa[::-1],valoresb[::-1],valoresc[::-1]]).reshape(129,3)
+     
+     img = SavevarRP_XYZ(experimento, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129) 
+     img2 = SavevarRP_XYZ(experimentoinv, sj, 1, "x", normalized = 1, path=f"./", TIME_STEPS=129)
      
      
         
@@ -380,7 +370,7 @@ def main():
      _max=np.max(w[:,2])
      _min=np.min(w[:,2])
      s2=np.interp(rp[2],(np.min(rp[2]),np.max(rp[2])),(_min,_max)).reshape(128)
-    """ 
+    """
 
 
      
@@ -431,36 +421,7 @@ def main():
      print(f"Error Relativo Promedio: {error_relativo}")
      print(f"Error DTW: {d}")
      print(f"Coeficiente de correlación: {np.corrcoef(f, rp[1])[0,1]}")
-     """
-     a=0
-     b=0 
-     c=0 
-     s=np.append(s.astype(np.float64),a)
-     s1=np.append(s1.astype(np.float64),b)
-     s2=np.append(s2.astype(np.float64),c)
-
-     w2=np.zeros(w.shape)
-     print(w2.dtype)
-     for i in range(0,129):
-        w2[i][0]=s[i]
-        w2[i][1]=s1[i]
-        w2[i][2]=s2[i]
-   
     
-     img = SavevarRP_XYZ(w2, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129)
-    #Error Absoluto Promedio: 1.2916679603210046
-    #Error Relativo Promedio: 0.10410946116987463
-    #Coeficiente de correlación: 0.9152496948611255
-    """
-     
-     """
-        Para justificar el uso de DTW ya que hay casos que pearson nos falla 
-        los errores de coef negativos.
-        Error Absoluto Promedio: 5.052858674215544
-        Error Relativo Promedio: 0.6701568575233152
-        Error DTW: 59.06420078768721
-        Coeficiente de correlación: -0.8002989367032173
-     """
      
 # Guardar el gráfico como una imagen
     

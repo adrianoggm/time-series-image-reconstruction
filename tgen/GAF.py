@@ -47,10 +47,11 @@ def normalize_series(series):
 def gramian_angular_field(series, method='summation'):
     # Normalización de la serie temporal
     normalized_series = normalize_series(series)
-    print(normalized_series)
+    print("SERIE_normalizada_R",normalized_series)
     # Conversión a ángulos
     # Polar encoding
     phi = np.arccos(normalized_series) 
+    print("valores de PHI de R",phi)
     """
     Para la reconstruccion nos servirá
     r = np.linspace(0, 1, len(normalized_series))
@@ -74,13 +75,13 @@ def varGAF(data, dim,TIME_STEPS):
         k=0
     elif dim == 'y':
         k=1
-    elif dim == 'z':
+    elif dim == 'z': 
         k=2
     
     x=np.array(data[:,k]).reshape(1,-1)
     
     X_gaf = gramian_angular_field(x)
-    print(X_gaf)
+    #print(X_gaf)
     
     return X_gaf
 
@@ -107,7 +108,7 @@ def SavevarGAF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, sav
      _g = varGAF(x,'y', TIME_STEPS)
      _b = varGAF(x,'z', TIME_STEPS)
 
-     print("X", _r[0])
+     print("SOLO _r", _r)
      #print("Y", _g[1][4])
      #print("Z", _b[1][4])
      #print("Y", _g)
@@ -176,57 +177,30 @@ def Reconstruct_GAF(img):
     _g=np.interp(_g,(0,255),(-1,1))
     _b=np.interp(_b,(0,255),(-1,1))
     print(_r)
-    r=MTF_to_TS(_r,16,0)
-    g=MTF_to_TS(_g,3,1)
-    b=MTF_to_TS(_b,3,2)
+    r=GAF_to_TS(_r,0)
+    g=GAF_to_TS(_g,1)
+    b=GAF_to_TS(_b,2)
     N=[]
     N.append(r)
     N.append(g)
     N.append(b)
     return N
-def MTF_to_TS(mtf,initialstate=3,index=0,numstates=32,TIMESTEPS=129):
-    mtf2=np.zeros_like(mtf)
-    for i in range(0,numstates): 
-        
-        v=1-np.sum(mtf[i])
-        if(v>=0):
-            mtf2[i]=mtf[i]+(v/numstates)
-            
-        if(v<0):
-            mtf2[i]=mtf[i]
-            for j in range(0,numstates):
-                if mtf2[i][j]+v>=0:
-                    mtf2[i][j]+=v
-                    break        
-        print(np.sum(mtf2[i]))            
-    
-    states=np.arange(numstates)
-    generated_series=[]
-    generated_series.append(initialstate)
-    current_state=initialstate
-    np.random.seed(0)   
-    for _ in range(0,TIMESTEPS-1):
-        current_index = current_state
-        next_state = np.random.choice(states, p=mtf2[current_index])
-        generated_series.append(next_state)
-        current_state = next_state
-    
+def GAF_to_TS(gaf,i,method='summation'):
+    #We recontruct first phi vector based on gasf matrix diagonal property
+    phi=np.arccos(np.diag(gaf))/2
+    X_normalized=np.cos(phi)
+
     #RECONSTRUCCIÓN DISCRETA DE LOS ESTADOS:
     #Sabemos que el valor medio de los datos maximos es 
     MAX=[10.657428709640488,3.0590269720681738,7.629156537079175] 
     MIN=[-4.128293834805366,-11.814377181580914,-5.316818145702738]
+    MEAN=[3.451300189402157,-4.152375746050367, 1.2525971513133263]
 
-    tam=MAX[index]-MIN[index]
-    estadosdiscretos=np.zeros(numstates)
-    estadosdiscretos[0]=MIN[index]
-    a=MIN[index]
-    for i in range(1,numstates):
-       a=a+tam/numstates
-       estadosdiscretos[i]=a
-    serie=np.zeros(128)
-    for i in range(0,TIMESTEPS-1):
-        serie[i]=estadosdiscretos[generated_series[i]]
-    return serie
+    x=np.interp(X_normalized,(np.min(X_normalized),np.max(X_normalized)),(MIN[i],MAX[i])).reshape(129)
+    meandiff=MEAN[i]- np.mean(x[i])    
+    x=x+meandiff 
+       
+    return x
 def main():
      data_name="WISDM"
      data_folder="/home/adriano/Escritorio/TFG/data/WISDM/"
@@ -257,10 +231,11 @@ def main():
      img2 = SavevarGAF_XYZ(experimentoinv, sj, 1, "x", normalized = 1, path=f"./", TIME_STEPS=129)
      """
      img = SavevarGAF_XYZ(w, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129)
-     imagen = cv2.imread("./1600x0gaf.png")  
+     imagen = cv2.imread("./1600x0gasf.png")  
      imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
      print("Image shape",imagen.shape)
-     rp=Reconstruct_MTF(imagen)
+     
+     rp=Reconstruct_GAF(imagen)
      # Configurar el estilo de los gráficos
     
      plt.style.use("ggplot")  
@@ -301,13 +276,13 @@ def main():
      plt.clf()
      
      f=np.array(w[:,0])
-     f=f[1:]
+     
      print(f.shape)
      error_absoluto, error_relativo = calcular_errores(f, rp[0])
      print(f"Error Absoluto Promedio: {error_absoluto}")
      print(f"Error Relativo Promedio: {error_relativo}")
      print(f"Coeficiente de correlación: {np.corrcoef(f, rp[0])[0,1]}")
-     """
+     
 
 if __name__ == '__main__':
     main()

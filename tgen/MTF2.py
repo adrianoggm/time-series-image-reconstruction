@@ -233,8 +233,22 @@ def main():
      sj = sj_train[0][0]
      w_y = y_train[1]
      w_y_no_cat = np.argmax(w_y)
+     """
      print(w.shape)
      img = SavevarMTF_XYZ(w, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129) 
+     """
+     valoresa=np.linspace(-5, 20, 129)
+     valoresb=np.linspace(-20, 50, 129)
+     valoresc=np.linspace(-10, 3, 129)
+     experimento=np.array([valoresa,valoresb,valoresc]).reshape(129,3)
+     experimentoinv=np.array([valoresa[::-1],valoresb[::-1],valoresc[::-1]]).reshape(129,3)
+     
+     img = SavevarMTF_XYZ(experimento, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129) 
+     img2 = SavevarMTF_XYZ(experimentoinv, sj, 1, "x", normalized = 1, path=f"./", TIME_STEPS=129)
+     
+     
+     
+     """
      imagen = cv2.imread("./1600x0mtf.png")  
      imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
      print("Image shape",imagen.shape)
@@ -284,6 +298,7 @@ def main():
      print(f"Error Absoluto Promedio: {error_absoluto}")
      print(f"Error Relativo Promedio: {error_relativo}")
      print(f"Coeficiente de correlación: {np.corrcoef(f, rp[0])[0,1]}")
-plt.show()
+    
+    """
 if __name__ == '__main__':
     main()
