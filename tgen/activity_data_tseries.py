@@ -20,7 +20,8 @@ import time
 import seaborn as sns
 from sklearn.model_selection import StratifiedGroupKFold, GroupKFold
 import tgen.REC as rpts
-import tgen.GAF2 as gaf2
+import tgen.GAF as gaf
+import tgen.GAF as gaf2
 import time
 
 import os    
@@ -135,15 +136,15 @@ def generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y
       imagen = cv2.imread(path)  
       imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
       ##We need to change path 
-      rp=gaf2.Reconstruct_GAF(imagen,dictionary,subject_samples)
+      gasf=gaf.Reconstruct_GAF(imagen,dictionary,subject_samples)
       #end=time.time()
       
       #Si queremos guardar los datos
       path=f"{dataset_folder}tseries/GAF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/{sj}x{subject_samples}.npy"
-      np.save(path, np.array(rp))
+      np.save(path, np.array(gasf))
       
       #print(rp)
-      X_all_rec.append(rp)
+      X_all_rec.append(gasf)
       #print("X_ALL",np.array(X_all_rec))
       #tiempo=end-start
       #tiempos.append(tiempo)

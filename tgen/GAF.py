@@ -2,13 +2,17 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-import activity_data as act
-import recurrence_plots as rec
-from pyts.image import GramianAngularField
-from scipy.sparse.csgraph import dijkstra
+import tgen.activity_data as act
+import tgen.recurrence_plots as rec
+#import activity_data as act
+#import recurrence_plots as rec
 from PIL import Image
 import cv2
-from sklearn.manifold import MDS
+import time
+import seaborn as sns
+from sklearn.model_selection import StratifiedGroupKFold, GroupKFold
+from tqdm.auto import trange, tqdm #progress bars for pyhton files (not jupyter notebook)
+import os
 def normalize_to_zero_one(series):
     """
     Normaliza una serie temporal al rango [0, 1].
@@ -52,7 +56,7 @@ def gramian_angular_field(series, method='summation'):
     # Polar encoding
     #print("Serie norm",series,normalized_series)
     phi = np.arccos(normalized_series) 
-    print("Serie norm",phi,normalized_series)
+    #print("Serie norm",phi,normalized_series)
     #print("Angulos",phi)
     #print("valores de PHI de R",phi)
     """
@@ -111,7 +115,7 @@ def SavevarGAF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, sav
      _g = varGAF(x,'y', TIME_STEPS)
      _b = varGAF(x,'z', TIME_STEPS)
 
-     print("SOLO _r", _r)
+     
      #print("Y", _g[1][4])
      #print("Z", _b[1][4])
      #print("Y", _g)
@@ -212,6 +216,90 @@ def GAF_to_TS(gaf,i,dictionary,method='summation'):
     x=np.interp(x,(np.min(x),np.max(x)),(MIN[i], MAX[i])) 
 
     return x
+def generate_and_save_grammian_angular_field(fold, dataset_folder, training_data, y_data, sj_train, TIME_STEPS=129, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
+    subject_samples = 0
+    p_bar = tqdm(range(len(training_data)))
+
+    for i in p_bar:
+      w = training_data[i]
+      sj = sj_train[i][0]
+      w_y = y_data[i]
+      w_y_no_cat = np.argmax(w_y)
+      print("w_y", w_y, "w_y_no_cat", w_y_no_cat)
+      print("w", w.shape)
+
+      # Update Progress Bar after a while
+      time.sleep(0.01)
+      p_bar.set_description(f'[{data_type} | FOLD {fold} | Class {w_y_no_cat}] Subject {sj}')
+    
+      # #-------------------------------------------------------------------------
+      # # only for degugging in notebook
+      # #-------------------------------------------------------------------------
+      # df_original_plot = pd.DataFrame(w, columns=["x_axis", "y_axis", "z_axis"])
+      # df_original_plot["signal"] = np.repeat("Original", df_original_plot.shape[0])
+      # df_original_plot = df_original_plot.iloc[:-1,:]
+      # plot_reconstruct_time_series(df_original_plot, "Walking", subject=sj)
+      # #-------------------------------------------------------------------------
+
+      #print(f"{'*'*20}\nSubject: {sj} (window: {i+1}/{len(training_data)} | label={y})\n{'*'*20}")
+      #print("Window shape",w.shape)
+      if fold < 0:
+        img = SavevarGAF_XYZ(w, sj, subject_samples, "x", normalized = 1, path=f"{dataset_folder}plots/GAF/sampling_{sampling}/{data_type}/{w_y_no_cat}/", TIME_STEPS=TIME_STEPS)
+      else:
+        img = SavevarGAF_XYZ(w, sj, subject_samples, "x", normalized = 1, path=f"{dataset_folder}plots/GAF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/", TIME_STEPS=TIME_STEPS)
+      print("w image (RP) shape:", np.array(img).shape)
+      
+      
+      subject_samples += 1
+def generate_all_grammian_angular_field(X_train, y_train, sj_train, dataset_folder="/home/adriano/Escritorio/TFG/data/WISDM/", TIME_STEPS=129,  FOLDS_N=3, sampling="loto"):
+  groups = sj_train 
+  if sampling == "loto":
+    #TODO change 100 for an automatic extracted number greater than the max subject ID: max(sj_train)*10
+    groups = [[int(sj[0])+i*100+np.argmax(y_train[i])+1] for i,sj in enumerate(sj_train)]
+
+  # if DATASET_NAME == "WISDM": #since wisdm is quite balanced
+  sgkf = StratifiedGroupKFold(n_splits=FOLDS_N)
+  # elif DATASET_NAME == "MINDER" or DATASET_NAME == "ORIGINAL_WISDM": 
+  #   sgkf = StratifiedGroupKFold(n_splits=FOLDS_N)
+
+  accs = []
+  y_train_no_cat = [np.argmax(y) for y in y_train]
+  p_bar_classes = tqdm(range(len(np.unique(y_train_no_cat))))
+  all_classes = np.unique(y_train_no_cat)
+  print("Classes available: ", all_classes)
+  for fold in range(FOLDS_N):
+    for i in p_bar_classes:
+        y = all_classes[i]
+        time.sleep(0.01) # Update Progress Bar after a while
+        os.makedirs(f"{dataset_folder}plots/GAF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/{y}/", exist_ok=True) 
+        os.makedirs(f"{dataset_folder}plots/GAF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/test/{y}/", exist_ok=True) 
+        os.makedirs(f"{dataset_folder}plots/single_axis/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/{y}/", exist_ok=True)
+        os.makedirs(f"{dataset_folder}plots/single_axis/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/test/{y}/", exist_ok=True)
+
+  for fold, (train_index, val_index) in enumerate(sgkf.split(X_train, y_train_no_cat, groups=groups)):
+
+    # if fold != 2:
+    #   continue
+
+    # print(f"{'*'*20}\nFold: {fold}\n{'*'*20}")
+    # print("Train index", train_index)
+    # print("Validation index", val_index)
+    training_data = X_train[train_index,:,:]
+    validation_data = X_train[val_index,:,:]
+    y_training_data = y_train[train_index]
+    y_validation_data = y_train[val_index]
+    sj_training_data = sj_train[train_index]
+    sj_validation_data = sj_train[val_index]
+
+    print("training_data.shape", training_data.shape, "y_training_data.shape", y_training_data.shape, "sj_training_data.shape", sj_training_data.shape)
+    print("validation_data.shape", validation_data.shape, "y_validation_data.shape", y_validation_data.shape, "sj_validation_data.shape", sj_validation_data.shape)
+
+
+
+    generate_and_save_grammian_angular_field(fold, dataset_folder, training_data, y_training_data, sj_training_data, TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+    generate_and_save_grammian_angular_field(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data, TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+    
+
 def main():
      data_name="WISDM"
      data_folder="/home/adriano/Escritorio/TFG/data/WISDM/"
@@ -221,8 +309,8 @@ def main():
      #print(sj_train[:,0])
      #print(y_train[:,0])
      #print(X_train)
-     print("minimo",np.min(X_train))
-     print("maximo",np.max(X_train))
+     #print("minimo",np.min(X_train))
+     #print("maximo",np.max(X_train))
      MAX=np.max(X_train)
      MIN=np.min(X_train)
      a=0
