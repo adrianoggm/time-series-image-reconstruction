@@ -20,6 +20,7 @@ import time
 import seaborn as sns
 from sklearn.model_selection import StratifiedGroupKFold, GroupKFold
 import tgen.REC as rpts
+import tgen.GAF2 as gaf2
 import time
 
 import os    
@@ -107,6 +108,84 @@ def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_
     return X_all_rec,errores
 
 
+def generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y_data, sj_train,dictionary, TIME_STEPS=129, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
+
+    subject_samples = 0
+    p_bar = tqdm(range(len(training_data)))
+    X_all_rec=[]
+    tiempos=[]
+    start_gl=time.time()
+    #Colocar timer
+    
+    
+    for i in p_bar:
+      #start=time.time()
+      w = training_data[i]
+      sj = sj_train[i][0]
+      w_y = y_data[i]
+      w_y_no_cat = np.argmax(w_y)
+      #print("w_y", w_y, "w_y_no_cat", w_y_no_cat)
+      #print("w", w.shape)
+      error=[]
+      # Update Progress Bar after a while
+      #time.sleep(0.01)
+      #p_bar.set_description(f'[{data_type} | FOLD {fold} | Class {w_y_no_cat}] Subject {sj}')
+      path=f"{dataset_folder}plots/GAF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/"
+      path=f"{path}{sj}x{subject_samples}gasf.png"  
+      imagen = cv2.imread(path)  
+      imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
+      ##We need to change path 
+      rp=gaf2.Reconstruct_GAF(imagen,dictionary,subject_samples)
+      #end=time.time()
+      
+      #Si queremos guardar los datos
+      path=f"{dataset_folder}tseries/GAF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/{sj}x{subject_samples}.npy"
+      np.save(path, np.array(rp))
+      
+      #print(rp)
+      X_all_rec.append(rp)
+      #print("X_ALL",np.array(X_all_rec))
+      #tiempo=end-start
+      #tiempos.append(tiempo)
+      #Guardar la rp en el path indicado con un nombre adecuado
+      #print(tiempos)
+      #w=w.reshape(3,129)
+      #w=w[:, 0]
+      #w=w[1:]
+      #print("Forma del RP original y calculada",w.shape,rp.shape)
+      
+      #print("normal",w,"calculada",rp)
+      """
+      error_abs,error_r,error_q,error_std,error_p,te=err.ts_error(w,rp)
+      t+=te
+      error.append(error_abs)
+      error.append(error_r)
+      error.append(error_q)
+      error.append(error_std)
+      error.append(error_p)
+      errores.append(error)
+      #print("errores",np.array(error))
+      #print("errores",np.array(errores))
+      """
+      subject_samples += 1
+
+    end_gl=time.time()
+    ttotal=end_gl-start_gl
+
+    #maybe we should calculate here the global of errors and the mean.
+    archivoX_all=f"{dataset_folder}tseries/GAF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/X_all_rec.npy"
+    np.save(archivoX_all,np.array(X_all_rec))
+    #archivoerrores=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/errores_rec.npy"
+    #np.save(archivoerrores,np.array(errores))
+
+    #archivotiempos=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/tiempos_rec.npy"
+    #np.save(archivotiempos,np.array(ttotal/subject_samples))
+    #print("Tiempo medio",np.mean(tiempos))
+    print("Tiempo medio total",np.mean(ttotal/subject_samples))
+    
+    #print("Numero total desplazamientos",t)
+    return X_all_rec
+
 #Generates all time series
 def generate_all_time_series(X_train, y_train, sj_train, dataset_folder="/home/adriano/Escritorio/TFG/data/WISDM/", TIME_STEPS=129,  FOLDS_N=3, sampling="loso",reconstruction="all"):
   groups = sj_train 
@@ -166,7 +245,8 @@ def generate_all_time_series(X_train, y_train, sj_train, dataset_folder="/home/a
 
     ##aqui añadir una opcion si quieres todas o una en especifico
     if reconstruction=="all":
-      generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+      #generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+      generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       #print(train_index[0:6])
       #arch_training_data=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/training_data.npy"
       #np.save(arch_training_data,np.array(training_data))

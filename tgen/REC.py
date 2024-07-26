@@ -78,7 +78,7 @@ def RecurrrenceTreshold(rp,X):
 
 def FuncionC(rp,cord1,cord2,method="Euclid"):
     if(method=="Euclid"):
-       THRESHOLD=RecurrrenceTreshold(rp,30) # THRESHOLD=RecurrrenceTreshold(rp,75)
+       THRESHOLD=RecurrrenceTreshold(rp,75) # THRESHOLD=RecurrrenceTreshold(rp,75)
        valor=0
        d=rp[cord1][cord2]
        if((d<=THRESHOLD)and(d>=(-THRESHOLD))):
@@ -219,10 +219,10 @@ def fix_rotationscale(rporiginal,seriereconstruida,i,dictionary,TIME_STEPS=129):
      distancia_euclidianab = np.linalg.norm(rporiginal - rnega)
      inverted=0
      if distancia_euclidianab<distancia_euclidianaa :
-         rp=nega[:129]
+         rp=nega[:128]
          inverted+=1
      else :
-        rp=posi[:129]
+        rp=posi[:128]
      
         #print("posi")
         
@@ -328,10 +328,10 @@ def main():
          minimos=[np.min(l[:,0]),np.min(l[:,1]),np.min(l[:,2])]
          dictionary[k]=[maximos,minimos]
      #print("Diccionario",dictionary)
-     img = rec.SavevarRP_XYZ(w, sj, 5, "x", normalized = 1, path=f"./", TIME_STEPS=129)
+     img = rec.SavevarRP_XYZ(w, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129)
      #parte de reconstruccion
      #primero genero la RP a partir de la imagen
-     imagen = cv2.imread("./1600x02.png")  
+     imagen = cv2.imread("./1600x0.png")  
      imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
      print("Image shape",imagen.shape)
      rp,ninv=Reconstruct_RP(imagen,dictionary,a)
@@ -405,7 +405,7 @@ def main():
      plt.clf()
      
      f=np.array(w[:,dim])
-     f=f[:]
+     f=f[1:]
      print(f.shape)
      error_absoluto, error_relativo = err.calcular_errores(f, rp[dim])
      d = metrics.mean_squared_error(f,rp[dim])#metrics.root_mean_squared_error()
