@@ -5,6 +5,7 @@ import tgen.activity_data as act
 import tgen.recurrence_plots as rec
 def main():
     '''Examples of runs:
+    $ nohup ./generate_recurrence_plots.py  --data-name WISDM --n-folds 3 --data-folder /home/adriano/Escritorio/TFG/data/WISDM/  --sampling loto > recurrence_plots_loto.log &
     - load LOSO numpies
     nohup ./generate_recurrence_plots.py --data-name WISDM --n-folds 3 --data-folder /home/adriano/Escritorio/TFG/data/WISDM/ --sampling loso  > recurrence_plots_loso.log &
     

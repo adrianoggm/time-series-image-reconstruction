@@ -7,12 +7,43 @@ import matplotlib.pyplot as plt
 import activity_data as act
 #import tgen.recurrence_plots as rec
 import recurrence_plots as rec
+#import tgen.calculate_ts_errors as err
+import calculate_ts_errors as err
 from pyts.image import MarkovTransitionField
 from scipy.sparse.csgraph import dijkstra
 from PIL import Image
 import cv2
 from sklearn.manifold import MDS
 from dtaidistance import dtw
+import sklearn.metrics as metrics
+def RemoveZero(l):
+    nonZeroL = []
+    #nonZeroL = []
+    for i in range(len(l)):
+        if l[i] != 0.0:
+            nonZeroL.append(l[i])
+    return nonZeroL
+#a = [0,-1,0.02,3]
+#print RemoveZero(a)
+def NormalizeMatrix(_r):
+    dimR = _r.shape[0]
+    #print(_r)
+    h_max = []
+    for i in range(dimR):
+        h_max.append(max(_r[i]))
+    _max =  max(h_max)
+    h_min = []
+    for i in range(dimR):
+        #print _r[i]
+        h_min.append(min(RemoveZero(_r[i])))
+    
+    _min =  min(h_min)
+    _max_min = _max - _min
+    _normalizedRP = np.zeros((dimR,dimR))
+    for i in range(dimR):
+        for j in range(dimR):
+            _normalizedRP[i][j] = (_r[i][j]-_min)/_max_min
+    return _normalizedRP
 def NormalizeMatrix_Adri(_r):
     dimR = _r.shape[0]
     _max=66.615074
@@ -47,7 +78,7 @@ def RecurrrenceTreshold(rp,X):
 
 def FuncionC(rp,cord1,cord2,method="Euclid"):
     if(method=="Euclid"):
-       THRESHOLD=RecurrrenceTreshold(rp,20)
+       THRESHOLD=RecurrrenceTreshold(rp,30) # THRESHOLD=RecurrrenceTreshold(rp,75)
        valor=0
        d=rp[cord1][cord2]
        if((d<=THRESHOLD)and(d>=(-THRESHOLD))):
@@ -67,49 +98,7 @@ def calculate_shortest_path_matrix(Wg):
     return shortest_path_matrix + 1e-10
 
 
-def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=129):
-    if not all([(x==0).all()]):
-     #print(x.shape)
-     _r = rec.varRP(x,'x', TIME_STEPS)
-     _g = rec.varRP(x,'y', TIME_STEPS)
-     _b = rec.varRP(x,'z', TIME_STEPS)
 
-     
-     #print("Y", _g)
-     #print("Z", _b)
-     
-     # plt.close('all')
-     # plt.figure(figsize=(1,1))
-     # plt.axis('off')
-     # plt.margins(0,0)
-     # plt.gca().xaxis.set_major_locator(plt.NullLocator())
-     # plt.gca().yaxis.set_major_locator(plt.NullLocator())
-
-     #print("fig size: width=", plt.figure().get_figwidth(), "height=", plt.figure().get_figheight())
-
-     if normalized:
-          newImage = rec.RGBfromRPMatrix_of_XYZ(NormalizeMatrix_Adri(_r), NormalizeMatrix_Adri(_g), NormalizeMatrix_Adri(_b))
-          #newImage = RGBfromRPMatrix_of_XYZ(_r, _g, _b)
-          # print(newImage.shape)
-          #print(newImage[1][4][0]* 255)
-          newImage = Image.fromarray((np.round(newImage * 255)).astype(np.uint8))
-          # plt.imshow(newImage)
-          
-          if saveImage:
-               # plt.savefig(f"{path}{sj}{action}{item_idx}.png",bbox_inches='tight',pad_inches = 0, dpi='figure')
-               newImage.save(f"{path}{sj}{action}{item_idx}.png")
-          # plt.close('all')
-     else:
-          newImage = rec.RGBfromRPMatrix_of_XYZ(_r, _g, _b)
-          newImage = Image.fromarray((np.round(newImage * 255)).astype(np.uint8))
-          # plt.imshow(newImage)
-          if saveImage:
-               # plt.savefig(f"{path}{sj}{action}{item_idx}.png",bbox_inches='tight',pad_inches = 0, dpi='figure') #dpi='figure' for preserve the correct pixel size (TIMESTEPS x TIMESTEPS)
-               newImage.save(f"{path}{sj}{action}{item_idx}.png")
-          # plt.close('all')
-     return newImage
-    else:
-     return None
    
 def weigthed_graphRP(rp):
     CostM=CreateCostMatrix(rp)
@@ -159,19 +148,18 @@ def reconstruct_time_series(shortest_path_matrix, ep=0.0, small_constant=1e-10):
     selected_column = embedded_coords[:, max_eigenvalue_index][:, np.newaxis]
 
     return selected_column
-def Reconstruct_RP(img):
+def Reconstruct_RP(img,dictionary,valor):
     _r= img[:,:,0].astype('float')
     _g= img[:,:,1].astype('float')
     _b= img[:,:,2].astype('float')
     #Obtengo cada una de las recurrence plots
-    _max=66.615074
-    _min =  -78.47761
+    
     #print("X2",_r[1][4])
     ##PREGUNTAR SI ES LO MISMO O HABRIA QUE PASAR de 255 a [0-1] y posteriormente a min max
-    _r=np.interp(_r,(0,255),(_min,_max))
-    _g=np.interp(_g,(0,255),(_min,_max))
-    _b=np.interp(_b,(0,255),(_min,_max))
-    #print("X2 post normalizacion",_r[1][4])
+    _r=np.interp(_r,(0,255),(dictionary[valor][1][0],dictionary[valor][0][0]))
+    _g=np.interp(_g,(0,255),(dictionary[valor][1][1],dictionary[valor][0][1]))
+    _b=np.interp(_b,(0,255),(dictionary[valor][1][2],dictionary[valor][0][2]))
+    
     
     R= []
     R.append(_r)
@@ -179,70 +167,67 @@ def Reconstruct_RP(img):
     R.append(_b)
     n=len(R)
     N=[]
+    ninversiones=0
     for i in range(0,n):
         wg=weigthed_graphRP(R[i]) 
         spm=calculate_shortest_path_matrix(wg)  
         ##we multiply * -1 ya que se invierte al calcular los valores propios
         rp=reconstruct_time_series(spm, ep=0.0)
-        rp=fix_rotationscale(R[i],rp,i)
+        rp,a=fix_rotationscale(R[i],rp,i,dictionary[valor])
+        ninversiones=ninversiones+a
         N.append(rp)
     N=np.array(N)
-    return N
-def fix_rotationscale(rporiginal,seriereconstruida,i,TIME_STEPS=129):
-     MAX=[10.657428709640488,3.0590269720681738,7.629156537079175] 
-     MIN=[-4.128293834805366,-11.814377181580914,-5.316818145702738]
-     MEAN=[3.451300189402157,-4.152375746050367, 1.2525971513133263]
+    return N,ninversiones
+def fix_rotationscale(rporiginal,seriereconstruida,i,dictionary,TIME_STEPS=129):
+     #print(dictionary)
+     MAX=dictionary[0]
+     MIN=dictionary[1]
+     
      #escalo la serie para que tenga los valores 
      
      
+     #n=(seriereconstruida-min_val)/(max_val-min_val)
      #print(seriereconstruida.shape)
      #Scaling part
-     n=np.append(seriereconstruida,np.mean(seriereconstruida))
      #n=seriereconstruida
-     #print(n.shape)
-     posi=np.interp(n,(np.min(n),np.max(n)),(MIN[i],MAX[i])).reshape(129)
-     meandiff=MEAN[i]- np.mean(posi[i])    
-     posi=posi+meandiff 
-     rposi=rec.varRP2(posi, TIME_STEPS=129)    
+     n=np.append(seriereconstruida,np.mean(seriereconstruida))
      
-     n=n*-1  
-     nega=np.interp(n,(np.min(n),np.max(n)),(MIN[i],MAX[i])).reshape(129)
-     meandiff=MEAN[i]- np.mean(nega[i])  
-     nega=nega+meandiff  
-     rnega=rec.varRP2(nega, TIME_STEPS=129)
+     #posi= MIN[i]+n*(MAX[i]-1)
+     min_a, max_a = np.min(n), np.max(n)  
      
+
+    # Transformar los puntos
+     #posi =min_b + n * (max_b - min_b)
+     posi=np.interp(n,(min_a,max_a),(MIN[i], MAX[i]))
+     rposi=rec.varRP2(posi, TIME_STEPS)    
+     
+     n=n*-1+1  
+     min_a, max_a = np.min(n), np.max(n)  
+     
+     #nega = min_b + n * (max_b - min_b)
+     nega=np.interp(n,(min_a,max_a),(MIN[i], MAX[i]))
+     rnega=rec.varRP2(nega, TIME_STEPS)
+     #print(n)
+     #print(nega)
+
      rp=[]
      #print(rporiginal.shape,rposi.shape)
      
-     error_absolutoa, error_relativoa= calcular_errores(rporiginal, rposi)
-     error_absolutob, error_relativob= calcular_errores(rporiginal, rnega)
-     if error_relativob<error_relativoa :
-         rp=nega[:128]
-         #print("nega")
+     #error_absolutoa, error_relativoa= calcular_errores(rporiginal[:60], rposi[0])
+     #error_absolutob, error_relativob= calcular_errores(rporiginal[:60], rnega[0])
+     distancia_euclidianaa = np.linalg.norm(rporiginal - rposi)
+     distancia_euclidianab = np.linalg.norm(rporiginal - rnega)
+     inverted=0
+     if distancia_euclidianab<distancia_euclidianaa :
+         rp=nega[:129]
+         inverted+=1
      else :
-        rp=posi[:128]
+        rp=posi[:129]
+     
         #print("posi")
         
-     return  rp 
-def calcular_errores(valores_verdaderos, valores_aproximados,small_constant=1e-10):
-    # Convertir las listas a arrays de numpy para facilitar los cálculos
-    valores_verdaderos = np.array(valores_verdaderos)
-    valores_aproximados = np.array(valores_aproximados)
-    
-    # Calcular el error absoluto
-    errores_absolutos = np.abs(valores_verdaderos - valores_aproximados)
-     # Add a small constant to avoid division by zero
-     
-    # Calcular el error relativo (evitando la división por cero)
-    errores_relativos = np.abs(errores_absolutos / (valores_verdaderos+small_constant))
-    
-    # Calcular el error absoluto promedio
-    error_absoluto_promedio = np.mean(errores_absolutos)
-    
-    # Calcular el error relativo promedio
-    error_relativo_promedio = np.mean(errores_relativos)
-    
-    return error_absoluto_promedio, error_relativo_promedio
+     return  rp,inverted
+
 
 def main():
      """
@@ -335,16 +320,23 @@ def main():
      sj = sj_train[a][0]
      w_y = y_train[a]
      w_y_no_cat = np.argmax(w_y)
-     
-     print(w.shape)
-     
-     img = SavevarRP_XYZ(w, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129)
+     dictionary=dict()
+     for k in range(0,8163):
+         l=X_train[k]
+         #A=np.max(l[:,0])
+         maximos=[np.max(l[:,0]),np.max(l[:,1]),np.max(l[:,2])]
+         minimos=[np.min(l[:,0]),np.min(l[:,1]),np.min(l[:,2])]
+         dictionary[k]=[maximos,minimos]
+     #print("Diccionario",dictionary)
+     img = rec.SavevarRP_XYZ(w, sj, 5, "x", normalized = 1, path=f"./", TIME_STEPS=129)
      #parte de reconstruccion
      #primero genero la RP a partir de la imagen
-     imagen = cv2.imread("./1632x0.png")  
+     imagen = cv2.imread("./1600x02.png")  
      imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
      print("Image shape",imagen.shape)
-     rp=Reconstruct_RP(imagen)
+     rp,ninv=Reconstruct_RP(imagen,dictionary,a)
+     dim=1
+     print(rp.shape)
      """
      
      valoresa=np.linspace(-5, 20, 129)
@@ -353,8 +345,8 @@ def main():
      experimento=np.array([valoresa,valoresb,valoresc]).reshape(129,3)
      experimentoinv=np.array([valoresa[::-1],valoresb[::-1],valoresc[::-1]]).reshape(129,3)
      
-     img = SavevarRP_XYZ(experimento, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129) 
-     img2 = SavevarRP_XYZ(experimentoinv, sj, 1, "x", normalized = 1, path=f"./", TIME_STEPS=129)
+     img = rec.SavevarRP_XYZ(experimento, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129) 
+     img2 = rec.SavevarRP_XYZ(experimentoinv, sj, 1, "x", normalized = 1, path=f"./", TIME_STEPS=129)
      
      
         
@@ -379,7 +371,7 @@ def main():
 
     # Gráfico original
      plt.figure(figsize=(10, 6))
-     plt.plot(w[:, 1], marker='o', color='blue')
+     plt.plot(w[:, dim], marker='o', color='blue')
      plt.title('Original', fontsize=18,fontweight="bold")
      plt.xlabel("Tiempo", fontsize=12)
      plt.ylabel('Índice X', fontsize=12)
@@ -390,7 +382,7 @@ def main():
 
     # Gráfico reconstrucción
      plt.figure(figsize=(10, 6))
-     plt.plot(rp[0], marker='o', color='green')
+     plt.plot(rp[dim], marker='o', color='green')
      plt.title('Reconstrucción', fontsize=18,fontweight="bold")
      plt.xlabel('Tiempo', fontsize=12)
      plt.ylabel('Índice X', fontsize=12)
@@ -401,8 +393,8 @@ def main():
 
     # Gráfico comparativa
      plt.figure(figsize=(10, 6))
-     plt.plot(w[:, 1], marker='o', label='Original', color='blue')
-     plt.plot(rp[1], marker='o', label='Reconstrucción', color='green')
+     plt.plot(w[:, dim], marker='o', label='Original', color='blue')
+     plt.plot(rp[dim], marker='o', label='Reconstrucción', color='green')
      plt.title('Comparativa', fontsize=18,fontweight="bold")
      plt.xlabel("Tiempo", fontsize=12)
      plt.ylabel('Índice X', fontsize=12)
@@ -412,15 +404,15 @@ def main():
      plt.savefig('Comparativa.png', bbox_inches='tight', pad_inches=0)
      plt.clf()
      
-     f=np.array(w[:,1])
-     f=f[1:]
+     f=np.array(w[:,dim])
+     f=f[:]
      print(f.shape)
-     error_absoluto, error_relativo = calcular_errores(f, rp[1])
-     d = dtw.distance_fast(f, rp[1], use_pruning=True)
+     error_absoluto, error_relativo = err.calcular_errores(f, rp[dim])
+     d = metrics.mean_squared_error(f,rp[dim])#metrics.root_mean_squared_error()
      print(f"Error Absoluto Promedio: {error_absoluto}")
      print(f"Error Relativo Promedio: {error_relativo}")
-     print(f"Error DTW: {d}")
-     print(f"Coeficiente de correlación: {np.corrcoef(f, rp[1])[0,1]}")
+     print(f"Error quadratico: {d}")
+     print(f"Coeficiente de correlación: {np.corrcoef(f, rp[dim])[0,1]}")
     
      
 # Guardar el gráfico como una imagen

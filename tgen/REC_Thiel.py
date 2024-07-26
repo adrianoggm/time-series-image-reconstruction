@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import activity_data as act
 import recurrence_plots as rec
-from pyts.image import MarkovTransitionField
+from pyts.image import RecurrencePlot
 from scipy.sparse.csgraph import dijkstra
 from PIL import Image
 import cv2
@@ -88,17 +88,154 @@ def Sort_RP(rp):
 def calculate_shortest_path_matrix(Wg):
     shortest_path_matrix = dijkstra(Wg, directed=True)
     return shortest_path_matrix + 1e-10
+def normalize_to_zero_one(series):
+    """
+    Normaliza una serie temporal al rango [0, 1].
+    
+    Args:
+    series (np.array): Serie temporal a normalizar.
+    
+    Returns:
+    np.array: Serie temporal normalizada al rango [0, 1].
+    """
+    min_val = np.min(series)
+    max_val = np.max(series)
+    normalized_series = (series - min_val) / (max_val - min_val)
+    normalized_series = np.where(normalized_series >= 1., 1., normalized_series)
+    normalized_series = np.where(normalized_series <= 0., 0., normalized_series)
+    return normalized_series
 
+def varRP1(data,dim, TIME_STEPS):
+    x = []
+    k=0
+    if dim == 'x':
+        k=0
+    elif dim == 'y':
+        k=1
+    elif dim == 'z': 
+        k=2
+    
+    
+    f=data[:,k].reshape(1,TIME_STEPS)
+    
+    rp = RecurrencePlot()
+    x_t_rp= rp.fit_transform(f)
+     
+    
+    
+    serie=np.zeros(x_t_rp.shape)
+    diag=normalize_to_zero_one(f)
+    # Modificar la diagonal directamente
+    print(diag.shape)
+    for i in range(0,TIME_STEPS):
+        serie[0][i][i]=diag[0][i]
+    print(serie)
+    X_t_REC=np.concatenate((x_t_rp,serie,serie),axis=-1)
+     
+    
+    #X_gaf = gramian_angular_field(x)
+    #print(X_gaf)
+    
+    return X_t_REC 
+
+def RGBfromMTFMatrix_of_XYZ(X,Y,Z):
+    if X.shape != Y.shape or X.shape != Z.shape or Y.shape != Z.shape:
+        print('XYZ should be in same shape!')
+        return 0
+    #print(X.shape)
+    dimImage = X.shape[0]
+    newImage = np.zeros((dimImage,dimImage,3))
+    for i in range(dimImage):
+        for j in range(dimImage):
+            _pixel = []
+            _pixel.append(X[i][j])
+            _pixel.append(Y[i][j])
+            _pixel.append(Z[i][j])
+            newImage[i][j] = _pixel
+    return newImage
+
+def SavevarRP1_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=129):
+    if not all([(x==0).all()]):
+     imx = varRP1(x,'x', TIME_STEPS)
+     imy = varRP1(x,'y', TIME_STEPS)
+     imz = varRP1(x,'z', TIME_STEPS)
+
+     
+     
+     #print("Z", _b)
+     
+     # plt.close('all')
+     # plt.figure(figsize=(1,1))
+     # plt.axis('off')
+     # plt.margins(0,0)
+     # plt.gca().xaxis.set_major_locator(plt.NullLocator())
+     # plt.gca().yaxis.set_major_locator(plt.NullLocator())
+
+     #print("fig size: width=", plt.figure().get_figwidth(), "height=", plt.figure().get_figheight())
+     img=np.array([imx,imy,imz])
+     dim=3
+     newImages=[]
+     if normalized:
+            for i in range(0,dim):
+                imagen=img[i]
+                _r=imagen[:,:,:TIME_STEPS].reshape(129,129)
+                _g=imagen[:,:,TIME_STEPS:TIME_STEPS*2].reshape(129,129)
+                _b=imagen[:,:,TIME_STEPS*2:TIME_STEPS*3].reshape(129,129)
+                print("_R", _r.shape)
+                #_r=np.interp(_b,(min(_r),max(_r)),1)
+                newImage = RGBfromMTFMatrix_of_XYZ(rec.NormalizeMatrix(_r), _g,_b)
+                #newImage = RGBfromRPMatrix_of_XYZ(_r, _g, _b)
+                # print(newImage.shape)
+                #print(newImage[1][4][0]* 255)
+                
+                newImage = Image.fromarray((np.round(newImage * 255)).astype(np.uint8))
+                # plt.imshow(newImage)
+                newImages=np.append(newImages,newImage)
+                if saveImage:
+                    # plt.savefig(f"{path}{sj}{action}{item_idx}.png",bbox_inches='tight',pad_inches = 0, dpi='figure')
+                    newImage.save(f"{path}{sj}{action}{item_idx}RP{i}.png")
+                # plt.close('all')
+       
+    
+     return newImages
+    
+    else:
+     return None
+    
+def varRP(data,dim, TIME_STEPS):
+    x = []
+    k=0
+    if dim == 'x':
+        k=0
+    elif dim == 'y':
+        k=1
+    elif dim == 'z': 
+        k=2
+    
+    
+    f=data[:,k].reshape(1,TIME_STEPS)
+    
+    rp = RecurrencePlot()
+    x_t_rp= rp.fit_transform(f)
+     
+    
+    
+    
+     
+    
+    #X_gaf = gramian_angular_field(x)
+    #print(X_gaf)
+    
+    return x_t_rp[0]
 
 def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=129):
     if not all([(x==0).all()]):
-     _r = rec.varRP(x,'x', TIME_STEPS)
-     _g = rec.varRP(x,'y', TIME_STEPS)
-     _b = rec.varRP(x,'z', TIME_STEPS)
+     #print(x.shape)
+     _r = varRP(x,'x', TIME_STEPS)
+     _g = varRP(x,'y', TIME_STEPS)
+     _b = varRP(x,'z', TIME_STEPS)
 
-     print("X", _r[1][4])
-     print("Y", _g[1][4])
-     print("Z", _b[1][4])
+     
      #print("Y", _g)
      #print("Z", _b)
      
@@ -110,18 +247,18 @@ def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, save
      # plt.gca().yaxis.set_major_locator(plt.NullLocator())
 
      #print("fig size: width=", plt.figure().get_figwidth(), "height=", plt.figure().get_figheight())
-
+     print("FORMA",_r.shape)
      if normalized:
-          newImage = rec.RGBfromRPMatrix_of_XYZ(NormalizeMatrix_Adri(_r), NormalizeMatrix_Adri(_g), NormalizeMatrix_Adri(_b))
+          newImage = rec.RGBfromRPMatrix_of_XYZ(rec.NormalizeMatrix(_r), rec.NormalizeMatrix(_g), rec.NormalizeMatrix(_b))
           #newImage = RGBfromRPMatrix_of_XYZ(_r, _g, _b)
           # print(newImage.shape)
-          print(newImage[1][4][0]* 255)
+          #print(newImage[1][4][0]* 255)
           newImage = Image.fromarray((np.round(newImage * 255)).astype(np.uint8))
           # plt.imshow(newImage)
           
           if saveImage:
                # plt.savefig(f"{path}{sj}{action}{item_idx}.png",bbox_inches='tight',pad_inches = 0, dpi='figure')
-               newImage.save(f"{path}{sj}{action}{item_idx}.png")
+               newImage.save(f"{path}{sj}{action}{item_idx}2.png")
           # plt.close('all')
      else:
           newImage = rec.RGBfromRPMatrix_of_XYZ(_r, _g, _b)
@@ -133,8 +270,7 @@ def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, save
           # plt.close('all')
      return newImage
     else:
-     return None
-    
+     return None    
 def weigthed_graphRP(rp):
     Sort_RP(rp)
     CostM=CreateCostMatrix(rp)
@@ -329,54 +465,7 @@ def main():
      imagen = cv2.imread("./1600x0.png")  
      imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
      print("Image shape",imagen.shape)
-     rp=Reconstruct_RP(imagen)
      
-     #
-     _max=np.max(w[:,0])
-     _min=np.min(w[:,0])
-     rp[0]=-1*rp[0]
-     """if (abs(np.min(rp[0])*_max)-max)>(abs(np.max(rp[0])*_max)-max):
-        
-        """
-     s=np.interp(rp[0],(np.min(rp[0]),np.max(rp[0])),(_min,_max)).reshape(128)
-
-     plt.plot(w[:,0], marker='o')
-     # Etiquetas del gráfico
-     plt.title('original')
-     plt.xlabel("tiempo")
-     plt.ylabel('Índice X')
-     plt.savefig('original.png')
-     plt.clf() 
-
-     plt.plot(s, marker='o')
-    
-     # Etiquetas del gráfico
-     plt.title('reconstruccion')
-     plt.xlabel('tiempo')
-     plt.ylabel('Índice X')
-     plt.savefig('reconstruccion.png')
-    
-     plt.clf() 
-
-     plt.plot(w[:,0], marker='o',label='original', color='blue')
-     # Etiquetas del gráfico
-     plt.title('Comparativa')
-     plt.xlabel("tiempo")
-     plt.ylabel('Índice X')
-     plt.plot(s, marker='o',label='reconstruccion', color='red')
-     plt.legend()   
-     plt.savefig('Comparativa.png')
-     
-     f=np.array(w[:,0])
-     f=f[1:]
-     print(f.shape)
-     error_absoluto, error_relativo = calcular_errores(f, s)
-     print(f"Error Absoluto Promedio: {error_absoluto}")
-     print(f"Error Relativo Promedio: {error_relativo}")
-     print(f"Coeficiente de correlación: {np.corrcoef(f, s)[0,1]}")
-    #Error Absoluto Promedio: 1.2916679603210046
-    #Error Relativo Promedio: 0.10410946116987463
-    #Coeficiente de correlación: 0.9152496948611255
 
 
     

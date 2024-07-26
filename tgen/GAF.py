@@ -46,12 +46,15 @@ def normalize_series(series):
 
 def gramian_angular_field(series, method='summation'):
     # Normalización de la serie temporal
-    normalized_series = normalize_series(series)
-    print("SERIE_normalizada_R",normalized_series)
+    normalized_series = normalize_to_zero_one(series)
+    #print("SERIE_normalizada_R",normalized_series)
     # Conversión a ángulos
     # Polar encoding
+    #print("Serie norm",series,normalized_series)
     phi = np.arccos(normalized_series) 
-    print("valores de PHI de R",phi)
+    print("Serie norm",phi,normalized_series)
+    #print("Angulos",phi)
+    #print("valores de PHI de R",phi)
     """
     Para la reconstruccion nos servirá
     r = np.linspace(0, 1, len(normalized_series))
@@ -124,10 +127,12 @@ def SavevarGAF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, sav
      #print("fig size: width=", plt.figure().get_figwidth(), "height=", plt.figure().get_figheight())
     
      if normalized:
-          newImage = RGBfromMTFMatrix_of_XYZ(normalize_to_zero_one(_r), normalize_to_zero_one(_g), normalize_to_zero_one(_b))
+          
+          newImage = RGBfromMTFMatrix_of_XYZ(normalize_to_zero_one(_r), normalize_to_zero_one(_g),normalize_to_zero_one(_b))
           #newImage = RGBfromRPMatrix_of_XYZ(_r, _g, _b)
           # print(newImage.shape)
           #print(newImage[1][4][0]* 255)
+          
           newImage = Image.fromarray((np.round(newImage * 255)).astype(np.uint8))
           # plt.imshow(newImage)
           
@@ -136,7 +141,7 @@ def SavevarGAF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, sav
                newImage.save(f"{path}{sj}{action}{item_idx}gasf.png")
           # plt.close('all')
      else:
-          newImage = RGBfromMTFMatrix_of_XYZ(_r, _g, _b)
+          newImage = RGBfromMTFMatrix_of_XYZ((_r+1)/2, (_g+1)/2,(_b+1)/2)
           newImage = Image.fromarray((newImage * 255).astype(np.uint8))
           # plt.imshow(newImage)
           if saveImage:
@@ -168,38 +173,44 @@ def calcular_errores(valores_verdaderos, valores_aproximados):
     error_relativo_promedio = np.mean(errores_relativos)
     
     return error_absoluto_promedio, error_relativo_promedio
-def Reconstruct_GAF(img):
+def Reconstruct_GAF(img,dictionary,a):
     _r= img[:,:,0].astype('float')
     _g= img[:,:,1].astype('float')
     _b= img[:,:,2].astype('float')
     
-    _r=np.interp(_r,(0,255),(-1,1))
-    _g=np.interp(_g,(0,255),(-1,1))
-    _b=np.interp(_b,(0,255),(-1,1))
-    print(_r)
-    r=GAF_to_TS(_r,0)
-    g=GAF_to_TS(_g,1)
-    b=GAF_to_TS(_b,2)
+    _r=np.interp(_r,(0,255),(0,1))
+    _g=np.interp(_g,(0,255),(0,1))
+    _b=np.interp(_b,(0,255),(0,1))
+    
+    r=GAF_to_TS(_r,0,dictionary[a])
+    g=GAF_to_TS(_g,1,dictionary[a])
+    b=GAF_to_TS(_b,2,dictionary[a])
     N=[]
     N.append(r)
     N.append(g)
     N.append(b)
     return N
-def GAF_to_TS(gaf,i,method='summation'):
+def GAF_to_TS(gaf,i,dictionary,method='summation'):
     #We recontruct first phi vector based on gasf matrix diagonal property
     phi=np.arccos(np.diag(gaf))/2
     X_normalized=np.cos(phi)
-
+    
+    
     #RECONSTRUCCIÓN DISCRETA DE LOS ESTADOS:
     #Sabemos que el valor medio de los datos maximos es 
-    MAX=[10.657428709640488,3.0590269720681738,7.629156537079175] 
-    MIN=[-4.128293834805366,-11.814377181580914,-5.316818145702738]
-    MEAN=[3.451300189402157,-4.152375746050367, 1.2525971513133263]
+    MAX=dictionary[0] 
+    MIN=dictionary[1]
+    
 
-    x=np.interp(X_normalized,(np.min(X_normalized),np.max(X_normalized)),(MIN[i],MAX[i])).reshape(129)
-    meandiff=MEAN[i]- np.mean(x[i])    
-    x=x+meandiff 
+    #x=np.interp(X_normalized,(np.min(X_normalized),np.max(X_normalized)),(MIN[i],MAX[i]))
+    x=X_normalized
        
+     
+
+    # Transformar los puntos
+     #posi =min_b + n * (max_b - min_b)
+    x=np.interp(x,(np.min(x),np.max(x)),(MIN[i], MAX[i])) 
+
     return x
 def main():
      data_name="WISDM"
@@ -214,10 +225,10 @@ def main():
      print("maximo",np.max(X_train))
      MAX=np.max(X_train)
      MIN=np.min(X_train)
-    
-     w = X_train[0]
-     sj = sj_train[0][0]
-     w_y = y_train[0]
+     a=0
+     w = X_train[a]
+     sj = sj_train[a][0]
+     w_y = y_train[a]
      w_y_no_cat = np.argmax(w_y)
      print(w.shape)
      """
@@ -230,19 +241,30 @@ def main():
      img = SavevarGAF_XYZ(experimento, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129) 
      img2 = SavevarGAF_XYZ(experimentoinv, sj, 1, "x", normalized = 1, path=f"./", TIME_STEPS=129)
      """
-     img = SavevarGAF_XYZ(w, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129)
+     dictionary=dict()
+     for k in range(0,8163):
+         l=X_train[k]
+         #A=np.max(l[:,0])
+         maximos=[np.max(l[:,0]),np.max(l[:,1]),np.max(l[:,2])]
+         minimos=[np.min(l[:,0]),np.min(l[:,1]),np.min(l[:,2])]
+         dictionary[k]=[maximos,minimos]
+
+     img = SavevarGAF_XYZ(w, sj, a, "x", normalized = 1, path=f"./", TIME_STEPS=129)
      imagen = cv2.imread("./1600x0gasf.png")  
      imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
      print("Image shape",imagen.shape)
      
-     rp=Reconstruct_GAF(imagen)
+     rp=Reconstruct_GAF(imagen,dictionary,a)
      # Configurar el estilo de los gráficos
     
+     dim=0
+     
+    # Configurar el estilo de los gráficos
      plt.style.use("ggplot")  
 
     # Gráfico original
      plt.figure(figsize=(10, 6))
-     plt.plot(w[:, 0], marker='o', color='blue')
+     plt.plot(w[:, dim], marker='o', color='blue')
      plt.title('Original', fontsize=18,fontweight="bold")
      plt.xlabel("Tiempo", fontsize=12)
      plt.ylabel('Índice X', fontsize=12)
@@ -253,7 +275,7 @@ def main():
 
     # Gráfico reconstrucción
      plt.figure(figsize=(10, 6))
-     plt.plot(rp[0], marker='o', color='green')
+     plt.plot(rp[dim], marker='o', color='green')
      plt.title('Reconstrucción', fontsize=18,fontweight="bold")
      plt.xlabel('Tiempo', fontsize=12)
      plt.ylabel('Índice X', fontsize=12)
@@ -264,8 +286,8 @@ def main():
 
     # Gráfico comparativa
      plt.figure(figsize=(10, 6))
-     plt.plot(w[:, 0], marker='o', label='Original', color='blue')
-     plt.plot(rp[0], marker='o', label='Reconstrucción', color='green')
+     plt.plot(w[:, dim], marker='o', label='Original', color='blue')
+     plt.plot(rp[dim], marker='o', label='Reconstrucción', color='green')
      plt.title('Comparativa', fontsize=18,fontweight="bold")
      plt.xlabel("Tiempo", fontsize=12)
      plt.ylabel('Índice X', fontsize=12)
@@ -275,13 +297,15 @@ def main():
      plt.savefig('Comparativa.png', bbox_inches='tight', pad_inches=0)
      plt.clf()
      
-     f=np.array(w[:,0])
-     
+     f=np.array(w[:,dim])
+     f=f[:]
      print(f.shape)
-     error_absoluto, error_relativo = calcular_errores(f, rp[0])
+     error_absoluto, error_relativo = calcular_errores(f, rp[dim])
+     #d = dtw.distance_fast(f, rp[1], use_pruning=True)
      print(f"Error Absoluto Promedio: {error_absoluto}")
      print(f"Error Relativo Promedio: {error_relativo}")
-     print(f"Coeficiente de correlación: {np.corrcoef(f, rp[0])[0,1]}")
+     #print(f"Error DTW: {d}")
+     print(f"Coeficiente de correlación: {np.corrcoef(f, rp[dim])[0,1]}")
      
 
 if __name__ == '__main__':
