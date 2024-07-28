@@ -116,6 +116,7 @@ def generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y
     X_all_rec=[]
     tiempos=[]
     start_gl=time.time()
+    errores= []
     #Colocar timer
     
     
@@ -156,28 +157,28 @@ def generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y
       #print("Forma del RP original y calculada",w.shape,rp.shape)
       
       #print("normal",w,"calculada",rp)
-      """
-      error_abs,error_r,error_q,error_std,error_p,te=err.ts_error(w,rp)
-      t+=te
+      
+      error_abs,error_r,error_q,error_std,error_p,te=err.ts_error(w,gasf)
+      
       error.append(error_abs)
       error.append(error_r)
       error.append(error_q)
       error.append(error_std)
       error.append(error_p)
       errores.append(error)
-      #print("errores",np.array(error))
+      print("errores",np.array(error))
       #print("errores",np.array(errores))
-      """
+      
       subject_samples += 1
 
     end_gl=time.time()
     ttotal=end_gl-start_gl
 
     #maybe we should calculate here the global of errors and the mean.
-    archivoX_all=f"{dataset_folder}tseries/GAF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/X_all_rec.npy"
+    archivoX_all=f"{dataset_folder}tseries/GAF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/X_all_gaf.npy"
     np.save(archivoX_all,np.array(X_all_rec))
-    #archivoerrores=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/errores_rec.npy"
-    #np.save(archivoerrores,np.array(errores))
+    archivoerrores=f"{dataset_folder}tseries/GAF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/errores_gaf.npy"
+    np.save(archivoerrores,np.array(errores))
 
     #archivotiempos=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/tiempos_rec.npy"
     #np.save(archivotiempos,np.array(ttotal/subject_samples))

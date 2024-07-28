@@ -18,6 +18,9 @@ def main():
     data_folder="/home/adriano/Escritorio/TFG/data/WISDM/tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
     data_F1="/home/adriano/Escritorio/TFG/data/WISDM/tseries/recurrence_plot/"
     errores = np.load(f"{data_F1}/errores_rec2.npy")
+    
+    #data_F1="/home/adriano/Escritorio/TFG/data/WISDM/tseries/GAF/"
+    #errores = np.load(f"{data_F1}/errores_gaf2.npy")
     #errores2 = np.load(f"{data_folder}/errores_rec.npy")
     indices_T=np.load(f"{data_folder}/training_data.npy")
     X_all_rec=np.load(f"{data_folder}/X_all_rec.npy")
@@ -34,7 +37,9 @@ def main():
             for j in range(0,3):
                 
                 print("ERROR TIPO ",a,"en dim",j,"es :",np.mean(errores[:,i,j][errores[:,i,j]<=1000]))
+                print ("Desviación típica de ERROR TIPO",a,"en dim",j,"es :",np.std(errores[:,i,j][errores[:,i,j]<=1000]))
             print("ERROR TIPO ",a," medio global es :",np.mean(errores[:,i,:][errores[:,i,:]<=1000]))
+            print ("Desviación típica de ERROR TIPO",a,"es :",np.std(errores[:,i,:][errores[:,i,:]<=1000]))
             """else :
                 for j in range(0,3):
                     

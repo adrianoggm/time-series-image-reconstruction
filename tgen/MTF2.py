@@ -20,8 +20,8 @@ def varMTF2(data, dim,TIME_STEPS):
         k=2
     
     x=np.array(data[:,k]).reshape(1,-1)
-    num_states = TIME_STEPS//4
-    mtf = MarkovTransitionField(image_size=num_states,overlapping=True,n_bins=num_states)
+    num_states = TIME_STEPS
+    mtf = MarkovTransitionField(image_size=num_states,overlapping=True,n_bins=4)
     
     X_mtf = mtf.fit_transform(x).reshape(num_states, num_states)
     
@@ -66,7 +66,7 @@ def varMTF(data, dim,TIME_STEPS):
         k=2
     
     x=data[:,k]
-    num_states = 5
+    num_states = 4
     quantiles = np.quantile(x, [i/num_states for i in range(1, num_states)])
     discretized_series = np.digitize(x, quantiles)
     # Inicialización de la matriz de transición
@@ -155,7 +155,7 @@ def calcular_errores(valores_verdaderos, valores_aproximados):
     error_relativo_promedio = np.mean(errores_relativos)
     
     return error_absoluto_promedio, error_relativo_promedio
-def Reconstruct_MTF(img):
+def Reconstruct_MTF(img,dictionary,valor):
     _r= img[:,:,0].astype('float')
     _g= img[:,:,1].astype('float')
     _b= img[:,:,2].astype('float')
@@ -163,57 +163,142 @@ def Reconstruct_MTF(img):
     _r=np.interp(_r,(0,255),(0,1))
     _g=np.interp(_g,(0,255),(0,1))
     _b=np.interp(_b,(0,255),(0,1))
-    print(_r)
-    r=MTF_to_TS(_r,16,0)
-    g=MTF_to_TS(_g,16,1)
-    b=MTF_to_TS(_b,16,2)
+    #print(_r)
+    r=MTF_to_TS(_r,dictionary[valor],0)
+    g=MTF_to_TS(_g,dictionary[valor],1)
+    b=MTF_to_TS(_b,dictionary[valor],2)
     N=[]
     N.append(r)
     N.append(g)
     N.append(b)
     return N
-def MTF_to_TS(mtf,initialstate=16,index=0,numstates=32,TIMESTEPS=129):
-    mtf2=np.zeros_like(mtf)
-    for i in range(0,numstates): 
-        
-        v=1-np.sum(mtf[i])
-        if(v>=0):
-            mtf2[i]=mtf[i]+(v/numstates)
-            
-        if(v<0):
-            mtf2[i]=mtf[i]
-            for j in range(0,numstates):
-                if mtf2[i][j]+v>=0:
-                    mtf2[i][j]+=v
-                    break        
-        print(np.sum(mtf2[i]))            
-    
-    states=np.arange(numstates)
-    generated_series=[]
-    generated_series.append(initialstate)
-    current_state=initialstate
-    np.random.seed(0)   
-    for _ in range(0,TIMESTEPS-1):
-        current_index = current_state
-        next_state = np.random.choice(states, p=mtf2[current_index])
-        generated_series.append(next_state)
-        current_state = next_state
-    
-    #RECONSTRUCCIÓN DISCRETA DE LOS ESTADOS:
-    #Sabemos que el valor medio de los datos maximos es 
-    MAX=[10.657428709640488,3.0590269720681738,7.629156537079175] 
-    MIN=[-4.128293834805366,-11.814377181580914,-5.316818145702738]
+def cosine_similarity(vec1, vec2):
+        """
+        Calcula la similitud del coseno entre dos vectores.
+        """
+        dot_product = np.dot(vec1, vec2)
+        norm_vec1 = np.linalg.norm(vec1)
+        norm_vec2 = np.linalg.norm(vec2)
+        return dot_product / (norm_vec1 * norm_vec2)
 
-    tam=MAX[index]-MIN[index]
-    estadosdiscretos=np.zeros(numstates)
-    estadosdiscretos[0]=MIN[index]
-    a=MIN[index]
-    for i in range(1,numstates):
-       a=a+tam/numstates
-       estadosdiscretos[i]=a
-    serie=np.zeros(128)
-    for i in range(0,TIMESTEPS-1):
-        serie[i]=estadosdiscretos[generated_series[i]]
+def MTF_to_TS(mtf,dictionary,index=0,numstates=4,TIMESTEPS=129):
+    similaritymatrix=np.zeros_like(mtf)
+    #CLASIFICACIÓN 
+    #Cálculo matriz de similaridades
+    for i in range(0,TIMESTEPS):
+        for j in range(0,TIMESTEPS):
+            if i<=j:
+                similaritymatrix[i][j]=cosine_similarity(mtf[i,:],mtf[j,:])
+                similaritymatrix[j][i]=similaritymatrix[i][j]
+    #Clasificación de los estados
+    estados=[]
+    estado=[0]
+    estadosfaltantes=np.arange(0, 129)
+    nvalores=TIMESTEPS//numstates
+    #print(len(estadosfaltantes),nvalores)
+    for i in range(0,numstates):
+        estado=[estadosfaltantes[0]]
+        estadosfaltantes=np.delete(estadosfaltantes, 0)
+        
+        for j in range(0,nvalores-1):
+            v=[]
+            #print("LLEGA",j)
+            
+            for k in range(0,len(estadosfaltantes)):
+                set2=[]
+                set2.append(estadosfaltantes[k])
+                set1=estado
+                similarities=[similaritymatrix[vec1][vec2]for vec1, vec2 in zip(set1, set2)]
+                v.append(np.mean(similarities))
+            newval=np.argmax(v)
+            estado.append(estadosfaltantes[newval])
+            estadosfaltantes=np.delete(estadosfaltantes, newval)
+            #print("TAMANO",len(estado))
+        estados.append(estado)
+           
+    
+    #lo meto al ultimo estado 
+    estados[0].append(estadosfaltantes[0])
+    #print("ESTADOS",estados)
+    statematrix=np.zeros((numstates, numstates))
+    for i in range(0,numstates):
+        for j in range(0,numstates):
+            if j!=i and i<=j:
+                set1=estados[i] 
+                set2= estados[j]   
+                similarities=[similaritymatrix[vec1][vec2]for vec1, vec2 in zip(set1, set2)]
+                statematrix[i][j]=np.mean(similarities)
+                statematrix[j][i]=np.mean(similarities)
+    # Calcular la similitud media para cada valor del vector
+    #print(statematrix)
+    vector=np.arange(0, numstates) #(0,1,2,3)
+    filasactuales=np.arange(0, numstates)
+    tr=np.arange(0, numstates)
+    print("TR",tr)
+    mean_similarities1 = np.sum(statematrix, axis=1)
+    pivote=np.argmax(mean_similarities1)
+    aux=vector[numstates//2]
+    vector[numstates//2]=pivote
+    vector[pivote]=aux
+    a=[]
+    for i in range(0,len(statematrix)):
+        if(i!=pivote):
+            a.append(statematrix[i,:])
+    m=np.array(a)
+    #print("PIVOTE",pivote)
+    #m=np.delete(statematrix, pivote, axis=0)
+    #m=np.delete(statematrix, pivote, axis=1)
+    tr= np.delete(vector,np.where(vector==pivote))
+    # [0 2 3] 1
+    mean_similarities = np.sum(m, axis=1)
+    print(m,mean_similarities,tr,pivote,vector)
+
+    #segundo valor
+    pivote=tr[np.argmax(mean_similarities)]
+    aux=vector[numstates//2-1]
+    vector[numstates//2-1]=pivote
+    vector[pivote]=aux
+    print(np.argmax(mean_similarities))
+
+    a=[]
+
+    for i in range(0,len(m)):
+        if(i!=np.argmax(mean_similarities)):
+            a.append(m[i,:])
+    m=np.array(a)
+    #m=np.delete(statematrix, pivote, axis=1)
+    tr= np.delete(tr,np.argmax(mean_similarities))
+    
+    print(m,mean_similarities,tr,pivote)
+    
+    print("VALORES",vector,tr)
+    if statematrix[vector[numstates//2]][tr[0]]>statematrix[vector[numstates//2]][tr[1]]:
+        vector[3]=tr[0]
+        vector[0]=tr[1]
+    else:
+        vector[3]=tr[1]
+        vector[0]=tr[0]
+
+    
+    valores=vector
+    print(valores)
+    f=np.array([-1,1,3,5])
+    serie=np.arange(0, 129)
+    #print(estados)
+    for i in range(0,numstates):
+        for j in range(0,len(estados[i])):
+            #print(valores[i])
+            est=f[valores[i]]
+            serie[estados[i][j]]=est
+            
+    print(serie)
+    min_a, max_a = np.min(serie), np.max(serie)  
+     
+     #nega = min_b + n * (max_b - min_b)
+    MAX=dictionary[0]
+    MIN=dictionary[1]
+    
+    serie=np.interp(serie,(min_a,max_a),(MIN[index], MAX[index]))
     return serie
 def main():
      data_name="WISDM"
@@ -229,30 +314,28 @@ def main():
      MAX=np.max(X_train)
      MIN=np.min(X_train)
      #he obtenido el máximo y el minimo del dataset minimo -78.47761 maximo 66.615074
-     w = X_train[3]
-     sj = sj_train[0][0]
-     w_y = y_train[1]
+     a=0
+     w = X_train[a]
+     sj = sj_train[a][0]
+     w_y = y_train[a]
      w_y_no_cat = np.argmax(w_y)
-     """
+     
      print(w.shape)
+     dictionary=dict()
+     for k in range(0,8163):
+         l=X_train[k]
+         #A=np.max(l[:,0])
+         maximos=[np.max(l[:,0]),np.max(l[:,1]),np.max(l[:,2])]
+         minimos=[np.min(l[:,0]),np.min(l[:,1]),np.min(l[:,2])]
+         dictionary[k]=[maximos,minimos]
      img = SavevarMTF_XYZ(w, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129) 
-     """
-     valoresa=np.linspace(-5, 20, 129)
-     valoresb=np.linspace(-20, 50, 129)
-     valoresc=np.linspace(-10, 3, 129)
-     experimento=np.array([valoresa,valoresb,valoresc]).reshape(129,3)
-     experimentoinv=np.array([valoresa[::-1],valoresb[::-1],valoresc[::-1]]).reshape(129,3)
-     
-     img = SavevarMTF_XYZ(experimento, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129) 
-     img2 = SavevarMTF_XYZ(experimentoinv, sj, 1, "x", normalized = 1, path=f"./", TIME_STEPS=129)
      
      
      
-     """
      imagen = cv2.imread("./1600x0mtf.png")  
      imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
      print("Image shape",imagen.shape)
-     rp=Reconstruct_MTF(imagen)
+     rp=Reconstruct_MTF(imagen,dictionary,a)
      # Configurar el estilo de los gráficos
      plt.style.use("ggplot")  
 
@@ -292,13 +375,13 @@ def main():
      plt.clf()
      
      f=np.array(w[:,0])
-     f=f[1:]
+     f=f[:]
      print(f.shape)
      error_absoluto, error_relativo = calcular_errores(f, rp[0])
      print(f"Error Absoluto Promedio: {error_absoluto}")
      print(f"Error Relativo Promedio: {error_relativo}")
      print(f"Coeficiente de correlación: {np.corrcoef(f, rp[0])[0,1]}")
     
-    """
+    
 if __name__ == '__main__':
     main()

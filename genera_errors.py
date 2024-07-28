@@ -13,9 +13,10 @@ def main():
     
 
     data_folder="/home/adriano/Escritorio/TFG/data/WISDM/tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
+    data_folder1="/home/adriano/Escritorio/TFG/data/WISDM/tseries/GAF/sampling_loto/3-fold/fold-0/train"
     errores = []
     indices_T=np.load(f"{data_folder}/training_data.npy")
-    X_all_rec=np.load(f"{data_folder}/X_all_rec.npy")
+    X_all_rec=np.load(f"{data_folder1}/X_all_gaf.npy")
     
     
     t=0
@@ -33,7 +34,7 @@ def main():
          errores.append(error)
     print("Desplazamientos :",t)
     dataset_folder="/home/adriano/Escritorio/TFG/data/WISDM/"     
-    archivoerrores=f"{dataset_folder}tseries/recurrence_plot/errores_rec2.npy"
+    archivoerrores=f"{dataset_folder}tseries/GAF/errores_gaf2.npy"
     np.save(archivoerrores,np.array(errores))
     
 if __name__ == '__main__':
