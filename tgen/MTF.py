@@ -2,13 +2,19 @@
 from math import sqrt
 import numpy as np
 import matplotlib.pyplot as plt
-import activity_data as act
-import recurrence_plots as rec
+#import activity_data as act
+import tgen.activity_data as act
+#import recurrence_plots as rec
+import tgen.recurrence_plots as rec
 from pyts.image import MarkovTransitionField
-from scipy.sparse.csgraph import dijkstra
 from PIL import Image
 import cv2
 from sklearn.manifold import MDS
+from tqdm.auto import trange, tqdm #progress bars for pyhton files (not jupyter notebook)
+from sklearn.model_selection import StratifiedGroupKFold, GroupKFold
+import os
+import time
+import seaborn as sns
 def varMTF2(data, dim,TIME_STEPS):
     x = []
     k=0
@@ -91,7 +97,43 @@ def varMTF(data, dim,TIME_STEPS):
     print(MTF)
     return MTF 
 
+def generate_and_save_markov_transition_field(fold, dataset_folder, training_data, y_data, sj_train, TIME_STEPS=129, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
+    subject_samples = 0
+    p_bar = tqdm(range(len(training_data)))
 
+    for i in p_bar:
+      w = training_data[i]
+      sj = sj_train[i][0]
+      w_y = y_data[i]
+      w_y_no_cat = np.argmax(w_y)
+      print("w_y", w_y, "w_y_no_cat", w_y_no_cat)
+      print("w", w.shape)
+
+      # Update Progress Bar after a while
+      time.sleep(0.01)
+      p_bar.set_description(f'[{data_type} | FOLD {fold} | Class {w_y_no_cat}] Subject {sj}')
+    
+      # #-------------------------------------------------------------------------
+      # # only for degugging in notebook
+      # #-------------------------------------------------------------------------
+      # df_original_plot = pd.DataFrame(w, columns=["x_axis", "y_axis", "z_axis"])
+      # df_original_plot["signal"] = np.repeat("Original", df_original_plot.shape[0])
+      # df_original_plot = df_original_plot.iloc[:-1,:]
+      # plot_reconstruct_time_series(df_original_plot, "Walking", subject=sj)
+      # #-------------------------------------------------------------------------
+
+      #print(f"{'*'*20}\nSubject: {sj} (window: {i+1}/{len(training_data)} | label={y})\n{'*'*20}")
+      #print("Window shape",w.shape)
+      if fold < 0:
+        img = SavevarMTF_XYZ(w, sj, subject_samples, "x", normalized = 1, path=f"{dataset_folder}plots/MTF/sampling_{sampling}/{data_type}/{w_y_no_cat}/", TIME_STEPS=TIME_STEPS)
+      else:
+        img = SavevarMTF_XYZ(w, sj, subject_samples, "x", normalized = 1, path=f"{dataset_folder}plots/MTF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/", TIME_STEPS=TIME_STEPS)
+      print("w image (RP) shape:", np.array(img).shape)
+      
+      
+      subject_samples += 1
+      
+     
 def SavevarMTF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=129):
     if not all([(x==0).all()]):
      _r = varMTF2(x,'x', TIME_STEPS)
@@ -234,7 +276,7 @@ def MTF_to_TS(mtf,dictionary,index=0,numstates=4,TIMESTEPS=129):
     vector=np.arange(0, numstates) #(0,1,2,3)
     filasactuales=np.arange(0, numstates)
     tr=np.arange(0, numstates)
-    print("TR",tr)
+    
     mean_similarities1 = np.sum(statematrix, axis=1)
     pivote=np.argmax(mean_similarities1)
     aux=vector[numstates//2]
@@ -251,14 +293,14 @@ def MTF_to_TS(mtf,dictionary,index=0,numstates=4,TIMESTEPS=129):
     tr= np.delete(vector,np.where(vector==pivote))
     # [0 2 3] 1
     mean_similarities = np.sum(m, axis=1)
-    print(m,mean_similarities,tr,pivote,vector)
+    
 
     #segundo valor
     pivote=tr[np.argmax(mean_similarities)]
     aux=vector[numstates//2-1]
     vector[numstates//2-1]=pivote
     vector[pivote]=aux
-    print(np.argmax(mean_similarities))
+    
 
     a=[]
 
@@ -269,9 +311,9 @@ def MTF_to_TS(mtf,dictionary,index=0,numstates=4,TIMESTEPS=129):
     #m=np.delete(statematrix, pivote, axis=1)
     tr= np.delete(tr,np.argmax(mean_similarities))
     
-    print(m,mean_similarities,tr,pivote)
+    #print(m,mean_similarities,tr,pivote)
     
-    print("VALORES",vector,tr)
+    #print("VALORES",vector,tr)
     if statematrix[vector[numstates//2]][tr[0]]>statematrix[vector[numstates//2]][tr[1]]:
         vector[3]=tr[0]
         vector[0]=tr[1]
@@ -281,7 +323,7 @@ def MTF_to_TS(mtf,dictionary,index=0,numstates=4,TIMESTEPS=129):
 
     
     valores=vector
-    print(valores)
+    #print(valores)
     f=np.array([-1,1,3,5])
     serie=np.arange(0, 129)
     #print(estados)
@@ -291,7 +333,7 @@ def MTF_to_TS(mtf,dictionary,index=0,numstates=4,TIMESTEPS=129):
             est=f[valores[i]]
             serie[estados[i][j]]=est
             
-    print(serie)
+    #print(serie)
     min_a, max_a = np.min(serie), np.max(serie)  
      
      #nega = min_b + n * (max_b - min_b)
@@ -300,6 +342,55 @@ def MTF_to_TS(mtf,dictionary,index=0,numstates=4,TIMESTEPS=129):
     
     serie=np.interp(serie,(min_a,max_a),(MIN[index], MAX[index]))
     return serie
+def generate_all_markov_transition_field(X_train, y_train, sj_train, dataset_folder="/home/fmgarmor/proyectos/TGEN-timeseries-generation/data/WISDM/", TIME_STEPS=129,  FOLDS_N=3, sampling="loso"):
+  groups = sj_train 
+  if sampling == "loto":
+    #TODO change 100 for an automatic extracted number greater than the max subject ID: max(sj_train)*10
+    groups = [[int(sj[0])+i*100+np.argmax(y_train[i])+1] for i,sj in enumerate(sj_train)]
+
+  # if DATASET_NAME == "WISDM": #since wisdm is quite balanced
+  sgkf = StratifiedGroupKFold(n_splits=FOLDS_N)
+  # elif DATASET_NAME == "MINDER" or DATASET_NAME == "ORIGINAL_WISDM": 
+  #   sgkf = StratifiedGroupKFold(n_splits=FOLDS_N)
+
+  accs = []
+  y_train_no_cat = [np.argmax(y) for y in y_train]
+  p_bar_classes = tqdm(range(len(np.unique(y_train_no_cat))))
+  all_classes = np.unique(y_train_no_cat)
+  print("Classes available: ", all_classes)
+  for fold in range(FOLDS_N):
+    for i in p_bar_classes:
+        y = all_classes[i]
+        time.sleep(0.01) # Update Progress Bar after a while
+        os.makedirs(f"{dataset_folder}plots/MTF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/{y}/", exist_ok=True) 
+        os.makedirs(f"{dataset_folder}plots/MTF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/test/{y}/", exist_ok=True) 
+        os.makedirs(f"{dataset_folder}plots/single_axis/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/{y}/", exist_ok=True)
+        os.makedirs(f"{dataset_folder}plots/single_axis/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/test/{y}/", exist_ok=True)
+
+  for fold, (train_index, val_index) in enumerate(sgkf.split(X_train, y_train_no_cat, groups=groups)):
+
+    # if fold != 2:
+    #   continue
+
+    # print(f"{'*'*20}\nFold: {fold}\n{'*'*20}")
+    # print("Train index", train_index)
+    # print("Validation index", val_index)
+    training_data = X_train[train_index,:,:]
+    validation_data = X_train[val_index,:,:]
+    y_training_data = y_train[train_index]
+    y_validation_data = y_train[val_index]
+    sj_training_data = sj_train[train_index]
+    sj_validation_data = sj_train[val_index]
+
+    print("training_data.shape", training_data.shape, "y_training_data.shape", y_training_data.shape, "sj_training_data.shape", sj_training_data.shape)
+    print("validation_data.shape", validation_data.shape, "y_validation_data.shape", y_validation_data.shape, "sj_validation_data.shape", sj_validation_data.shape)
+
+
+
+    generate_and_save_markov_transition_field(fold, dataset_folder, training_data, y_training_data, sj_training_data, TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+    generate_and_save_markov_transition_field(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data, TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+    
+
 def main():
      data_name="WISDM"
      data_folder="/home/adriano/Escritorio/TFG/data/WISDM/"
@@ -337,11 +428,15 @@ def main():
      print("Image shape",imagen.shape)
      rp=Reconstruct_MTF(imagen,dictionary,a)
      # Configurar el estilo de los gráficos
+     
+     dim=1
+     
+    # Configurar el estilo de los gráficos
      plt.style.use("ggplot")  
 
     # Gráfico original
      plt.figure(figsize=(10, 6))
-     plt.plot(w[:, 0], marker='o', color='blue')
+     plt.plot(w[:, dim], marker='o', color='blue')
      plt.title('Original', fontsize=18,fontweight="bold")
      plt.xlabel("Tiempo", fontsize=12)
      plt.ylabel('Índice X', fontsize=12)
@@ -349,10 +444,10 @@ def main():
      plt.tight_layout()
      plt.savefig('original.png', bbox_inches='tight', pad_inches=0)
      plt.clf()
-
+    
     # Gráfico reconstrucción
      plt.figure(figsize=(10, 6))
-     plt.plot(rp[0], marker='o', color='green')
+     plt.plot(rp[dim], marker='o', color='green')
      plt.title('Reconstrucción', fontsize=18,fontweight="bold")
      plt.xlabel('Tiempo', fontsize=12)
      plt.ylabel('Índice X', fontsize=12)
@@ -363,8 +458,8 @@ def main():
 
     # Gráfico comparativa
      plt.figure(figsize=(10, 6))
-     plt.plot(w[:, 0], marker='o', label='Original', color='blue')
-     plt.plot(rp[0], marker='o', label='Reconstrucción', color='green')
+     plt.plot(w[:, dim], marker='o', label='Original', color='blue')
+     plt.plot(rp[dim], marker='o', label='Reconstrucción', color='green')
      plt.title('Comparativa', fontsize=18,fontweight="bold")
      plt.xlabel("Tiempo", fontsize=12)
      plt.ylabel('Índice X', fontsize=12)
@@ -374,13 +469,15 @@ def main():
      plt.savefig('Comparativa.png', bbox_inches='tight', pad_inches=0)
      plt.clf()
      
-     f=np.array(w[:,0])
+     f=np.array(w[:,dim])
      f=f[:]
      print(f.shape)
-     error_absoluto, error_relativo = calcular_errores(f, rp[0])
+     error_absoluto, error_relativo = calcular_errores(f, rp[dim])
+     #d = dtw.distance_fast(f, rp[1], use_pruning=True)
      print(f"Error Absoluto Promedio: {error_absoluto}")
      print(f"Error Relativo Promedio: {error_relativo}")
-     print(f"Coeficiente de correlación: {np.corrcoef(f, rp[0])[0,1]}")
+     #print(f"Error DTW: {d}")
+     print(f"Coeficiente de correlación: {np.corrcoef(f, rp[dim])[0,1]}")
     
     
 if __name__ == '__main__':

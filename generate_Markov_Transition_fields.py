@@ -2,11 +2,11 @@
 from keras.utils import to_categorical
 import argparse
 import tgen.activity_data as act
-import tgen.markov_transition_fields as mtf
+import tgen.MTF2 as mtf
 def main():
     '''Examples of runs:
     - load LOTO numpies
-    ./generate_Markov_Transition_fields.py --data-name WISDM --n-folds 3 --data-folder /home/adriano/Escritorio/TFG/data/WISDM/  --sampling loto > ts_plots_loto.log &
+    ./generate_Grammian_Angular_fields.py --data-name WISDM --n-folds 3 --data-folder /home/adriano/Escritorio/TFG/data/WISDM/  --sampling loto > ts_plots_gaf_loto.log &
        
     - Create numpies included
     $ nohup ./generate_recurrence_plots.py --create-numpies --data-name WISDM --n-folds 3 --data-folder /home/adriano/Escritorio/TFG/data/WISDM/  --sampling loso > recurrence_plots_loto.log &

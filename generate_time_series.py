@@ -2,11 +2,11 @@
 from keras.utils import to_categorical
 import argparse
 import tgen.activity_data as act
-import tgen.activity_data_tseries as ts
+import tgen.reconstruct_tseries as ts
 def main():
     '''Examples of runs:
     - load LOSO numpies
-    ./generate_time_series.py --data-name WISDM --n-folds 3 --data-folder /home/adriano/Escritorio/TFG/data/WISDM/  --sampling loto > ts_plots_loto_gaf.log &
+    ./generate_time_series.py --data-name WISDM --n-folds 3 --image-type GAF --data-folder /home/adriano/Escritorio/TFG/data/WISDM/  --sampling loto > ts_plots_loto_mtf.log &
 
 
     
@@ -26,7 +26,7 @@ def main():
     p.add_argument('--n-folds', type=int, default=3, help='the number of k-folds')
     p.add_argument('--sampling', type=str, default="loso", help='loso: leave-one-subject-out; loto: leave-one-trial-out')
     p.add_argument('--create-numpies', action="store_true", help='create numpies before; if not, load numpies')
-
+    p.add_argument('--image-type',type=str, default="all", help='Also you can reconstruct one specific image type GAF,REC,MTF')
 
     args = p.parse_args()
     create_numpies = args.create_numpies
@@ -45,7 +45,7 @@ def main():
         y_train = to_categorical(y_train, dtype='uint8') 
     print("X_train", X_train.shape, "y_train", y_train.shape, "sj_train", sj_train.shape)
     
-    ts.generate_all_time_series(X_train, y_train, sj_train, data_folder, TIME_STEPS, FOLDS_N, args.sampling)
+    ts.generate_all_time_series(X_train, y_train, sj_train, data_folder, TIME_STEPS, FOLDS_N, args.sampling,args.image_type)
 
 
 if __name__ == '__main__':

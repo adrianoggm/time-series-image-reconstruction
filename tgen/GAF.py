@@ -56,6 +56,7 @@ def gramian_angular_field(series, method='summation'):
     # Polar encoding
     #print("Serie norm",series,normalized_series)
     phi = np.arccos(normalized_series) 
+    
     #print("Serie norm",phi,normalized_series)
     #print("Angulos",phi)
     #print("valores de PHI de R",phi)
@@ -67,11 +68,12 @@ def gramian_angular_field(series, method='summation'):
     # Construcción del GAF
     if method == 'summation':
         gaf = tabulate(phi, phi, cos_sum)
+        print("entra")
     elif method == 'difference':
         gaf = tabulate(phi, phi, sin_diff)
     else:
         raise ValueError("Method must be 'summation' or 'difference'")
-    
+    print(gaf)
     return gaf
     
 
@@ -131,7 +133,7 @@ def SavevarGAF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, sav
      #print("fig size: width=", plt.figure().get_figwidth(), "height=", plt.figure().get_figheight())
     
      if normalized:
-          
+          print(_r)
           newImage = RGBfromMTFMatrix_of_XYZ(normalize_to_zero_one(_r), normalize_to_zero_one(_g),normalize_to_zero_one(_b))
           #newImage = RGBfromRPMatrix_of_XYZ(_r, _g, _b)
           # print(newImage.shape)
@@ -182,9 +184,9 @@ def Reconstruct_GAF(img,dictionary,a):
     _g= img[:,:,1].astype('float')
     _b= img[:,:,2].astype('float')
     
-    _r=np.interp(_r,(0,255),(0,1))
-    _g=np.interp(_g,(0,255),(0,1))
-    _b=np.interp(_b,(0,255),(0,1))
+    _r=np.interp(_r,(0,255),(-1,1))
+    _g=np.interp(_g,(0,255),(-1,1))
+    _b=np.interp(_b,(0,255),(-1,1))
     
     r=GAF_to_TS(_r,0,dictionary[a])
     g=GAF_to_TS(_g,1,dictionary[a])
@@ -196,7 +198,9 @@ def Reconstruct_GAF(img,dictionary,a):
     return N
 def GAF_to_TS(gaf,i,dictionary,method='summation'):
     #We recontruct first phi vector based on gasf matrix diagonal property
+    print(gaf)
     phi=np.arccos(np.diag(gaf))/2
+    
     X_normalized=np.cos(phi)
     
     
@@ -313,7 +317,7 @@ def main():
      #print("maximo",np.max(X_train))
      MAX=np.max(X_train)
      MIN=np.min(X_train)
-     a=0
+     a=20
      w = X_train[a]
      sj = sj_train[a][0]
      w_y = y_train[a]
@@ -336,9 +340,10 @@ def main():
          maximos=[np.max(l[:,0]),np.max(l[:,1]),np.max(l[:,2])]
          minimos=[np.min(l[:,0]),np.min(l[:,1]),np.min(l[:,2])]
          dictionary[k]=[maximos,minimos]
-
+     #w=w*-1
+     #w[:, 0]=w[:, 0]*-1
      img = SavevarGAF_XYZ(w, sj, a, "x", normalized = 1, path=f"./", TIME_STEPS=129)
-     imagen = cv2.imread("./1600x0gasf.png")  
+     imagen = cv2.imread("./1600x20gasf.png")  
      imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
      print("Image shape",imagen.shape)
      

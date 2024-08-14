@@ -35,7 +35,7 @@ def stderror(valores_verdaderos, valores_aproximados):
     return error
 
 ##Calculates all different error measures for each channel returning them in n-channel tuples   
-def ts_error(original,creada):
+def ts_error(original,creada,flag=True):
     errores_absolutos=[]
     errores_relativos=[]
     errores_rms=[]
@@ -43,7 +43,7 @@ def ts_error(original,creada):
     errores_pearson =[]
     t=0
     if len(original)!=len(creada[1]):
-      print("entra",len(original),len(creada))
+      #print("entra",len(original),len(creada))
       for i in range(0,3):
         pearsona=np.corrcoef(original[1:,i], creada[i])[0,1]
         pearsonb=np.corrcoef(original[:-1,i], creada[i])[0,1]
@@ -71,17 +71,45 @@ def ts_error(original,creada):
         errores_std=np.append(errores_std,std)
         errores_pearson=np.append(errores_pearson,pearson)
     else:
-       
-       for i in range(0,3):
-        pearson=np.corrcoef(original[:,i], creada[i])[0,1]
-        error_absoluto, error_relativo = calcular_errores(original[:,i], creada[i])
-        #d = dtw.distance_fast(original[:-1,i], creada[i], use_pruning=True)
-        rms=rmse(original[:,i], creada[i])
-        std=stderror(original[:,i], creada[i])
-        errores_absolutos=np.append(errores_absolutos,error_absoluto)
-        errores_relativos=np.append(errores_relativos,error_relativo)
-        errores_rms=np.append(errores_rms,rms)
-        errores_std=np.append(errores_std,std)
-        errores_pearson=np.append(errores_pearson,pearson)
+       if flag:
+          for i in range(0,3):
+            pearson=np.corrcoef(original[:,i], creada[i])[0,1]
+            error_absoluto, error_relativo = calcular_errores(original[:,i], creada[i])
+            #d = dtw.distance_fast(original[:-1,i], creada[i], use_pruning=True)
+            rms=rmse(original[:,i], creada[i])
+            std=stderror(original[:,i], creada[i])
+            errores_absolutos=np.append(errores_absolutos,error_absoluto)
+            errores_relativos=np.append(errores_relativos,error_relativo)
+            errores_rms=np.append(errores_rms,rms)
+            errores_std=np.append(errores_std,std)
+            errores_pearson=np.append(errores_pearson,pearson)
+       else :
+            for i in range(0,3):
+              minv=creada[i]*-1
+              pearsona=np.corrcoef(original[:,i], minv)[0,1]
+              pearsonb=np.corrcoef(original[:,i], creada[i])[0,1]
+              if pearsonb<=pearsona :
+                error_absoluto, error_relativo = calcular_errores(original[:,i], minv)
+                #d = dtw.distance_fast(original[:-1,i], creada[i], use_pruning=True)
+                rms=rmse(original[:,i], minv)
+                std=stderror(original[:,i], minv)
+                pearson=pearsona
+                t+=1
+              else :
+                error_absoluto, error_relativo = calcular_errores(original[:,i], creada[i])
+                #d = dtw.distance_fast(original[:-1,i], creada[i], use_pruning=True)
+                rms=rmse(original[:,i], creada[i])
+                std=stderror(original[:,i], creada[i])
+                pearson=pearsonb
+                
+              #print(f"Error Absoluto Promedio: {error_absoluto}")
+              #print(f"Error Relativo Promedio: {error_relativo}")
+              #print(f"Error DTW: {d}")
+              #print(f"Coeficiente de correlación: {pearson}")
+              errores_absolutos=np.append(errores_absolutos,error_absoluto)
+              errores_relativos=np.append(errores_relativos,error_relativo)
+              errores_rms=np.append(errores_rms,rms)
+              errores_std=np.append(errores_std,std)
+              errores_pearson=np.append(errores_pearson,pearson)
         
     return  errores_absolutos, errores_relativos,errores_rms,errores_std,errores_pearson,t  

@@ -17,13 +17,18 @@ def main():
     
     data_folder="/home/adriano/Escritorio/TFG/data/WISDM/tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
     data_F1="/home/adriano/Escritorio/TFG/data/WISDM/tseries/recurrence_plot/"
-    errores = np.load(f"{data_F1}/errores_rec2.npy")
-    
-    #data_F1="/home/adriano/Escritorio/TFG/data/WISDM/tseries/GAF/"
-    #errores = np.load(f"{data_F1}/errores_gaf2.npy")
-    #errores2 = np.load(f"{data_folder}/errores_rec.npy")
+    #errores = np.load(f"{data_F1}/errores_rec2.npy")
     indices_T=np.load(f"{data_folder}/training_data.npy")
     X_all_rec=np.load(f"{data_folder}/X_all_rec.npy")
+    
+    data_F1="/home/adriano/Escritorio/TFG/data/WISDM/tseries/GAF/sampling_loto/3-fold/fold-0/train"
+    errores = np.load(f"{data_F1}/errores_gaf.npy")
+    X_all_rec=np.load(f"/home/adriano/Escritorio/TFG/data/WISDM/tseries/GAF/sampling_loto/3-fold/fold-0/train/X_all_gaf.npy")
+    #errores2 = np.load(f"{data_folder}/errores_rec.npy")
+    #data_folder="/home/adriano/Escritorio/TFG/data/WISDM/tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
+    data_F1="/home/adriano/Escritorio/TFG/data/WISDM/tseries/MTF/"
+    #errores = np.load(f"{data_F1}/errores_mtf.npy")
+    
     #print(sj_train[:,0])
      #print(f"Error Absoluto Promedio: {error_absoluto}")
       #print(f"Error Relativo Promedio: {error_relativo}")
@@ -46,11 +51,11 @@ def main():
                     print("ERROR TIPO {tipoerrores[i]}en dim {j}es :",np.mean(errores[:,i,j]))
                 print("ERROR TIPO {tipoerrores[i]} medio global es :",np.mean(errores[:,i,:]))
             """
-    print("min r Promedio",(errores[:,2,:][errores[:,2,:]>450]))    
-    indices=np.where(errores[:,2,:]>450) #PEOR PEARSON 2690 mejor pearson 2026
+    print("min r Promedio",(errores[:,4,:][errores[:,4,:]<0.97]))    
+    indices=np.where(errores[:,4,:]<0.97) #PEOR PEARSON 2690 mejor pearson 2026
     indices = list(zip(indices[0], indices[1]))
     print(indices)
-    print(errores[940,:,:])# 4913 candidata a mejor ideal ERROR relativo 
+    print(errores[664,:,:])# 4913 candidata a mejor ideal ERROR relativo 
    
     """
     mejor pearson 2012 dim 0
@@ -65,10 +70,10 @@ def main():
     PEOR   ERROR relativo 3068, 1  450.10440276
           (2380, 1
     """
-    w=indices_T[940]
-    rp=X_all_rec[940]
+    w=indices_T[664]
+    rp=X_all_rec[664]
      
-    dim=1
+    dim=0
     """
      
      valoresa=np.linspace(-5, 20, 129)
@@ -103,7 +108,7 @@ def main():
 
     # Gráfico original
     plt.figure(figsize=(10, 6))
-    plt.plot(w[1:, dim], marker='o', color='blue')
+    plt.plot(w[:, dim], marker='o', color='blue')
     plt.title('Original', fontsize=18,fontweight="bold")
     plt.xlabel("Tiempo", fontsize=12)
     plt.ylabel('Índice X', fontsize=12)
@@ -125,7 +130,7 @@ def main():
 
     # Gráfico comparativa
     plt.figure(figsize=(10, 6))
-    plt.plot(w[1:, dim], marker='o', label='Original', color='blue')
+    plt.plot(w[:, dim], marker='o', label='Original', color='blue')
     plt.plot(rp[dim], marker='o', label='Reconstrucción', color='green')
     plt.title('Comparativa', fontsize=18,fontweight="bold")
     plt.xlabel("Tiempo", fontsize=12)
@@ -137,7 +142,7 @@ def main():
     plt.clf()
     
     f=np.array(w[:,dim])
-    f=f[1:]
+    f=f[:]
     print(f.shape)
     error_absoluto, error_relativo = cerr.calcular_errores(f, rp[dim])
     #d = dtw.distance_fast(f, rp[1], use_pruning=True)
