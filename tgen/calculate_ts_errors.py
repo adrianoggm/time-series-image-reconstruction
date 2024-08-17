@@ -93,14 +93,14 @@ def ts_error(original,creada,flag=True):
                 #d = dtw.distance_fast(original[:-1,i], creada[i], use_pruning=True)
                 rms=rmse(original[:,i], minv)
                 std=stderror(original[:,i], minv)
-                pearson=pearsona
+                pearson=np.abs(pearsona)
                 t+=1
               else :
                 error_absoluto, error_relativo = calcular_errores(original[:,i], creada[i])
                 #d = dtw.distance_fast(original[:-1,i], creada[i], use_pruning=True)
                 rms=rmse(original[:,i], creada[i])
                 std=stderror(original[:,i], creada[i])
-                pearson=pearsonb
+                pearson=np.abs(pearsonb)
                 
               #print(f"Error Absoluto Promedio: {error_absoluto}")
               #print(f"Error Relativo Promedio: {error_relativo}")

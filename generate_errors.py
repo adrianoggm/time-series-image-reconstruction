@@ -6,29 +6,31 @@ import tgen.calculate_ts_errors as cerr
 import sklearn.metrics as metrics
 import numpy as np
 import matplotlib.pyplot as plt
+import tgen.ts_plots as plot
 from PIL import Image
 from dtaidistance import dtw
 import cv2
 def main():
     data_name="WISDM"
-    data_folder="/home/adriano/Escritorio/TFG/data/WISDM/"
-     #voy a  obtener el maximo de todo el data set.
-    X_train, y_train, sj_train = act.load_numpy_datasets(data_name, data_folder, USE_RECONSTRUCTED_DATA=False)
-    
     data_folder="/home/adriano/Escritorio/TFG/data/WISDM/tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
-    data_F1="/home/adriano/Escritorio/TFG/data/WISDM/tseries/recurrence_plot/"
-    #errores = np.load(f"{data_F1}/errores_rec2.npy")
+     #voy a  obtener el maximo de todo el data set.
+    img_type="MTF"
     indices_T=np.load(f"{data_folder}/training_data.npy")
-    X_all_rec=np.load(f"{data_folder}/X_all_rec.npy")
     
-    data_F1="/home/adriano/Escritorio/TFG/data/WISDM/tseries/GAF/sampling_loto/3-fold/fold-0/train"
-    errores = np.load(f"{data_F1}/errores_gaf.npy")
-    X_all_rec=np.load(f"/home/adriano/Escritorio/TFG/data/WISDM/tseries/GAF/sampling_loto/3-fold/fold-0/train/X_all_gaf.npy")
-    #errores2 = np.load(f"{data_folder}/errores_rec.npy")
+    if img_type=="RP":
+        data_F1="/home/adriano/Escritorio/TFG/data/WISDM/tseries/recurrence_plot/"
+        errores = np.load(f"{data_F1}/errores_rec.npy")
+        X_all_rec=np.load(f"{data_folder}/X_all_rec.npy")
+    if img_type=="GAF":
+        data_F1="/home/adriano/Escritorio/TFG/data/WISDM/tseries/GAF/sampling_loto/3-fold/fold-0/train"
+        errores = np.load(f"{data_F1}/errores_gaf.npy")
+        X_all_rec=np.load(f"/home/adriano/Escritorio/TFG/data/WISDM/tseries/GAF/sampling_loto/3-fold/fold-0/train/X_all_gaf.npy")
+        #errores2 = np.load(f"{data_folder}/errores_rec.npy")
     #data_folder="/home/adriano/Escritorio/TFG/data/WISDM/tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
-    data_F1="/home/adriano/Escritorio/TFG/data/WISDM/tseries/MTF/"
-    #errores = np.load(f"{data_F1}/errores_mtf.npy")
-    
+    if img_type=="MTF":
+        data_F1="/home/adriano/Escritorio/TFG/data/WISDM/tseries/MTF/sampling_loto/3-fold/fold-0/train"
+        errores = np.load(f"{data_F1}/errores_mtf.npy")
+        X_all_rec=np.load(f"/home/adriano/Escritorio/TFG/data/WISDM/tseries/MTF/sampling_loto/3-fold/fold-0/train/X_all_mtf.npy")
     #print(sj_train[:,0])
      #print(f"Error Absoluto Promedio: {error_absoluto}")
       #print(f"Error Relativo Promedio: {error_relativo}")
@@ -51,11 +53,11 @@ def main():
                     print("ERROR TIPO {tipoerrores[i]}en dim {j}es :",np.mean(errores[:,i,j]))
                 print("ERROR TIPO {tipoerrores[i]} medio global es :",np.mean(errores[:,i,:]))
             """
-    print("min r Promedio",(errores[:,4,:][errores[:,4,:]<0.97]))    
-    indices=np.where(errores[:,4,:]<0.97) #PEOR PEARSON 2690 mejor pearson 2026
+    print("min r Promedio",(errores[:,4,:][errores[:,4,:]<4.09187097e-05]),np.min(errores[:,4,:]))    
+    indices=np.where(errores[:,4,:]<4.09187097e-05) #PEOR PEARSON 2690 mejor pearson 2026
     indices = list(zip(indices[0], indices[1]))
     print(indices)
-    print(errores[664,:,:])# 4913 candidata a mejor ideal ERROR relativo 
+    print(errores[3301,:,:])# 4913 candidata a mejor ideal ERROR relativo 
    
     """
     mejor pearson 2012 dim 0
@@ -70,10 +72,10 @@ def main():
     PEOR   ERROR relativo 3068, 1  450.10440276
           (2380, 1
     """
-    w=indices_T[664]
-    rp=X_all_rec[664]
+    w=indices_T[3301]
+    rp=X_all_rec[3301]
      
-    dim=0
+    dim=1
     """
      
      valoresa=np.linspace(-5, 20, 129)
@@ -103,43 +105,7 @@ def main():
 
 
      
-    # Configurar el estilo de los gráficos
-    plt.style.use("ggplot")  
-
-    # Gráfico original
-    plt.figure(figsize=(10, 6))
-    plt.plot(w[:, dim], marker='o', color='blue')
-    plt.title('Original', fontsize=18,fontweight="bold")
-    plt.xlabel("Tiempo", fontsize=12)
-    plt.ylabel('Índice X', fontsize=12)
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig('original.png', bbox_inches='tight', pad_inches=0)
-    plt.clf()
-
-    # Gráfico reconstrucción
-    plt.figure(figsize=(10, 6))
-    plt.plot(rp[dim], marker='o', color='green')
-    plt.title('Reconstrucción', fontsize=18,fontweight="bold")
-    plt.xlabel('Tiempo', fontsize=12)
-    plt.ylabel('Índice X', fontsize=12)
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig('reconstruccion.png', bbox_inches='tight', pad_inches=0)
-    plt.clf()
-
-    # Gráfico comparativa
-    plt.figure(figsize=(10, 6))
-    plt.plot(w[:, dim], marker='o', label='Original', color='blue')
-    plt.plot(rp[dim], marker='o', label='Reconstrucción', color='green')
-    plt.title('Comparativa', fontsize=18,fontweight="bold")
-    plt.xlabel("Tiempo", fontsize=12)
-    plt.ylabel('Índice X', fontsize=12)
-    plt.legend(fontsize=12)
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig('Comparativa.png', bbox_inches='tight', pad_inches=0)
-    plt.clf()
+    plot.plot_time_series(w,rp,dim)
     
     f=np.array(w[:,dim])
     f=f[:]

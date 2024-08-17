@@ -278,7 +278,7 @@ def MTF_to_TS(mtf,dictionary,index=0,numstates=4,TIMESTEPS=129):
     izq_val=pivote
     dch_indx=numstates//2+1 #3 
     dch_val=pivote
-    print(pivote,statematrix)
+    #print(pivote,statematrix)
     m=statematrix
     count=1 # ya hay un estado colocado
     while count!=numstates:
@@ -287,10 +287,10 @@ def MTF_to_TS(mtf,dictionary,index=0,numstates=4,TIMESTEPS=129):
             if(i!=np.argmax(mean_similarities)):
                 a.append(m[i,:])
         m=np.array(a)
-        print(izq_val,m)
-        print("TR",tr)
+        #print(izq_val,m)
+        #print("TR",tr)
         tr= np.delete(tr,np.where(tr==dch_val))
-        print("TR",tr)
+        #print("TR",tr)
         #tr contiene los indices correspondientes a la matriz m
         mean_similarities = np.sum(m, axis=1)
         izq_val=tr[np.argmax(mean_similarities)]
@@ -304,14 +304,14 @@ def MTF_to_TS(mtf,dictionary,index=0,numstates=4,TIMESTEPS=129):
         for i in range(0,len(m)):
             if(i!=np.argmax(mean_similarities)):
                 a.append(m[i,:])
-        print(dch_val,m)
+        
         m=np.array(a)
         mean_similarities = np.sum(m, axis=1)
         dch_val=tr[np.argmax(mean_similarities)]
         vector[dch_indx]=dch_val
         dch_indx-=1        
         count+=1
-        print(vector)
+       
 
 
     
@@ -456,7 +456,7 @@ def main():
      plt.title('Comparativa', fontsize=18,fontweight="bold")
      plt.xlabel("Tiempo", fontsize=12)
      plt.ylabel('Índice X', fontsize=12)
-     plt.legend(fontsize=12)
+     #plt.legend(loc="upper left",bbox_to_anchor=(1,1))
      plt.grid(True)
      plt.tight_layout()
      plt.savefig('Comparativa.png', bbox_inches='tight', pad_inches=0)

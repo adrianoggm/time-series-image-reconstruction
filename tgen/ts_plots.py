@@ -25,7 +25,7 @@ def plot_time_series(original,reconstruccion,dim):
 
     # Gráfico reconstrucción
      plt.figure(figsize=(10, 6))
-     plt.plot(rp[dim], marker='', color='magenta')
+     plt.plot(rp[dim], marker='', color='darkgreen')
      plt.title('Reconstrucción', fontsize=18,fontweight="bold")
      plt.xlabel('Tiempo', fontsize=12)
      plt.ylabel('Índice X', fontsize=12)
@@ -37,11 +37,11 @@ def plot_time_series(original,reconstruccion,dim):
     # Gráfico comparativa
      plt.figure(figsize=(10, 6))
      plt.plot(w[:, dim], marker='', label='Original', color='blue')
-     plt.plot(rp[dim],linestyle="--", marker='', label='Reconstrucción', color='magenta')
+     plt.plot(rp[dim],linestyle="--", marker='', label='Reconstrucción', color='darkgreen')
      plt.title('Comparativa', fontsize=18,fontweight="bold")
      plt.xlabel("Tiempo", fontsize=12)
      plt.ylabel('Índice X', fontsize=12)
-     plt.legend(fontsize=12)
+     plt.legend(fontsize=12,loc="upper left")
      plt.grid(True)
      plt.tight_layout()
      plt.savefig('Comparativa.png', bbox_inches='tight', pad_inches=0)

@@ -33,7 +33,7 @@ def main():
          w=indices_T[i]
          rp=X_all_mtf[i]
          error=[]
-         error_abs,error_r,error_q,error_std,error_p,te=cerr.ts_error(w,rp)
+         error_abs,error_r,error_q,error_std,error_p,te=cerr.ts_error(w,rp,flag=False)
          t+=te
          error.append(error_abs)
          error.append(error_r)
@@ -65,12 +65,10 @@ def main():
          errores_rec.append(error)
 
 
-    print("Desplazamientos :",t,t1,t2)
-    dataset_folder="/home/adriano/Escritorio/TFG/data/WISDM/"     
-    archivoerrores=f"{data_folder1}/errores_gaf.npy"
-    np.save(archivoerrores,np.array(errores_mtf))
-    dataset_folder="/home/adriano/Escritorio/TFG/data/WISDM/"     
+    print("Desplazamientos en el caso de t2 son inversiones :",t,t1,t2)
     archivoerrores=f"{data_folder2}/errores_mtf.npy"
+    np.save(archivoerrores,np.array(errores_mtf)) 
+    archivoerrores=f"{data_folder1}/errores_gaf.npy"    
     np.save(archivoerrores,np.array(errores_gasf))
     archivoerrores=f"{data_folder}/errores_rec.npy"
     np.save(archivoerrores,np.array(errores_rec))
