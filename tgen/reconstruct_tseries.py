@@ -116,7 +116,7 @@ def generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y
     X_all_rec=[]
     tiempos=[]
     start_gl=time.time()
-    errores= []
+    
     #Colocar timer
     
     
@@ -128,7 +128,7 @@ def generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y
       w_y_no_cat = np.argmax(w_y)
       #print("w_y", w_y, "w_y_no_cat", w_y_no_cat)
       #print("w", w.shape)
-      error=[]
+      
       # Update Progress Bar after a while
       #time.sleep(0.01)
       #p_bar.set_description(f'[{data_type} | FOLD {fold} | Class {w_y_no_cat}] Subject {sj}')
@@ -146,28 +146,7 @@ def generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y
       
       #print(rp)
       X_all_rec.append(gasf)
-      #print("X_ALL",np.array(X_all_rec))
-      #tiempo=end-start
-      #tiempos.append(tiempo)
-      #Guardar la rp en el path indicado con un nombre adecuado
-      #print(tiempos)
-      #w=w.reshape(3,129)
-      #w=w[:, 0]
-      #w=w[1:]
-      #print("Forma del RP original y calculada",w.shape,rp.shape)
-      
-      #print("normal",w,"calculada",rp)
-      
-      error_abs,error_r,error_q,error_std,error_p,te=err.ts_error(w,gasf)
-      
-      error.append(error_abs)
-      error.append(error_r)
-      error.append(error_q)
-      error.append(error_std)
-      error.append(error_p)
-      errores.append(error)
-      print("errores",np.array(error))
-      #print("errores",np.array(errores))
+   
       
       subject_samples += 1
 
@@ -177,8 +156,7 @@ def generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y
     #maybe we should calculate here the global of errors and the mean.
     archivoX_all=f"{dataset_folder}tseries/GAF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/X_all_gaf.npy"
     np.save(archivoX_all,np.array(X_all_rec))
-    archivoerrores=f"{dataset_folder}tseries/GAF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/errores_gaf.npy"
-    np.save(archivoerrores,np.array(errores))
+    
 
     #archivotiempos=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/tiempos_rec.npy"
     #np.save(archivotiempos,np.array(ttotal/subject_samples))
@@ -194,7 +172,7 @@ def generate_and_save_time_series_fromMTF(fold, dataset_folder, training_data, y
     X_all_rec=[]
     tiempos=[]
     start_gl=time.time()
-    errores= []
+   
     #Colocar timer
     
     
@@ -206,7 +184,7 @@ def generate_and_save_time_series_fromMTF(fold, dataset_folder, training_data, y
       w_y_no_cat = np.argmax(w_y)
       #print("w_y", w_y, "w_y_no_cat", w_y_no_cat)
       #print("w", w.shape)
-      error=[]
+      
       # Update Progress Bar after a while
       #time.sleep(0.01)
       #p_bar.set_description(f'[{data_type} | FOLD {fold} | Class {w_y_no_cat}] Subject {sj}')
@@ -238,12 +216,7 @@ def generate_and_save_time_series_fromMTF(fold, dataset_folder, training_data, y
       
       error_abs,error_r,error_q,error_std,error_p,te=err.ts_error(w,mtf)
       
-      error.append(error_abs)
-      error.append(error_r)
-      error.append(error_q)
-      error.append(error_std)
-      error.append(error_p)
-      errores.append(error)
+      
       #print("errores",np.array(error))
       #print("errores",np.array(errores))
       
@@ -256,9 +229,7 @@ def generate_and_save_time_series_fromMTF(fold, dataset_folder, training_data, y
     #maybe we should calculate here the global of errors and the mean.
     archivoX_all=f"{dataset_folder}tseries/MTF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/X_all_mtf.npy"
     np.save(archivoX_all,np.array(X_all_rec))
-    archivoerrores=f"{dataset_folder}tseries/MTF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/errores_mtf.npy"
-    np.save(archivoerrores,np.array(errores))
-
+    
     #archivotiempos=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/tiempos_rec.npy"
     #np.save(archivotiempos,np.array(ttotal/subject_samples))
     #print("Tiempo medio",np.mean(tiempos))
@@ -335,7 +306,7 @@ def generate_all_time_series(X_train, y_train, sj_train, dataset_folder="/home/a
       generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       print("se hace 1 vez")
       break
-    if reconstruction=="REC":
+    if reconstruction=="RP":
       generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
 
       print("se hace 1 vez")

@@ -26,7 +26,7 @@ def main():
     p.add_argument('--n-folds', type=int, default=3, help='the number of k-folds')
     p.add_argument('--sampling', type=str, default="loso", help='loso: leave-one-subject-out; loto: leave-one-trial-out')
     p.add_argument('--create-numpies', action="store_true", help='create numpies before; if not, load numpies')
-    p.add_argument('--image-type',type=str, default="all", help='Also you can reconstruct one specific image type GAF,REC,MTF')
+    p.add_argument('--image-type',type=str, default="all", help='Also you can reconstruct one specific image type GAF,RP,MTF')
 
     args = p.parse_args()
     create_numpies = args.create_numpies

@@ -68,12 +68,12 @@ def gramian_angular_field(series, method='summation'):
     # Construcción del GAF
     if method == 'summation':
         gaf = tabulate(phi, phi, cos_sum)
-        print("entra")
+        
     elif method == 'difference':
         gaf = tabulate(phi, phi, sin_diff)
     else:
         raise ValueError("Method must be 'summation' or 'difference'")
-    print(gaf)
+    
     return gaf
     
 
@@ -94,7 +94,7 @@ def varGAF(data, dim,TIME_STEPS):
     
     return X_gaf
 
-def RGBfromMTFMatrix_of_XYZ(X,Y,Z):
+def RGBfromGAFMatrix_of_XYZ(X,Y,Z):
     if X.shape != Y.shape or X.shape != Z.shape or Y.shape != Z.shape:
         print('XYZ should be in same shape!')
         return 0
@@ -133,8 +133,8 @@ def SavevarGAF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, sav
      #print("fig size: width=", plt.figure().get_figwidth(), "height=", plt.figure().get_figheight())
     
      if normalized:
-          print(_r)
-          newImage = RGBfromMTFMatrix_of_XYZ(normalize_to_zero_one(_r), normalize_to_zero_one(_g),normalize_to_zero_one(_b))
+          #print(_r)
+          newImage = RGBfromGAFMatrix_of_XYZ(normalize_to_zero_one(_r), normalize_to_zero_one(_g),normalize_to_zero_one(_b))
           #newImage = RGBfromRPMatrix_of_XYZ(_r, _g, _b)
           # print(newImage.shape)
           #print(newImage[1][4][0]* 255)
@@ -147,7 +147,7 @@ def SavevarGAF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, sav
                newImage.save(f"{path}{sj}{action}{item_idx}gasf.png")
           # plt.close('all')
      else:
-          newImage = RGBfromMTFMatrix_of_XYZ((_r+1)/2, (_g+1)/2,(_b+1)/2)
+          newImage = RGBfromGAFMatrix_of_XYZ((_r+1)/2, (_g+1)/2,(_b+1)/2)
           newImage = Image.fromarray((newImage * 255).astype(np.uint8))
           # plt.imshow(newImage)
           if saveImage:
@@ -198,7 +198,7 @@ def Reconstruct_GAF(img,dictionary,a):
     return N
 def GAF_to_TS(gaf,i,dictionary,method='summation'):
     #We recontruct first phi vector based on gasf matrix diagonal property
-    print(gaf)
+    
     phi=np.arccos(np.diag(gaf))/2
     
     X_normalized=np.cos(phi)
@@ -220,186 +220,3 @@ def GAF_to_TS(gaf,i,dictionary,method='summation'):
     x=np.interp(x,(np.min(x),np.max(x)),(MIN[i], MAX[i])) 
 
     return x
-def generate_and_save_grammian_angular_field(fold, dataset_folder, training_data, y_data, sj_train, TIME_STEPS=129, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
-    subject_samples = 0
-    p_bar = tqdm(range(len(training_data)))
-
-    for i in p_bar:
-      w = training_data[i]
-      sj = sj_train[i][0]
-      w_y = y_data[i]
-      w_y_no_cat = np.argmax(w_y)
-      print("w_y", w_y, "w_y_no_cat", w_y_no_cat)
-      print("w", w.shape)
-
-      # Update Progress Bar after a while
-      time.sleep(0.01)
-      p_bar.set_description(f'[{data_type} | FOLD {fold} | Class {w_y_no_cat}] Subject {sj}')
-    
-      # #-------------------------------------------------------------------------
-      # # only for degugging in notebook
-      # #-------------------------------------------------------------------------
-      # df_original_plot = pd.DataFrame(w, columns=["x_axis", "y_axis", "z_axis"])
-      # df_original_plot["signal"] = np.repeat("Original", df_original_plot.shape[0])
-      # df_original_plot = df_original_plot.iloc[:-1,:]
-      # plot_reconstruct_time_series(df_original_plot, "Walking", subject=sj)
-      # #-------------------------------------------------------------------------
-
-      #print(f"{'*'*20}\nSubject: {sj} (window: {i+1}/{len(training_data)} | label={y})\n{'*'*20}")
-      #print("Window shape",w.shape)
-      if fold < 0:
-        img = SavevarGAF_XYZ(w, sj, subject_samples, "x", normalized = 1, path=f"{dataset_folder}plots/GAF/sampling_{sampling}/{data_type}/{w_y_no_cat}/", TIME_STEPS=TIME_STEPS)
-      else:
-        img = SavevarGAF_XYZ(w, sj, subject_samples, "x", normalized = 1, path=f"{dataset_folder}plots/GAF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/", TIME_STEPS=TIME_STEPS)
-      print("w image (RP) shape:", np.array(img).shape)
-      
-      
-      subject_samples += 1
-def generate_all_grammian_angular_field(X_train, y_train, sj_train, dataset_folder="/home/adriano/Escritorio/TFG/data/WISDM/", TIME_STEPS=129,  FOLDS_N=3, sampling="loto"):
-  groups = sj_train 
-  if sampling == "loto":
-    #TODO change 100 for an automatic extracted number greater than the max subject ID: max(sj_train)*10
-    groups = [[int(sj[0])+i*100+np.argmax(y_train[i])+1] for i,sj in enumerate(sj_train)]
-
-  # if DATASET_NAME == "WISDM": #since wisdm is quite balanced
-  sgkf = StratifiedGroupKFold(n_splits=FOLDS_N)
-  # elif DATASET_NAME == "MINDER" or DATASET_NAME == "ORIGINAL_WISDM": 
-  #   sgkf = StratifiedGroupKFold(n_splits=FOLDS_N)
-
-  accs = []
-  y_train_no_cat = [np.argmax(y) for y in y_train]
-  p_bar_classes = tqdm(range(len(np.unique(y_train_no_cat))))
-  all_classes = np.unique(y_train_no_cat)
-  print("Classes available: ", all_classes)
-  for fold in range(FOLDS_N):
-    for i in p_bar_classes:
-        y = all_classes[i]
-        time.sleep(0.01) # Update Progress Bar after a while
-        os.makedirs(f"{dataset_folder}plots/GAF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/{y}/", exist_ok=True) 
-        os.makedirs(f"{dataset_folder}plots/GAF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/test/{y}/", exist_ok=True) 
-        os.makedirs(f"{dataset_folder}plots/single_axis/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/{y}/", exist_ok=True)
-        os.makedirs(f"{dataset_folder}plots/single_axis/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/test/{y}/", exist_ok=True)
-
-  for fold, (train_index, val_index) in enumerate(sgkf.split(X_train, y_train_no_cat, groups=groups)):
-
-    # if fold != 2:
-    #   continue
-
-    # print(f"{'*'*20}\nFold: {fold}\n{'*'*20}")
-    # print("Train index", train_index)
-    # print("Validation index", val_index)
-    training_data = X_train[train_index,:,:]
-    validation_data = X_train[val_index,:,:]
-    y_training_data = y_train[train_index]
-    y_validation_data = y_train[val_index]
-    sj_training_data = sj_train[train_index]
-    sj_validation_data = sj_train[val_index]
-
-    print("training_data.shape", training_data.shape, "y_training_data.shape", y_training_data.shape, "sj_training_data.shape", sj_training_data.shape)
-    print("validation_data.shape", validation_data.shape, "y_validation_data.shape", y_validation_data.shape, "sj_validation_data.shape", sj_validation_data.shape)
-
-
-
-    generate_and_save_grammian_angular_field(fold, dataset_folder, training_data, y_training_data, sj_training_data, TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
-    generate_and_save_grammian_angular_field(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data, TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
-    
-
-def main():
-     data_name="WISDM"
-     data_folder="/home/adriano/Escritorio/TFG/data/WISDM/"
-     #voy a  obtener el maximo de todo el data set.
-     X_train, y_train, sj_train = act.load_numpy_datasets(data_name, data_folder, USE_RECONSTRUCTED_DATA=False)
-     print("X_train", X_train.shape, "y_train", y_train.shape, "sj_train", sj_train.shape)
-     #print(sj_train[:,0])
-     #print(y_train[:,0])
-     #print(X_train)
-     #print("minimo",np.min(X_train))
-     #print("maximo",np.max(X_train))
-     MAX=np.max(X_train)
-     MIN=np.min(X_train)
-     a=20
-     w = X_train[a]
-     sj = sj_train[a][0]
-     w_y = y_train[a]
-     w_y_no_cat = np.argmax(w_y)
-     print(w.shape)
-     """
-     valoresa=np.linspace(-5, 20, 129)
-     valoresb=np.linspace(-20, 50, 129)
-     valoresc=np.linspace(-10, 3, 129)
-     experimento=np.array([valoresa,valoresb,valoresc]).reshape(129,3)
-     experimentoinv=np.array([valoresa[::-1],valoresb[::-1],valoresc[::-1]]).reshape(129,3)
-     
-     img = SavevarGAF_XYZ(experimento, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129) 
-     img2 = SavevarGAF_XYZ(experimentoinv, sj, 1, "x", normalized = 1, path=f"./", TIME_STEPS=129)
-     """
-     dictionary=dict()
-     for k in range(0,8163):
-         l=X_train[k]
-         #A=np.max(l[:,0])
-         maximos=[np.max(l[:,0]),np.max(l[:,1]),np.max(l[:,2])]
-         minimos=[np.min(l[:,0]),np.min(l[:,1]),np.min(l[:,2])]
-         dictionary[k]=[maximos,minimos]
-     #w=w*-1
-     #w[:, 0]=w[:, 0]*-1
-     img = SavevarGAF_XYZ(w, sj, a, "x", normalized = 1, path=f"./", TIME_STEPS=129)
-     imagen = cv2.imread("./1600x20gasf.png")  
-     imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
-     print("Image shape",imagen.shape)
-     
-     rp=Reconstruct_GAF(imagen,dictionary,a)
-     # Configurar el estilo de los gráficos
-    
-     dim=0
-     
-    # Configurar el estilo de los gráficos
-     plt.style.use("ggplot")  
-
-    # Gráfico original
-     plt.figure(figsize=(10, 6))
-     plt.plot(w[:, dim], marker='o', color='blue')
-     plt.title('Original', fontsize=18,fontweight="bold")
-     plt.xlabel("Tiempo", fontsize=12)
-     plt.ylabel('Índice X', fontsize=12)
-     plt.grid(True)
-     plt.tight_layout()
-     plt.savefig('original.png', bbox_inches='tight', pad_inches=0)
-     plt.clf()
-
-    # Gráfico reconstrucción
-     plt.figure(figsize=(10, 6))
-     plt.plot(rp[dim], marker='o', color='green')
-     plt.title('Reconstrucción', fontsize=18,fontweight="bold")
-     plt.xlabel('Tiempo', fontsize=12)
-     plt.ylabel('Índice X', fontsize=12)
-     plt.grid(True)
-     plt.tight_layout()
-     plt.savefig('reconstruccion.png', bbox_inches='tight', pad_inches=0)
-     plt.clf()
-
-    # Gráfico comparativa
-     plt.figure(figsize=(10, 6))
-     plt.plot(w[:, dim], marker='o', label='Original', color='blue')
-     plt.plot(rp[dim], marker='o', label='Reconstrucción', color='green')
-     plt.title('Comparativa', fontsize=18,fontweight="bold")
-     plt.xlabel("Tiempo", fontsize=12)
-     plt.ylabel('Índice X', fontsize=12)
-     plt.legend(fontsize=12)
-     plt.grid(True)
-     plt.tight_layout()
-     plt.savefig('Comparativa.png', bbox_inches='tight', pad_inches=0)
-     plt.clf()
-     
-     f=np.array(w[:,dim])
-     f=f[:]
-     print(f.shape)
-     error_absoluto, error_relativo = calcular_errores(f, rp[dim])
-     #d = dtw.distance_fast(f, rp[1], use_pruning=True)
-     print(f"Error Absoluto Promedio: {error_absoluto}")
-     print(f"Error Relativo Promedio: {error_relativo}")
-     #print(f"Error DTW: {d}")
-     print(f"Coeficiente de correlación: {np.corrcoef(f, rp[dim])[0,1]}")
-     
-
-if __name__ == '__main__':
-    main()

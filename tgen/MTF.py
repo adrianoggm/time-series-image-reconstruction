@@ -32,19 +32,7 @@ def varMTF2(data, dim,TIME_STEPS):
     X_mtf = mtf.fit_transform(x).reshape(num_states, num_states)
     
     return X_mtf
-def NormalizeMatrix_Adri(_r):
-    dimR = _r.shape[0]
-    _max=66.615074
-    _min =  -78.47761
-    _max_min = _max - _min
-    #_normalizedRP=np.interp(_r,(_min,_max),(0,1))
-    
-    _normalizedRP = np.zeros((dimR,dimR))
-    for i in range(dimR):
-        for j in range(dimR):
-            _normalizedRP[i][j] = (_r[i][j]-_min)/_max_min
-    
-    return _normalizedRP
+
 def RGBfromMTFMatrix_of_XYZ(X,Y,Z):
     if X.shape != Y.shape or X.shape != Z.shape or Y.shape != Z.shape:
         print('XYZ should be in same shape!')
@@ -273,53 +261,58 @@ def MTF_to_TS(mtf,dictionary,index=0,numstates=4,TIMESTEPS=129):
                 statematrix[j][i]=np.mean(similarities)
     # Calcular la similitud media para cada valor del vector
     #print(statematrix)
+    
     vector=np.arange(0, numstates) #(0,1,2,3)
     filasactuales=np.arange(0, numstates)
+    indexval=numstates//2
     tr=np.arange(0, numstates)
-    
-    mean_similarities1 = np.sum(statematrix, axis=1)
-    pivote=np.argmax(mean_similarities1)
-    aux=vector[numstates//2]
-    vector[numstates//2]=pivote
+    #We take as pivot the maxsimilarity value
+    mean_similarities = np.sum(statematrix, axis=1)
+    pivote=np.argmax(mean_similarities)
+    aux=vector[indexval]    
+    vector[indexval]=pivote
     vector[pivote]=aux
-    a=[]
-    for i in range(0,len(statematrix)):
-        if(i!=pivote):
-            a.append(statematrix[i,:])
-    m=np.array(a)
-    #print("PIVOTE",pivote)
-    #m=np.delete(statematrix, pivote, axis=0)
-    #m=np.delete(statematrix, pivote, axis=1)
-    tr= np.delete(vector,np.where(vector==pivote))
-    # [0 2 3] 1
-    mean_similarities = np.sum(m, axis=1)
-    
+    #We arange the vector.
+    #caso par 
+    izq_indx=numstates//2-1 #1 2
+    izq_val=pivote
+    dch_indx=numstates//2+1 #3 
+    dch_val=pivote
+    print(pivote,statematrix)
+    m=statematrix
+    count=1 # ya hay un estado colocado
+    while count!=numstates:
+        a=[]
+        for i in range(0,len(m)):
+            if(i!=np.argmax(mean_similarities)):
+                a.append(m[i,:])
+        m=np.array(a)
+        print(izq_val,m)
+        print("TR",tr)
+        tr= np.delete(tr,np.where(tr==dch_val))
+        print("TR",tr)
+        #tr contiene los indices correspondientes a la matriz m
+        mean_similarities = np.sum(m, axis=1)
+        izq_val=tr[np.argmax(mean_similarities)]
+        vector[izq_indx]=izq_val
+        izq_indx-=1        
+        count+=1
+        if count==numstates:
+            break
+        tr= np.delete(tr,np.where(tr==izq_val))
+        a=[]
+        for i in range(0,len(m)):
+            if(i!=np.argmax(mean_similarities)):
+                a.append(m[i,:])
+        print(dch_val,m)
+        m=np.array(a)
+        mean_similarities = np.sum(m, axis=1)
+        dch_val=tr[np.argmax(mean_similarities)]
+        vector[dch_indx]=dch_val
+        dch_indx-=1        
+        count+=1
+        print(vector)
 
-    #segundo valor
-    pivote=tr[np.argmax(mean_similarities)]
-    aux=vector[numstates//2-1]
-    vector[numstates//2-1]=pivote
-    vector[pivote]=aux
-    
-
-    a=[]
-
-    for i in range(0,len(m)):
-        if(i!=np.argmax(mean_similarities)):
-            a.append(m[i,:])
-    m=np.array(a)
-    #m=np.delete(statematrix, pivote, axis=1)
-    tr= np.delete(tr,np.argmax(mean_similarities))
-    
-    #print(m,mean_similarities,tr,pivote)
-    
-    #print("VALORES",vector,tr)
-    if statematrix[vector[numstates//2]][tr[0]]>statematrix[vector[numstates//2]][tr[1]]:
-        vector[3]=tr[0]
-        vector[0]=tr[1]
-    else:
-        vector[3]=tr[1]
-        vector[0]=tr[0]
 
     
     valores=vector
