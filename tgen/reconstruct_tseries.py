@@ -292,14 +292,16 @@ def generate_all_time_series(X_train, y_train, sj_train, dataset_folder="/home/a
          
     print("training_data.shape", training_data.shape, "y_training_data.shape", y_training_data.shape, "sj_training_data.shape", sj_training_data.shape)
     print("validation_data.shape", validation_data.shape, "y_validation_data.shape", y_validation_data.shape, "sj_validation_data.shape", sj_validation_data.shape)
-    
+    arch_training_data=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/training_data.npy"
+    np.save(arch_training_data,np.array(training_data))
+    arch_training_data=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/y_training_data.npy"
+    np.save(arch_training_data,np.array( y_training_data))
+        
 
     ##aqui añadir una opcion si quieres todas o una en especifico
     if reconstruction=="MTF":
       generate_and_save_time_series_fromMTF(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
-      
-      #arch_training_data=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/training_data.npy"
-      #np.save(arch_training_data,np.array(training_data))
+ 
       print("se hace 1 vez")
       break
     if reconstruction=="GAF":

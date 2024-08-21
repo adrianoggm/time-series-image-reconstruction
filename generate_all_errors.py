@@ -65,7 +65,7 @@ def main():
          errores_rec.append(error)
 
 
-    print("Desplazamientos en el caso de t2 son inversiones :",t,t1,t2)
+    print("Desplazamientos en el caso de t son inversiones :",t,t1,t2)
     archivoerrores=f"{data_folder2}/errores_mtf.npy"
     np.save(archivoerrores,np.array(errores_mtf)) 
     archivoerrores=f"{data_folder1}/errores_gaf.npy"    

@@ -9,16 +9,16 @@ import matplotlib.pyplot as plt
 import tgen.ts_plots as plot
 from PIL import Image
 from dtaidistance import dtw
-import cv2
+import statistics
 def main():
     data_name="WISDM"
     data_folder="/home/adriano/Escritorio/TFG/data/WISDM/tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
      #voy a  obtener el maximo de todo el data set.
-    img_type="MTF"
+    img_type="RP"
     indices_T=np.load(f"{data_folder}/training_data.npy")
     
     if img_type=="RP":
-        data_F1="/home/adriano/Escritorio/TFG/data/WISDM/tseries/recurrence_plot/"
+        data_F1="/home/adriano/Escritorio/TFG/data/WISDM/tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
         errores = np.load(f"{data_F1}/errores_rec.npy")
         X_all_rec=np.load(f"{data_folder}/X_all_rec.npy")
     if img_type=="GAF":
@@ -31,11 +31,7 @@ def main():
         data_F1="/home/adriano/Escritorio/TFG/data/WISDM/tseries/MTF/sampling_loto/3-fold/fold-0/train"
         errores = np.load(f"{data_F1}/errores_mtf.npy")
         X_all_rec=np.load(f"/home/adriano/Escritorio/TFG/data/WISDM/tseries/MTF/sampling_loto/3-fold/fold-0/train/X_all_mtf.npy")
-    #print(sj_train[:,0])
-     #print(f"Error Absoluto Promedio: {error_absoluto}")
-      #print(f"Error Relativo Promedio: {error_relativo}")
-      #print(f"Error DTW: {d}")
-      #print(f"Coeficiente de correlación: {pearson}")
+    
     tipoerrores=["Error Absoluto Promedio","Error Relativo Promedio","Error Quadrático medio","Error desviacion típica","Coeficiente de correlación pearson"]
     print("errores",errores.shape)
     for i in range(0,len(tipoerrores)):
@@ -47,77 +43,77 @@ def main():
                 print ("Desviación típica de ERROR TIPO",a,"en dim",j,"es :",np.std(errores[:,i,j][errores[:,i,j]<=1000]))
             print("ERROR TIPO ",a," medio global es :",np.mean(errores[:,i,:][errores[:,i,:]<=1000]))
             print ("Desviación típica de ERROR TIPO",a,"es :",np.std(errores[:,i,:][errores[:,i,:]<=1000]))
-            """else :
-                for j in range(0,3):
-                    
-                    print("ERROR TIPO {tipoerrores[i]}en dim {j}es :",np.mean(errores[:,i,j]))
-                print("ERROR TIPO {tipoerrores[i]} medio global es :",np.mean(errores[:,i,:]))
-            """
-    print("min r Promedio",(errores[:,4,:][errores[:,4,:]<4.09187097e-05]),np.min(errores[:,4,:]))    
-    indices=np.where(errores[:,4,:]<4.09187097e-05) #PEOR PEARSON 2690 mejor pearson 2026
+            
+    print("min r Promedio",(errores[:,4,:][errores[:,4,:]==0.9999117348854251]),np.min(errores[:,4,:]))    
+    indices=np.where(errores[:,4,:]==0.9999117348854251) #PEOR PEARSON 2690 mejor pearson 2026
     indices = list(zip(indices[0], indices[1]))
     print(indices)
     print(errores[3301,:,:])# 4913 candidata a mejor ideal ERROR relativo 
-   
+    
+    pear=[]
+    quad=[]
+
+    for i in range(0,len(errores)):
+        quad=np.append(quad,np.mean(errores[i,2,:]))
+        pear=np.append(pear,np.mean(errores[i,4,:])) 
+        
+    
+    media=statistics.mean(quad)
+    d1=np.abs(quad-media)
+    print("MEDIA Q",media,quad[np.argsort(d1)][0],np.argsort(d1)[0])#0
+    media=statistics.mean(pear)
+    d1=np.abs(pear-media)
+    print("MEDIA P",media,pear[np.argsort(d1)][0],np.argsort(d1)[0])#0 resulta ser la 0 en ambas
+    
+    min=np.min(quad)
+    d1=np.abs(quad-min)
+    print("Min Q",min,quad[np.argsort(d1)][0],np.argsort(d1)[0])#1490
+    min=np.min(pear)
+    d1=np.abs(pear-min)
+    print("Min P",min,pear[np.argsort(d1)][0],np.argsort(d1)[0])#0
+    
+    max=np.max(quad)
+    d1=np.abs(quad-max)
+    print("Max Q",max,quad[np.argsort(d1)][0],np.argsort(d1)[0])#0PEOR Q 2.51544503e-01 3661 
+    max=np.max(pear)
+    d1=np.abs(pear-max)
+    print("Max P",max,pear[np.argsort(d1)][0],np.argsort(d1)[0])#00.99999221 2156
     """
-    mejor pearson 2012 dim 0
-    mejor quadrático medio 4222, 1
-    mejor Error desviacion típica 4227 dim 1 0.00498124
+    GAF
+    MEDIA Q 0.0044012627779020045 0.004399589350389923 4170
+    MEDIA P 0.9998733035276017 0.9998733283554287 5406
+    Min Q 7.442646919590436e-09 7.442646919590436e-09 4225
+    Min P 0.9912638600577192 0.9912638600577192 1490
+    Max Q 0.25154450250116284 0.25154450250116284 3661
+    Max P 0.9999922113685015 0.9999922113685015 2156
 
 
-    peor    Error desviacion típica   (3656, 2) 19.13756184
-    peor    Error pearson   69, 0 -0.05487599
-    peor    error quadrático 3660,1
+    MTF
+    MEDIA Q 110.39107219960607 110.38338496650113 4221
+    MEDIA P 0.547349329114101 0.5474256616048051 3873
+    Min Q 0.00039825152344224795 0.00039825152344224795 4218
+    Min P 0.03311714899700962 0.03311714899700962 1558
+    Max Q 1780.8914552240483 1780.8914552240483 3662
+    Max P 0.9450789819158428 0.9450789819158428 377
 
-    PEOR   ERROR relativo 3068, 1  450.10440276
-          (2380, 1
+    RP
+    MEDIA Q 15.936688647211787 15.94236676824787 2084
+    MEDIA P 0.7731528141371725 0.7731454984152836 4085
+    Min Q 0.00015950539571661464 0.00015950539571661464 4424
+    Min P 0.05182189333660742 0.05182189333660742 1104
+    Max Q 416.0807310831489 416.0807310831489 3660
+    Max P 0.9588916226063297 0.9588916226063297 2156
     """
     w=indices_T[3301]
     rp=X_all_rec[3301]
      
     dim=1
-    """
-     
-     valoresa=np.linspace(-5, 20, 129)
-     valoresb=np.linspace(-20, 50, 129)
-     valoresc=np.linspace(-10, 3, 129)
-     experimento=np.array([valoresa,valoresb,valoresc]).reshape(129,3)
-     experimentoinv=np.array([valoresa[::-1],valoresb[::-1],valoresc[::-1]]).reshape(129,3)
-     
-     img = rec.SavevarRP_XYZ(experimento, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129) 
-     img2 = rec.SavevarRP_XYZ(experimentoinv, sj, 1, "x", normalized = 1, path=f"./", TIME_STEPS=129)
-     
-     
-        
-        
-     
-     rp[0]=-1*rp[0]
-     _max=np.max(w[:,0])
-     _min=np.min(w[:,0])
-     s=np.interp(rp[0],(np.min(rp[0]),np.max(rp[0])),(_min,_max)).reshape(128)
-     _max=np.max(w[:,1])
-     _min=np.min(w[:,1])
-     s1=np.interp(rp[1],(np.min(rp[1]),np.max(rp[1])),(_min,_max)).reshape(128)
-     _max=np.max(w[:,2])
-     _min=np.min(w[:,2])
-     s2=np.interp(rp[2],(np.min(rp[2]),np.max(rp[2])),(_min,_max)).reshape(128)
-    """
-
+  
 
      
     plot.plot_time_series(w,rp,dim)
     
-    f=np.array(w[:,dim])
-    f=f[:]
-    print(f.shape)
-    error_absoluto, error_relativo = cerr.calcular_errores(f, rp[dim])
-    #d = dtw.distance_fast(f, rp[1], use_pruning=True)
-    print(f"Error Absoluto Promedio: {error_absoluto}")
-    print(f"Error Relativo Promedio: {error_relativo}")
-    d = metrics.mean_squared_error(f,rp[dim]) 
-    print(f"Error DTW: {d}")
-    print(f"Coeficiente de correlación: {np.corrcoef(f, rp[dim])[0,1]}")
-    
+   
      
 # Guardar el gráfico como una imagen
 if __name__ == '__main__':
