@@ -87,6 +87,6 @@ logs
 *.log
 *.pth
 *.log
-./*.png
+*.png
 data/
 venv/
