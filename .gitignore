@@ -18,7 +18,7 @@ dist/
 
 # Package files
 *.jar
-
+*.png
 # Maven
 target/
 dist/
@@ -86,3 +86,7 @@ libdevice.10.bc
 logs
 *.log
 *.pth
+*.log
+*.png
+data/
+venv/

@@ -8,11 +8,11 @@
 
 
 
-Welcome to the official implementation repository of our paper titled "Diff-TSD: Modelling Time-series Data Generation with Diffusion Models". This repository provides detailed insights, datasets, and other essential resources related to our research and findings.
+Welcome to the official implementation repository of the TFG "Diseño e implementación de la reconstrucción de series temporales a partir de imágenes" based on paper titled "Diff-TSD: Modelling Time-series Data Generation with Diffusion Models". This repository provides detailed insights, datasets, and other essential resources related to our research and findings.
 
 ## Introduction
 
-In our paper "Diff-TSD: Modelling Time-series Data Generation with Diffusion Models", we explore the potential and intricacies of generating time-series data using diffusion models. As an integral part of this work, this repository serves as a comprehensive platform to access the datasets, recurrence plots, and other relevant resources that were instrumental in our research.
+In the TFG "Diseño e implementación de la reconstrucción de series temporales a partir de imágenes", we explore the potential of reconstruction of the different image codification techniques and intricacies of generating time-series data using diffusion models. As an integral part of this work, this repository serves as a comprehensive platform to access the datasets, recurrence plots,grammian angular fields, markov transition fields and other relevant resources that were instrumental in our research.
 
 ## Citation
 
@@ -139,18 +139,9 @@ The table below presents the 3-fold data distribution for each sampling approach
 </table>
 
 
-So, from the WISDEM dataset, we extracted [Recurrence plots](https://ieeexplore.ieee.org/document/8691521/) with a legnth of 129 points (128x128 pixels) were generated for each of the five selected classes across every fold. These plots, inspired by the work of Lu and Tong in "Robust Single Accelerometer-Based Activity Recognition Using Modified Recurrence Plot", are available for download on the Hugging Face platform.
+So, from the WISDM dataset, we extracted [Recurrence plots](https://ieeexplore.ieee.org/document/8691521/) with a legnth of 129 points (128x128 pixels) were generated for each of the five selected classes across every fold. These plots, inspired by the work of Lu and Tong in "Robust Single Accelerometer-Based Activity Recognition Using Modified Recurrence Plot", are available for download on the Hugging Face platform.
 
-Below are links to the data for each sampling and fold combination:
 
-- [Recurrence Plots - LOSO - Fold 1](https://huggingface.co/datasets/frangam/WISDM-mod-recurrence-plot-sampling-loso_fold_1)
-- [Recurrence Plots - LOSO - Fold 2](https://huggingface.co/datasets/frangam/WISDM-mod-recurrence-plot-sampling-loso_fold_2)
-- [Recurrence Plots - LOSO - Fold 3](https://huggingface.co/datasets/frangam/WISDM-mod-recurrence-plot-sampling-loso_fold_3)
-- [Recurrence Plots - LOTO - Fold 1](https://huggingface.co/datasets/frangam/WISDM-mod-recurrence-plot-sampling-loto_fold_1)
-- [Recurrence Plots - LOTO - Fold 2](https://huggingface.co/datasets/frangam/WISDM-mod-recurrence-plot-sampling-loto_fold_2)
-- [Recurrence Plots - LOTO - Fold 3](https://huggingface.co/datasets/frangam/WISDM-mod-recurrence-plot-sampling-loto_fold_3)
-
-Click the respective links to access and **download** the desired datasets.
 
 Here, an example of the reccurente plots dataset:
 
@@ -183,27 +174,29 @@ Here, an example of the reccurente plots dataset:
 
 
 
-### Create Recurrence Plots
+### Create Images (RP,GASF,MTF)
 If you want to create recurrence plots:
 
 - "--create-numpies" is for create the first time the numpy arrays.
 - With "--sampling loto" you can select the sampling method "loto" or "loso" with "--sampling loso".
-
+- With "--image type " you can select the image construction or reconstruction method "--sampling loso".
 For LOTO approach:
 ```sh
- $ nohup ./generate_recurrence_plots.py --create-numpies --data-name WISDM --n-folds 3 --data-folder YOUR_DATA_PATH --sampling loto > recurrence_plots_loto.log &
+ $ nohup ./generate_images.py  --data-name WISDM --n-folds 3 --image-type GAF --data-folder /home/adriano/Escritorio/TFG/data/WISDM/  --sampling loto > generate_images.log &
+
 ```
 
 
-### Uploading to HuggingFace
-Then, we have to upload the recurrence plots to Huggingface platform:
+### Reconstruct Images (RP,GASF,MTF)
+Then, we have to execute once generated the images  the reconstruction of the time series:
 
 ```sh
- $ nohup ./tgen/upload_recurrence_plots_to_huggingface.py --sampling loto --huggingface-token YOUR_TOKEN > upload_rp_loto.log &
+ $ nohup  ./generate_time_series.py --data-name WISDM --n-folds 3 --image-type GAF --data-folder /home/adriano/Escritorio/TFG/data/WISDM/  --sampling loto > ts_plots_loto.log &
+
 ```
 
 
-## 2. Training
+## 2. Generation of errors with original TS
 First, activate your Python VENV where you have all dependencies installed:
 
 ```sh

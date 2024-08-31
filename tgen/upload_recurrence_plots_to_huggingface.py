@@ -1,4 +1,4 @@
-#!/home/fmgarmor/miot_env/bin/python3
+#!/home/adriano/Escritorio/TFG/venv/bin/python3
 
 import argparse
 from datasets import load_dataset
@@ -21,6 +21,7 @@ from huggingface_hub import login
 # from huggingface_hub import notebook_login
 # notebook_login()
 
+""" $ nohup ./tgen/upload_recurrence_plots_to_huggingface.py --sampling loto --huggingface-token ***REMOVED-HF-TOKEN***  > upload_rp_loto.log & """
 
 def img_to_tensor(im):
   return torch.tensor(np.array(im.convert('RGB'))/255).permute(2, 0, 1).unsqueeze(0) * 2 - 1
@@ -33,11 +34,11 @@ def gather(consts: torch.Tensor, t: torch.Tensor):
     c = consts.gather(-1, t)
     return c.reshape(-1, 1, 1, 1)
 
-def upload_data(dataset_name="WISDM", dataset_folder="/home/fmgarmor/proyectos/TGEN-timeseries-generation/data/WISDM/", sampling="loso", generateKFOLD=True, FOLDS_N=3, huggingfaceToken=""):
+def upload_data(dataset_name="WISDM", dataset_folder="/home/adriano/Escritorio/TFG/data/WISDM/", sampling="loso", generateKFOLD=True, FOLDS_N=3, huggingfaceToken=""):
     DRIVE_RP_FOLDER = f"{dataset_folder}plots/recurrence_plot/sampling_{sampling}"
-    HUGG_DATASET_NAME = f"frangam/{dataset_name}-mod-recurrence-plot-sampling-{sampling}"
+    HUGG_DATASET_NAME = f"Adrianoggm/{dataset_name}-mod-recurrence-plot-sampling-{sampling}"
     HUGG_DATASET_IS_PRIVATE = True
-
+    print(DRIVE_RP_FOLDER,HUGG_DATASET_NAME,HUGG_DATASET_NAME)
     login(huggingfaceToken)
 
     # val_dataset = load_dataset("imagefolder", data_dir=DRIVE_RP_FOLDER, split="validation")
@@ -52,7 +53,8 @@ def upload_data(dataset_name="WISDM", dataset_folder="/home/fmgarmor/proyectos/T
         print("Uploading k-fold dataset")
         for fold in tqdm(range(FOLDS_N), "Uploading Fold"):
             print("fold:", fold)
-            train_dataset = load_dataset("imagefolder", data_dir=f"{DRIVE_RP_FOLDER}/{FOLDS_N}-fold/fold-{fold}", split=f"train")
+            #print(f"{DRIVE_RP_FOLDER}/{FOLDS_N}-fold/fold-{fold}")
+            train_dataset = load_dataset("imagefolder",data_dir=f"{DRIVE_RP_FOLDER}/{FOLDS_N}-fold/fold-{fold}", split=f"train")
             train_dataset.push_to_hub(f"{HUGG_DATASET_NAME}_fold_{fold}", private=HUGG_DATASET_IS_PRIVATE)
             train_dataset = load_dataset("imagefolder", data_dir=f"{DRIVE_RP_FOLDER}/{FOLDS_N}-fold/fold-{fold}", split=f"test")
             train_dataset.push_to_hub(f"{HUGG_DATASET_NAME}_fold_{fold}", private=HUGG_DATASET_IS_PRIVATE)
@@ -71,7 +73,7 @@ def main():
     Run after you create the recurrence plots with:
     $ ./generate_recurrence_plots.py
     or another:
-    $ ./generate_recurrence_plots.py --data-name WISDM --n-folds 3 --data-folder /home/fmgarmor/proyectos/TGEN-timeseries-generation/data/WISDM/
+    $ ./generate_recurrence_plots.py --data-name WISDM --n-folds 3 --data-folder /home/adriano/Escritorio/TFG/data/WISDM
 
     Then...
     
@@ -92,7 +94,7 @@ def main():
                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     p.add_argument('--sampling', type=str, default="loso", help='the sampling technique')
     p.add_argument('--data-name', type=str, default="WISDM", help='the database name')
-    p.add_argument('--data-folder', type=str, default="/home/fmgarmor/proyectos/TGEN-timeseries-generation/data/WISDM/", help='the data folder path')
+    p.add_argument('--data-folder', type=str, default="/home/adriano/Escritorio/TFG/data/WISDM/", help='the data folder path')
     p.add_argument('--n-folds', type=int, default=3, help='the number of k-folds')
     p.add_argument('--huggingface-token', required=True, type=str, help='the token')
 

@@ -1,4 +1,4 @@
-#!/home/fmgarmor/miot_env/bin/python3
+#!/home/adriano/Escritorio/TFG/venv/bin/python3
 
 import os
 import pandas as pd
