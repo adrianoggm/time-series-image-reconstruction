@@ -1,4 +1,4 @@
-# Official Implementation: Diff-TSD
+# Official Implementation: TFG Diseño e implementación de la reconstrucción de series temporales a partir de imágenes
 
 [![GitHub stars](https://img.shields.io/github/stars/frangam/diff-tsd.svg)](https://github.com/frangam/diff-tsd/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/frangam/diff-tsd.svg)](https://github.com/frangam/diff-tsd/network/members)
