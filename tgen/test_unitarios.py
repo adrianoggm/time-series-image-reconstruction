@@ -15,7 +15,7 @@ def check_values_in_range(matrix, min_value, max_value):
     bool: True si todos los valores están en el rango [min_value, max_value], False en caso contrario.
     """
     return np.all((matrix >= min_value) & (matrix <= max_value))
-def check_matrix_dimensions(matrix, expected_shape):
+def check_dimensions(matrix, expected_shape):
     """
     Comprueba si la matriz tiene las dimensiones especificadas.
     
@@ -41,3 +41,6 @@ def check_binary_matrix(matrix, tolerance=1e-3):
     """
     # Comprobar si todos los valores están cerca de 0.0 o 1.0
     return np.all((np.abs(matrix - 0.0) <= tolerance) | (np.abs(matrix - 1.0) <= tolerance))
+def is_unique(vector):
+    """Verifica si todos los elementos en un vector son únicos."""
+    return len(vector) == len(set(vector))
