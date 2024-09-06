@@ -14,18 +14,6 @@ Welcome to the official implementation repository of the TFG "Diseño e implemen
 
 In the TFG "Diseño e implementación de la reconstrucción de series temporales a partir de imágenes", we explore the potential of reconstruction of the different image codification techniques and intricacies of generating time-series data using diffusion models. As an integral part of this work, this repository serves as a comprehensive platform to access the datasets, recurrence plots,grammian angular fields, markov transition fields and other relevant resources that were instrumental in our research.
 
-## Citation
-
-If you found our work useful, please consider citing:
-
-```bibtex
-@article{Garcia-Moreno2023DiffTSD,
-    title={Diff-TSD: Modelling Time-series Data Generation with Diffusion Models},
-    author={Garcia-Moreno, Francisco M.,and},
-    journal={Journal},
-    year={2023}
-}
-```
 
 ## Dataset
 We used WISDM dataset. The [WISDM dataset](https://ieeexplore.ieee.org/document/8835065/) focuses on data from smartwatch wearables. Our study particularly delves into the dataset which records 51 subjects performing 18 daily activities, such as "walking" and "jogging". We've honed in on five non-hand-oriented activities: "walking", "jogging", "stairs" (both ascending and descending), "sitting", and "standing", amassing a total of 1,053,141 instances. Data collection utilized the smartwatch's accelerometer, recording at a frequency of 20 Hz. For a visual representation of the acceleration waveforms for each activity.
