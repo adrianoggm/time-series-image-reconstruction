@@ -1,64 +1,52 @@
-import numpy as numpy
-from sklearn.metrics import confusion_matrix
-
-from datasets import load_dataset
-
-
-from PIL import Image
+# Módulos incorporados (built-in)
 import os
-from tqdm.notebook import tqdm
-import torch
-# print("Torc:", torch.__version__)
-
-import numpy as np
-
-
 import time
+import math
+import json
+import pathlib
+from pathlib import Path
+import copy
+from copy import deepcopy
+
+# Librerías de terceros
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set_style("darkgrid")  # Estilo para Seaborn
+
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import StratifiedGroupKFold
+
 from PIL import Image
+
+# Barras de progreso
+from tqdm import tqdm, trange
+from tqdm.notebook import tqdm as notebook_tqdm  # Si se requiere en notebooks
+
+# PyTorch y complementos
+import torch
 import torch.nn.functional as TF
 import torchvision
 from torchvision import datasets, transforms, utils as tv_utils
 from torch.utils.data import DataLoader, ConcatDataset
-
-import os
-import numpy as np
-import matplotlib.pyplot as plt
-# %matplotlib inline
-# %config InlineBackend.figure_format='retina'
-
-
 from torch import nn, optim
 from torch.utils import data
+from torch import multiprocessing as mp
 
+# Carga de datasets (por ejemplo, Hugging Face)
+from datasets import load_dataset
 
-import math
-# import tensorflow as tf
-
-# from tensorflow import keras
+# Keras y TensorFlow-Addons
 import keras
-
 from keras.preprocessing.image import ImageDataGenerator
 from keras import layers
-import pathlib
-import numpy as np
-import pandas as pd
-
+from keras import backend as K
 import tensorflow_addons as tfa
 
-import seaborn as sns
+# Opcional: Si prefieres usar Keras de TensorFlow, comenta la línea anterior e importa:
+# from tensorflow import keras
 
-import copy
-from copy import deepcopy
-import json
-from pathlib import Path
-# import accelerate
-
-from torch import multiprocessing as mp
-# from torchvision import transforms, utils as tv_utils
-from tqdm import trange
-
-from sklearn.model_selection import StratifiedGroupKFold
-from keras import backend as K
 
 sns.set_style("darkgrid")
 
