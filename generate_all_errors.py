@@ -1,4 +1,6 @@
-#!/home/adriano/Escritorio/TFG/venv/bin/python3
+
+import sys
+print("Python executable:", sys.executable)
 from keras.utils import to_categorical
 import argparse
 import tgen.activity_data as act
