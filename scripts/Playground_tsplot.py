@@ -1,10 +1,10 @@
 #!/home/adriano/Escritorio/TFG/venv/bin/python3
 import numpy as np
-import tgen.activity_data as act
-import tgen.recurrence_plots as rec
-import tgen.GAF as gaf
-import tgen.MTF as mtf
-import tgen.ts_plots as plots
+import src.activity_data as act
+import src.recurrence_plots as rec
+import src.GAF as gaf
+import src.MTF as mtf
+import src.ts_plots as plots
 import cv2
 import argparse
 

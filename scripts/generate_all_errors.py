@@ -1,10 +1,9 @@
+#!/home/adriano/Escritorio/TFG/venv/bin/python3
 
-import sys
-print("Python executable:", sys.executable)
 from keras.utils import to_categorical
 import argparse
-import tgen.activity_data as act
-import tgen.calculate_ts_errors as cerr
+import src.activity_data as act
+import src.calculate_ts_errors as cerr
 import sklearn.metrics as metrics
 import numpy as np
 import matplotlib.pyplot as plt
