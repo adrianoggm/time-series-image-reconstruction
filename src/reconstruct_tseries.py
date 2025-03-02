@@ -29,6 +29,7 @@ import os
 """ Generates and saves a time series from a RP saving keeping also 
     track of the acuracy and the metrics from the original Time series
 """
+"""""
 def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_data, sj_train,dictionary, TIME_STEPS=129, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
     
     subject_samples = 0
@@ -77,7 +78,7 @@ def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_
       #print("Forma del RP original y calculada",w.shape,rp.shape)
       
       #print("normal",w,"calculada",rp)
-      """
+      
       error_abs,error_r,error_q,error_std,error_p,te=err.ts_error(w,rp)
       t+=te
       error.append(error_abs)
@@ -88,7 +89,7 @@ def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_
       errores.append(error)
       #print("errores",np.array(error))
       #print("errores",np.array(errores))
-      """
+      
       subject_samples += 1
 
     end_gl=time.time()
@@ -107,7 +108,86 @@ def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_
     print("Número total de inversiones",ninv)
     #print("Numero total desplazamientos",t)
     return X_all_rec,errores
+"""
 
+from concurrent.futures import ProcessPoolExecutor, as_completed
+
+def _process_sample(i, fold, dataset_folder, dictionary, training_data, y_data, sj_train, sampling, FOLDS_N, data_type):
+    """
+    Procesa una sola muestra: lee la imagen de la RP, la reconstruye y guarda el resultado.
+    Retorna la RP reconstruida y el número de inversiones (a) devuelto por Reconstruct_RP.
+    """
+    # Obtener datos de la muestra
+    w = training_data[i]
+    sj = sj_train[i][0]
+    w_y = y_data[i]
+    w_y_no_cat = np.argmax(w_y)
+    
+    # Construir la ruta de la imagen de RP
+    path_img = (
+        f"{dataset_folder}plots/recurrence_plot/sampling_{sampling}/"
+        f"{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/"
+        f"{sj}x{i}.png"
+    )
+    imagen = cv2.imread(path_img)
+    if imagen is None:
+        raise FileNotFoundError(f"No se encontró la imagen: {path_img}")
+    imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
+    
+    # Reconstruir la RP usando la función de rpts
+    rp, a = rpts.Reconstruct_RP(imagen, dictionary, i)
+    
+    # Construir la ruta para guardar la serie reconstruida y guardarla
+    path_npy = (
+        f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/"
+        f"{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/"
+        f"{sj}x{i}.npy"
+    )
+    np.save(path_npy, np.array(rp))
+    
+    return rp, a
+
+def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_data, sj_train,
+                                           dictionary, TIME_STEPS=129, data_type="train",
+                                           single_axis=False, FOLDS_N=3, sampling="loso"):
+    """
+    Genera y guarda series temporales a partir de RP, calculando además métricas como el
+    número total de inversiones. Se procesa cada muestra en paralelo.
+    """
+    X_all_rec = []
+    errores = []  # Se mantiene la variable para compatibilidad
+    ninv = 0
+    start_gl = time.time()
+    n_samples = len(training_data)
+    
+    # Procesar las muestras en paralelo
+    with ProcessPoolExecutor() as executor:
+        futures = [
+            executor.submit(_process_sample, i, fold, dataset_folder, dictionary,
+                            training_data, y_data, sj_train, sampling, FOLDS_N, data_type)
+            for i in range(n_samples)
+        ]
+        
+        # Usamos as_completed para ir recogiendo resultados a medida que se completan
+        for future in tqdm(as_completed(futures), total=n_samples, desc="Procesando muestras"):
+            rp, a = future.result()
+            X_all_rec.append(rp)
+            ninv += a
+    
+    end_gl = time.time()
+    ttotal = end_gl - start_gl
+
+    # Guardar la colección de series reconstruidas
+    archivoX_all = (
+        f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/"
+        f"{FOLDS_N}-fold/fold-{fold}/{data_type}/X_all_rec.npy"
+    )
+    np.save(archivoX_all, np.array(X_all_rec))
+    
+    print("Tiempo medio total por muestra:", ttotal / n_samples)
+    print("Número total de inversiones:", ninv)
+    
+    return X_all_rec, errores
 
 def generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y_data, sj_train,dictionary, TIME_STEPS=129, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
 

@@ -136,7 +136,6 @@ def varRP(data, dim, TIME_STEPS=129):#dim:=x,y,z
             R[i][j] = sign*Distance2dim(s[i],s[j])
             # R[i][j] = Distance2dim(s[i],s[j])
     return R
-"""
 def RP(data, dim, TIME_STEPS=129):#dim:=x,y,z
     x = []
     if dim == 'x':
@@ -166,49 +165,6 @@ def RP(data, dim, TIME_STEPS=129):#dim:=x,y,z
     for i in range(dimR):
         for j in range(dimR):
             R[i][j] = Distance2dim(s[i],s[j])
-    return R"""
-def RP(data, dim, TIME_STEPS=129):
-    """
-    Calcula la matriz de Recurrence Plot (RP) de forma vectorizada,
-    utilizando la distancia euclídea entre pares consecutivos en la serie.
-
-    Parámetros:
-        data : array-like
-            Datos en forma de lista o array, con forma (TIME_STEPS, num_dimensiones).
-        dim : str
-            Dimensión a utilizar: 'x', 'y' o 'z'.
-        TIME_STEPS : int, opcional
-            Número de pasos de tiempo a considerar (por defecto 129).
-
-    Retorna:
-        R : numpy.ndarray
-            Matriz de recurrencia con forma (TIME_STEPS-1, TIME_STEPS-1).
-    """
-    import numpy as np
-
-    # Asegurarse de trabajar con un array de NumPy
-    data = np.asarray(data)
-
-    # Seleccionar la columna correspondiente a la dimensión indicada
-    if dim == 'x':
-        x = data[:TIME_STEPS, 0]
-    elif dim == 'y':
-        x = data[:TIME_STEPS, 1]
-    elif dim == 'z':
-        x = data[:TIME_STEPS, 2]
-    else:
-        raise ValueError("El parámetro 'dim' debe ser 'x', 'y' o 'z'.")
-
-    # Crear una matriz donde cada fila es un par consecutivo: [x[i], x[i+1]]
-    s = np.column_stack((x[:-1], x[1:]))  # Forma: (TIME_STEPS-1, 2)
-
-    # Calcular la diferencia entre cada par de filas utilizando broadcasting:
-    # La diferencia entre s[i] y s[j] para todos i, j se obtiene de forma vectorizada.
-    diff = s[:, np.newaxis, :] - s[np.newaxis, :, :]  # Forma: (n, n, 2)
-    
-    # Calcular la norma euclidiana en el último eje para obtener la matriz de distancias
-    R = np.sqrt(np.sum(diff**2, axis=2))
-    
     return R
 def RP_axis(data, axis, th=None, TIME_STEPS=129):#dim:=x,y,z
     x = []
