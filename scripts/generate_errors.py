@@ -1,12 +1,12 @@
 #!/home/adriano/Escritorio/TFG/venv/bin/python3
 from keras.utils import to_categorical
 import argparse
-import tgen.activity_data as act
-import tgen.calculate_ts_errors as cerr
+import src.activity_data as act
+import src.calculate_ts_errors as cerr
 import sklearn.metrics as metrics
 import numpy as np
 import matplotlib.pyplot as plt
-import tgen.ts_plots as plot
+import src.ts_plots as plot
 from PIL import Image
 from dtaidistance import dtw
 import statistics

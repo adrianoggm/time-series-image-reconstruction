@@ -15,15 +15,15 @@ from matplotlib.pylab import rcParams
 # from tqdm.notebook import tqdm, trange #progress bars for jupyter notebook
 from tqdm.auto import trange, tqdm #progress bars for pyhton files (not jupyter notebook)
 #import calculate_ts_errors as err
-import tgen.calculate_ts_errors as err
+import src.calculate_ts_errors as err
 import time
 import seaborn as sns
 from sklearn.model_selection import StratifiedGroupKFold, GroupKFold
-import tgen.recurrence_plots as rpts
-import tgen.GAF as gaf
+import src.recurrence_plots as rpts
+import src.GAF as gaf
 #import tgen.GAF2 as gaf2
 import time
-import tgen.MTF as mtf2
+import src.MTF as mtf2
 import os    
 
 """ Generates and saves a time series from a RP saving keeping also 

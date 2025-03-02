@@ -8,7 +8,7 @@ from tqdm import trange, tqdm
 import pandas as pd
 
 import k_diffusion as K
-from tgen.utils import set_gpu
+from src.utils import set_gpu
 
 """ ./tgen/upload_recurrence_plots_to_huggingface.py --sampling loto --huggingface-token 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 > upload_rp_loto.log &
 

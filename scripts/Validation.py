@@ -1,9 +1,9 @@
 #!/home/adriano/Escritorio/TFG/venv/bin/python3
 from math import sqrt
 import numpy as np
-import tgen.ts_plots as plt
+import src.ts_plots as plt
 #import activity_data as act
-import tgen.activity_data as act
+import src.activity_data as act
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report
 
