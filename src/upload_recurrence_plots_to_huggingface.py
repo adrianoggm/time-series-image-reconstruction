@@ -21,7 +21,7 @@ from huggingface_hub import login
 # from huggingface_hub import notebook_login 
 # notebook_login()
 
-""" $ nohup ./tgen/upload_recurrence_plots_to_huggingface.py --sampling loto --huggingface-token $TOKEN  > upload_rp_loto.log & """
+""" $ nohup ./tgen/upload_recurrence_plots_to_huggingface.py --sampling loto --huggingface-token $git  > upload_rp_loto.log & """
 
 def img_to_tensor(im):
   return torch.tensor(np.array(im.convert('RGB'))/255).permute(2, 0, 1).unsqueeze(0) * 2 - 1
