@@ -347,3 +347,11 @@ python -m pytorch_fid ~/proyectos/TGEN-timeseries-generation/results/fid/loto/re
 
 ---
 
+
+Generates all diferent RP GAF MTF IMAGES for LOTO  aproach
+python -m scripts.generate_images --data-name WISDM --n-folds 3 --image-type MTF --data-folder C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/ --sampling loto > generate_images.log
+
+
+ python -m scripts.generate_time_series --data-name WISDM --n-folds 3 --image-type GAF --data-folder C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/ --sampling loto > ts_plots_loto_mtf.log 
+
+ 
