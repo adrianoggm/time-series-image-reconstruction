@@ -354,4 +354,6 @@ python -m scripts.generate_images --data-name WISDM --n-folds 3 --image-type MTF
 
  python -m scripts.generate_time_series --data-name WISDM --n-folds 3 --image-type GAF --data-folder C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/ --sampling loto > ts_plots_loto_mtf.log 
 
- 
+ python -m scripts.generate_time_series --data-name WISDM --n-folds 3 --image-type GAF --data-folder C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/ --sampling loto > ts_plots_loto_gaf.log 
+
+  python -m scripts.generate_time_series --data-name WISDM --n-folds 3 --image-type RP --data-folder C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/ --sampling loto > ts_plots_loto_rp.log 
