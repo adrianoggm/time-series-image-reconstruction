@@ -1,125 +1,143 @@
 #!C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/venv/bin/python3
-from math import sqrt
+import os
 import numpy as np
 import src.ts_plots as plt
 import src.activity_data as act
 from sklearn.metrics import classification_report
-
-import tensorflow as tf
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.optimizers import Adam
 
 def transformary(y):
     _y = np.ones(len(y)) * -1
-    for i in range(0, len(y)):
-        for j in range(0, 5):
+    for i in range(len(y)):
+        for j in range(5):
             if y[i, j] <= 1.1 and y[i, j] >= 0.9:
                 _y[i] = j
     return _y
 
 def create_lstm_model(input_shape, num_classes=5):
     model = Sequential()
-    # Primera capa LSTM
     model.add(LSTM(64, return_sequences=True, input_shape=input_shape))
     model.add(Dropout(0.2))
-    # Segunda capa LSTM
     model.add(LSTM(32))
     model.add(Dropout(0.2))
-    # Capa densa final
     model.add(Dense(num_classes, activation='softmax'))
-    
     model.compile(optimizer=Adam(learning_rate=0.001),
                   loss='sparse_categorical_crossentropy',
                   metrics=['accuracy'])
     return model
 
 def main():
-    data_name = "WISDM"
-    data_folder = "C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/"
+    # Flag: si True, se carga el modelo ya entrenado; si False, se entrena uno nuevo.
+    created = False  
+    # Selección de representación: "RP", "GAF" o "MTF"
+    stype = "RP"  # Modifica según la técnica que quieras evaluar
+
+    # Directorio base de los datos
+    dataset_folder = "C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/"
+
+    # Rutas de los splits de entrenamiento y validación guardados previamente
+    train_data_path = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train/training_data.npy")
+    train_y_path    = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train/y_training_data.npy")
+    val_data_path   = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0/test/validation_data.npy")
+    val_y_path      = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0/test/y_validation_data.npy")
     
-    # Cargamos los datos de entrenamiento
-    X_train, y_train, sj_train = act.load_numpy_datasets(data_name, data_folder, USE_RECONSTRUCTED_DATA=False)
-    print("X_train", X_train.shape, "y_train", y_train.shape, "sj_train", sj_train.shape)
+    # Cargamos los splits
+    X_train = np.load(train_data_path)
+    y_train = np.load(train_y_path)
+    X_val   = np.load(val_data_path)
+    y_val   = np.load(val_y_path)
     
-    created = False  # Si True, se carga el modelo ya entrenado; si False, se entrena uno nuevo.
-    stype = "GAF"   # Puede ser "RP", "GAF" o "MTF". Toma en cuenta las dimensiones.
+    print("X_train shape:", X_train.shape, "y_train shape:", y_train.shape)
+    print("X_val shape:", X_val.shape, "y_val shape:", y_val.shape)
     
-    num_samples = X_train.shape[0]
-    
-    # Transformamos X_train para crear la entrada de 3 canales en formato (time_steps, features)
+    # Según el tipo de representación, transformamos los datos.
+    # Para "RP": se descarta el último time step (de 129 se toman 128) y se reordena a (time_steps, canales).
     if stype == "RP":
-        # Para recurrence plot, cada serie tiene dimensión (3,128) -> se transponen a (128, 3)
-        X_N = np.zeros((num_samples, 3, 128))
-        for i in range(num_samples):
-            X_N[i, 0, :] = X_train[i, :-1, 0]
-            X_N[i, 1, :] = X_train[i, :-1, 1]
-            X_N[i, 2, :] = X_train[i, :-1, 2]
-        X_N = np.transpose(X_N, (0, 2, 1))  # (num_samples, 128, 3)
+        # Procesamos datos de entrenamiento
+        num_train = X_train.shape[0]
+        X_train_processed = np.zeros((num_train, 128, 3))
+        for i in range(num_train):
+            X_train_processed[i, :, 0] = X_train[i, :-1, 0]
+            X_train_processed[i, :, 1] = X_train[i, :-1, 1]
+            X_train_processed[i, :, 2] = X_train[i, :-1, 2]
+        # Procesamos datos de validación
+        num_val = X_val.shape[0]
+        X_val_processed = np.zeros((num_val, 128, 3))
+        for i in range(num_val):
+            X_val_processed[i, :, 0] = X_val[i, :-1, 0]
+            X_val_processed[i, :, 1] = X_val[i, :-1, 1]
+            X_val_processed[i, :, 2] = X_val[i, :-1, 2]
         input_shape = (128, 3)
     else:
-        # Para GAF o MTF, cada serie tiene dimensión (3,129) -> se transponen a (129, 3)
-        X_N = np.zeros((num_samples, 3, 129))
-        for i in range(num_samples):
-            X_N[i, 0, :] = X_train[i, :, 0]
-            X_N[i, 1, :] = X_train[i, :, 1]
-            X_N[i, 2, :] = X_train[i, :, 2]
-        X_N = np.transpose(X_N, (0, 2, 1))  # (num_samples, 129, 3)
+        # Para "GAF" o "MTF" se asume la forma ya es (129, 3)
+        X_train_processed = X_train
+        X_val_processed   = X_val
         input_shape = (129, 3)
     
     # Convertimos las etiquetas
-    y = transformary(y_train)
+    y_train_trans = transformary(y_train)
+    y_val_trans   = transformary(y_val)
     
-    # Ruta para guardar/cargar el modelo
-    model_path = "modelo_lstmRP.h5" if stype == "RP" else "modelo_lstmX.h5"
+    # Definimos la ruta del modelo según el tipo de representación
+    if stype == "RP":
+        model_path = "modelo_lstmRP.h5"
+    else:
+        model_path = "modelo_lstmX.h5"
     
+    # Entrenar o cargar el modelo
     if not created:
-        # Creamos y entrenamos el modelo LSTM
         model = create_lstm_model(input_shape=input_shape, num_classes=5)
         print(model.summary())
-        
-        # Entrenamos el modelo
-        model.fit(X_N, y, epochs=20, batch_size=64, validation_split=0.2)
+        model.fit(X_train_processed, y_train_trans,
+                  epochs=20,
+                  batch_size=64,
+                  validation_data=(X_val_processed, y_val_trans))
         model.save(model_path)
     else:
-        # Cargamos el modelo ya entrenado
         model = load_model(model_path)
     
-    # Cargamos los datos de test
-    data_folder_rp = "C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
-    data_folder_gaf = "C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/tseries/GAF/sampling_loto/3-fold/fold-0/train"
-    data_folder_mtf = "C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/tseries/MTF/sampling_loto/3-fold/fold-0/train"
+    # ---------------------------
+    # 1. Predicción sobre validation_data.npy
+    pred_probs_val = model.predict(X_val_processed)
+    pred_val = pred_probs_val.argmax(axis=-1)
+    print("Evaluación sobre validation_data.npy:")
+    plt.plot_cm(y_val_trans, pred_val)
+    print(classification_report(y_val_trans, pred_val))
     
-    indices_T = np.load(f"{data_folder_rp}/y_training_data.npy")
-    X_all_gaf = np.load(f"{data_folder_gaf}/X_all_gaf.npy")
-    X_all_mtf = np.load(f"{data_folder_mtf}/X_all_mtf.npy")
-    X_all_rec = np.load(f"{data_folder_rp}/X_all_rec.npy")
+    # ---------------------------
+    # 2. Predicción sobre las reconstrucciones (X_all_rec, X_all_gaf, X_all_mtf)
+    # Definimos las rutas para cada técnica. Se asume que los archivos están en la carpeta "test"
+    data_folder_rp = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0")
+    data_folder_gaf = os.path.join(dataset_folder, "tseries/GAF/sampling_loto/3-fold/fold-0")
+    data_folder_mtf = os.path.join(dataset_folder, "tseries/MTF/sampling_loto/3-fold/fold-0")
     
-    # Seleccionamos y transformamos los datos de test según el stype
+    # Se reutilizan y_val_trans ya que los valores verdaderos son compartidos.
     if stype == "RP":
-        # Suponemos que X_all_rec tiene forma (N, 3,128)
-        X_test = np.transpose(X_all_rec, (0, 2, 1))  # (N,128,3)
+        rec_path = os.path.join(data_folder_rp, "test", "X_all_rec.npy")
+        X_all_rec = np.load(rec_path)
+        # Suponemos que X_all_rec tiene forma (N, 3, 128); se transpone a (N, 128, 3)
+        X_recon = np.transpose(X_all_rec, (0, 2, 1))
     elif stype == "GAF":
-        # Suponemos que X_all_gaf tiene forma (N, 3,129)
-        X_test = np.transpose(X_all_gaf, (0, 2, 1))  # (N,129,3)
+        gaf_path = os.path.join(data_folder_gaf, "test", "X_all_gaf.npy")
+        X_all_gaf = np.load(gaf_path)
+        # Suponemos que X_all_gaf tiene forma (N, 3, 129)
+        X_recon = np.transpose(X_all_gaf, (0, 2, 1))
     elif stype == "MTF":
-        # Suponemos que X_all_mtf tiene forma (N, 3,129)
-        X_test = np.transpose(X_all_mtf, (0, 2, 1))  # (N,129,3)
+        mtf_path = os.path.join(data_folder_mtf, "test", "X_all_mtf.npy")
+        X_all_mtf = np.load(mtf_path)
+        # Suponemos que X_all_mtf tiene forma (N, 3, 129)
+        X_recon = np.transpose(X_all_mtf, (0, 2, 1))
     else:
         raise ValueError("stype desconocido")
     
-    # Transformamos las etiquetas de test
-    indices_T = transformary(indices_T)
+    # Realizamos la predicción sobre las reconstrucciones
+    pred_probs_recon = model.predict(X_recon)
+    pred_recon = pred_probs_recon.argmax(axis=-1)
+    print("Evaluación sobre datos reconstruidos:")
+    plt.plot_cm(y_val_trans, pred_recon)
+    print(classification_report(y_val_trans, pred_recon))
     
-    # Predecimos las etiquetas
-    pred_probs = model.predict(X_test)
-    prediccion = pred_probs.argmax(axis=-1)
-    
-    # Mostramos la matriz de confusión
-    plt.plot_cm(indices_T, prediccion)
-    
-    # Imprimimos el reporte de clasificación
-    print(classification_report(indices_T, prediccion))
-
 if __name__ == '__main__':
     main()
