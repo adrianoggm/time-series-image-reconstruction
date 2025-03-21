@@ -19,7 +19,7 @@ from tqdm.auto import trange, tqdm
 import wandb
 import k_diffusion as K
 
-import tgen.utils as tu
+import src.utils as tu
 
 def main():
     '''Examples of runs:

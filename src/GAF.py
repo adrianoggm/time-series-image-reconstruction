@@ -2,8 +2,8 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-import tgen.activity_data as act
-import tgen.recurrence_plots as rec
+import src.activity_data as act
+import src.recurrence_plots as rec
 #import activity_data as act
 #import recurrence_plots as rec
 from PIL import Image

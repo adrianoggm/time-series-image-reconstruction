@@ -1,8 +1,8 @@
 #!/home/adriano/Escritorio/TFG/venv/bin/python3
 from keras.utils import to_categorical
-import tgen.recurrence_plots as rec
-import tgen.GAF as gaf
-import tgen.MTF as mtf
+import src.recurrence_plots as rec
+import src.GAF as gaf
+import src.MTF as mtf
 import numpy as np
 import os
 from tqdm.auto import trange, tqdm
@@ -115,5 +115,5 @@ def generate_all_images(X_train, y_train, sj_train, dataset_folder="/home/fmgarm
     #np.save(arch_training_data,np.array(train_index))
    
     generate_and_save_images(fold, dataset_folder, training_data, y_training_data, sj_training_data, TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling,image_type=imagetype)
-    generate_and_save_images(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data, TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+    generate_and_save_images(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data, TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling,image_type=imagetype)
     

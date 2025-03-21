@@ -1,8 +1,8 @@
 #!/home/adriano/Escritorio/TFG/venv/bin/python3
 from keras.utils import to_categorical
 import argparse
-import tgen.activity_data as act
-import tgen.reconstruct_tseries as ts
+import src.activity_data as act
+import src.reconstruct_tseries as ts
 def main():
     '''Examples of runs:
     - load LOSO numpies

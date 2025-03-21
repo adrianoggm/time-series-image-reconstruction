@@ -1,8 +1,8 @@
 #!/home/adriano/Escritorio/TFG/venv/bin/python3
 from keras.utils import to_categorical
 import argparse
-import tgen.activity_data as act
-import tgen.generate_images as gen
+import src.activity_data as act
+import src.generate_images as gen
 
 
 def main():

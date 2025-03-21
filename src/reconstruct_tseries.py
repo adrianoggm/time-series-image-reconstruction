@@ -15,20 +15,21 @@ from matplotlib.pylab import rcParams
 # from tqdm.notebook import tqdm, trange #progress bars for jupyter notebook
 from tqdm.auto import trange, tqdm #progress bars for pyhton files (not jupyter notebook)
 #import calculate_ts_errors as err
-import tgen.calculate_ts_errors as err
+import src.calculate_ts_errors as err
 import time
 import seaborn as sns
 from sklearn.model_selection import StratifiedGroupKFold, GroupKFold
-import tgen.recurrence_plots as rpts
-import tgen.GAF as gaf
+import src.recurrence_plots as rpts
+import src.GAF as gaf
 #import tgen.GAF2 as gaf2
 import time
-import tgen.MTF as mtf2
+import src.MTF as mtf2
 import os    
 
 """ Generates and saves a time series from a RP saving keeping also 
     track of the acuracy and the metrics from the original Time series
 """
+"""""
 def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_data, sj_train,dictionary, TIME_STEPS=129, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
     
     subject_samples = 0
@@ -77,7 +78,7 @@ def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_
       #print("Forma del RP original y calculada",w.shape,rp.shape)
       
       #print("normal",w,"calculada",rp)
-      """
+      
       error_abs,error_r,error_q,error_std,error_p,te=err.ts_error(w,rp)
       t+=te
       error.append(error_abs)
@@ -88,7 +89,7 @@ def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_
       errores.append(error)
       #print("errores",np.array(error))
       #print("errores",np.array(errores))
-      """
+      
       subject_samples += 1
 
     end_gl=time.time()
@@ -107,7 +108,86 @@ def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_
     print("Número total de inversiones",ninv)
     #print("Numero total desplazamientos",t)
     return X_all_rec,errores
+"""
 
+from concurrent.futures import ProcessPoolExecutor, as_completed
+
+def _process_sample(i, fold, dataset_folder, dictionary, training_data, y_data, sj_train, sampling, FOLDS_N, data_type):
+    """
+    Procesa una sola muestra: lee la imagen de la RP, la reconstruye y guarda el resultado.
+    Retorna la RP reconstruida y el número de inversiones (a) devuelto por Reconstruct_RP.
+    """
+    # Obtener datos de la muestra
+    w = training_data[i]
+    sj = sj_train[i][0]
+    w_y = y_data[i]
+    w_y_no_cat = np.argmax(w_y)
+    
+    # Construir la ruta de la imagen de RP
+    path_img = (
+        f"{dataset_folder}plots/recurrence_plot/sampling_{sampling}/"
+        f"{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/"
+        f"{sj}x{i}.png"
+    )
+    imagen = cv2.imread(path_img)
+    if imagen is None:
+        raise FileNotFoundError(f"No se encontró la imagen: {path_img}")
+    imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
+    
+    # Reconstruir la RP usando la función de rpts
+    rp, a = rpts.Reconstruct_RP(imagen, dictionary, i)
+    
+    # Construir la ruta para guardar la serie reconstruida y guardarla
+    path_npy = (
+        f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/"
+        f"{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/"
+        f"{sj}x{i}.npy"
+    )
+    np.save(path_npy, np.array(rp))
+    
+    return rp, a
+
+def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_data, sj_train,
+                                           dictionary, TIME_STEPS=129, data_type="train",
+                                           single_axis=False, FOLDS_N=3, sampling="loso"):
+    """
+    Genera y guarda series temporales a partir de RP, calculando además métricas como el
+    número total de inversiones. Se procesa cada muestra en paralelo.
+    """
+    X_all_rec = []
+    errores = []  # Se mantiene la variable para compatibilidad
+    ninv = 0
+    start_gl = time.time()
+    n_samples = len(training_data)
+    
+    # Procesar las muestras en paralelo
+    with ProcessPoolExecutor() as executor:
+        futures = [
+            executor.submit(_process_sample, i, fold, dataset_folder, dictionary,
+                            training_data, y_data, sj_train, sampling, FOLDS_N, data_type)
+            for i in range(n_samples)
+        ]
+        
+        # Usamos as_completed para ir recogiendo resultados a medida que se completan
+        for future in tqdm(as_completed(futures), total=n_samples, desc="Procesando muestras"):
+            rp, a = future.result()
+            X_all_rec.append(rp)
+            ninv += a
+    
+    end_gl = time.time()
+    ttotal = end_gl - start_gl
+
+    # Guardar la colección de series reconstruidas
+    archivoX_all = (
+        f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/"
+        f"{FOLDS_N}-fold/fold-{fold}/{data_type}/X_all_rec.npy"
+    )
+    np.save(archivoX_all, np.array(X_all_rec))
+    
+    print("Tiempo medio total por muestra:", ttotal / n_samples)
+    print("Número total de inversiones:", ninv)
+    
+    return X_all_rec, errores
 
 def generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y_data, sj_train,dictionary, TIME_STEPS=129, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
 
@@ -289,7 +369,14 @@ def generate_all_time_series(X_train, y_train, sj_train, dataset_folder="/home/a
          maximos=[np.max(l[:,0]),np.max(l[:,1]),np.max(l[:,2])]
          minimos=[np.min(l[:,0]),np.min(l[:,1]),np.min(l[:,2])]
          dictionary[k]=[maximos,minimos]
-         
+    # Generar diccionario para validación
+    dictionary_val = dict()
+    for k in range(validation_data.shape[0]):
+        serie = validation_data[k]
+        maximos = [np.max(serie[:,0]), np.max(serie[:,1]), np.max(serie[:,2])]
+        minimos = [np.min(serie[:,0]), np.min(serie[:,1]), np.min(serie[:,2])]
+        dictionary_val[k] = [maximos, minimos]     
+
     print("training_data.shape", training_data.shape, "y_training_data.shape", y_training_data.shape, "sj_training_data.shape", sj_training_data.shape)
     print("validation_data.shape", validation_data.shape, "y_validation_data.shape", y_validation_data.shape, "sj_validation_data.shape", sj_validation_data.shape)
     arch_training_data=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/training_data.npy"
@@ -297,20 +384,38 @@ def generate_all_time_series(X_train, y_train, sj_train, dataset_folder="/home/a
     arch_training_data=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/y_training_data.npy"
     np.save(arch_training_data,np.array( y_training_data))
         
+        # Guardar splits de entrenamiento
+    arch_training_data = f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/training_data.npy"
+    np.save(arch_training_data, np.array(training_data))
+    arch_y_training_data = f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/y_training_data.npy"
+    np.save(arch_y_training_data, np.array(y_training_data))
+    arch_sj_training_data = f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/sj_training_data.npy"
+    np.save(arch_sj_training_data, np.array(sj_training_data))
+
+    # Guardar splits de validación
+    arch_validation_data = f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/test/validation_data.npy"
+    np.save(arch_validation_data, np.array(validation_data))
+    arch_y_validation_data = f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/test/y_validation_data.npy"
+    np.save(arch_y_validation_data, np.array(y_validation_data))
+    arch_sj_validation_data = f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/test/sj_validation_data.npy"
+    np.save(arch_sj_validation_data, np.array(sj_validation_data))
 
     ##aqui añadir una opcion si quieres todas o una en especifico
     if reconstruction=="MTF":
-      generate_and_save_time_series_fromMTF(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
- 
+      #generate_and_save_time_series_fromMTF(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+      generate_and_save_time_series_fromMTF(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data,dictionary_val,TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       print("se hace 1 vez")
       break
     if reconstruction=="GAF":
-      generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+      
+      #generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+      generate_and_save_time_series_fromGAF(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data,dictionary_val,TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       print("se hace 1 vez")
       break
     if reconstruction=="RP":
-      generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
-
+      #generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+      
+      #generate_and_save_time_series_fromRP(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data,dictionary_val,TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       print("se hace 1 vez")
       break
     if reconstruction=="all":

@@ -436,13 +436,14 @@ def CreateCostMatrix(rp) :
     return CostM
 
 
+
 def calculate_shortest_path_matrix(Wg):
     shortest_path_matrix = dijkstra(Wg, directed=True)
     return shortest_path_matrix + 1e-10
 
 
 
-   
+"""
 def weigthed_graphRP(rp):
     CostM=CreateCostMatrix(rp)
     weighted_adjacency_matrix = np.zeros_like(rp) 
@@ -456,7 +457,19 @@ def weigthed_graphRP(rp):
         weighted_adjacency_matrix[i, j] = 1 - (intersection / union)
                 
     return weighted_adjacency_matrix
-    
+"""
+def weigthed_graphRP(rp):
+    CostM = CreateCostMatrix(rp)
+    # Sumas por fila: número de elementos "1" en cada fila
+    row_sums = np.sum(CostM, axis=1, keepdims=True)  # forma (N, 1)
+    # Intersección: producto punto entre CostM y su transpuesta
+    intersections = np.dot(CostM, CostM.T)
+    # Unión: suma de elementos de ambas filas menos la intersección
+    unions = row_sums + row_sums.T - intersections
+    # Evitar división por cero
+    unions[unions == 0] = 1
+    weighted_adjacency_matrix = 1 - (intersections / unions)
+    return weighted_adjacency_matrix   
 def reconstruct_time_series(shortest_path_matrix, ep=0.0, small_constant=1e-10):
     # Forzar la simetría en la matriz
     symmetric_shortest_path_matrix = 0.5 * (shortest_path_matrix + shortest_path_matrix.T)
