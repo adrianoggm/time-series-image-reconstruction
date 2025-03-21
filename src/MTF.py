@@ -3,9 +3,9 @@ from math import sqrt
 import numpy as np
 import matplotlib.pyplot as plt
 #import activity_data as act
-import tgen.activity_data as act
+import src.activity_data as act
 #import recurrence_plots as rec
-import tgen.recurrence_plots as rec
+import src.recurrence_plots as rec
 from pyts.image import MarkovTransitionField
 from PIL import Image
 import cv2

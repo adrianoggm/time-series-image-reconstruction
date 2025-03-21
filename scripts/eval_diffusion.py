@@ -16,7 +16,7 @@ from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, r
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from tgen import eval, utils
+from src import eval, utils
 
 
 def compute_metrics_for_each_class(cm):

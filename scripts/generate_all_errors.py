@@ -1,8 +1,9 @@
-#!/home/adriano/Escritorio/TFG/venv/bin/python3
+#!C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/venv/bin/python3
+
 from keras.utils import to_categorical
 import argparse
-import tgen.activity_data as act
-import tgen.calculate_ts_errors as cerr
+import src.activity_data as act
+import src.calculate_ts_errors as cerr
 import sklearn.metrics as metrics
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,9 +13,9 @@ import cv2
 def main():
     
 
-    data_folder="/home/adriano/Escritorio/TFG/data/WISDM/tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
-    data_folder1="/home/adriano/Escritorio/TFG/data/WISDM/tseries/GAF/sampling_loto/3-fold/fold-0/train"
-    data_folder2="/home/adriano/Escritorio/TFG/data/WISDM/tseries/MTF/sampling_loto/3-fold/fold-0/train"
+    data_folder="C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
+    data_folder1="C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/tseries/GAF/sampling_loto/3-fold/fold-0/train"
+    data_folder2="C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/tseries/MTF/sampling_loto/3-fold/fold-0/train"
    
     errores_rec = []
     errores_gasf = []

@@ -1,0 +1,457 @@
+[33mcommit 5cf1b34f4df72241273e64e4fc7a2a7a0e116aee[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mDeveloper[m[33m)[m
+Author: Adriano <72881543+adrianoggm@users.noreply.github.com>
+Date:   Sun Mar 2 11:18:56 2025 +0100
+
+    Estandarizado generate_images.py
+    
+    Cambio además las carpetas y archivos anteriores para empezar cumplir el estándar PEP  Cambio carpeta de /tgen por /src e introduzco en  srcipts todos los .py que pueden ser ejecutados
+
+[33mcommit ae6b061ce4ebf460c6ad92d09b9f8cde60a8efe6[m[33m ([m[1;31morigin/Developer[m[33m)[m
+Author: Adriano <72881543+adrianoggm@users.noreply.github.com>
+Date:   Sat Mar 1 10:59:53 2025 +0100
+
+    Fixing some imports
+
+[33mcommit b9d375c0e2893e01363f64619c29455f903afe11[m
+Author: Adriano <72881543+adrianoggm@users.noreply.github.com>
+Date:   Sat Aug 31 10:49:33 2024 +0200
+
+    Update README.md
+    
+    actualizando readme
+
+[33mcommit eea7fe0085470df666e82b302affbc3475f3a3c9[m
+Author: Adriano <adrianoggm@correo.ugr.es>
+Date:   Sat Aug 31 10:38:11 2024 +0200
+
+    comprobado el último test
+
+[33mcommit 0b247abcf1be6ffaa2c0aac12e9f709298f1307c[m
+Author: Adriano <adrianoggm@correo.ugr.es>
+Date:   Sat Aug 31 10:19:27 2024 +0200
+
+    ignore
+
+[33mcommit 363a02f4b0c43f7e81d14fe41e98587a37ce418a[m
+Author: Adriano <adrianoggm@correo.ugr.es>
+Date:   Sat Aug 31 10:16:57 2024 +0200
+
+    gitignore
+
+[33mcommit 25e7790369420089bb28ff6038cee02157a1cf17[m
+Author: Adriano <adrianoggm@correo.ugr.es>
+Date:   Sat Aug 31 10:15:44 2024 +0200
+
+    añadiendo gitignore
+
+[33mcommit d2b27b35c66ff4d5ccc9f892991355e48b044397[m
+Author: Adriano <adrianoggm@correo.ugr.es>
+Date:   Wed Aug 21 15:57:28 2024 +0200
+
+    Testeado y funcionando todo
+
+[33mcommit 4e39fb90e411f3163cf5ca84912c581365540d49[m
+Author: Adriano <adrianoggm@correo.ugr.es>
+Date:   Sat Aug 17 17:13:40 2024 +0200
+
+    se añaden un par de test unitarios
+
+[33mcommit 762092eaea84e12571b83404ee373dcd3a8f0fb4[m
+Author: Adriano <adrianoggm@correo.ugr.es>
+Date:   Sat Aug 17 02:02:58 2024 +0200
+
+    Solved a minor bug on MTF
+
+[33mcommit 71fbaae45e44ee1af1505fa7d741dedd68f26725[m
+Author: Adriano <adrianoggm@correo.ugr.es>
+Date:   Thu Aug 15 00:20:42 2024 +0200
+
+    Test unitarios probados y reestructuración de código
+
+[33mcommit 9e8a962704cb1cb094445b197b1718ac4dfe9791[m
+Author: Adriano <72881543+adrianoggm@users.noreply.github.com>
+Date:   Sun Jul 28 16:42:42 2024 +0200
+
+    se añade metodo para mtf
+
+[33mcommit 2f7ab1c77e8138ee1334991772f6fd2a91465f32[m
+Author: Adriano <72881543+adrianoggm@users.noreply.github.com>
+Date:   Fri Jul 26 21:36:42 2024 +0200
+
+    Metodo que genera todas las GASF
+    
+    fixes #15
+
+[33mcommit 902115f5d437e8ab10c5a0050c6e97845ec7ca56[m
+Author: Adriano <72881543+adrianoggm@users.noreply.github.com>
+Date:   Fri Jul 26 16:55:58 2024 +0200
+
+    REC no cambiar
+
+[33mcommit cd38b4d732ab137a00a995a107d04f90a4d9b883[m
+Author: Adriano <72881543+adrianoggm@users.noreply.github.com>
+Date:   Fri Jul 26 16:30:12 2024 +0200
+
+    fixea errores y añade 2 implementaciones de GAF
+    
+    fixed #12
+
+[33mcommit acc1920c19c5ddbaa6153648637f8a72858fddfa[m
+Author: Adriano <72881543+adrianoggm@users.noreply.github.com>
+Date:   Sun Jul 7 17:04:10 2024 +0200
+
+    Se ha implementado un método que crea y reconstruye GAF
+    
+    fixes #11 and fixes #7
+
+[33mcommit 4689be52653a5487d82c102b2701bcc373a9702a[m
+Author: Adriano <72881543+adrianoggm@users.noreply.github.com>
+Date:   Sat Jul 6 23:48:33 2024 +0200
+
+    Actualizo en MTF2 el inital state
+
+[33mcommit 04447374344aee11a28abdc69b5b50d809b4b72c[m
+Author: Adriano <72881543+adrianoggm@users.noreply.github.com>
+Date:   Sat Jul 6 23:42:57 2024 +0200
+
+    Se crea el método de creación de img GAF(GASF GADF)
+
+[33mcommit e22f8260e8fd7aeb9b3ecd48309c9889ab5387d6[m
+Author: Adriano <72881543+adrianoggm@users.noreply.github.com>
+Date:   Sat Jul 6 23:41:51 2024 +0200
+
+    Se añade la generación de los errores
+
+[33mcommit 61f2086dcb1f093974fddf70d0fb13d5eaf89ecb[m
+Author: Adriano <72881543+adrianoggm@users.noreply.github.com>
+Date:   Fri Jun 28 15:03:14 2024 +0200
+
+    Genero archivo de errores
+
+[33mcommit cf09ce1200b5d6719ec1285af6ed0ed2f96a6c92[m
+Author: Adriano <72881543+adrianoggm@users.noreply.github.com>
+Date:   Mon Jun 17 15:14:26 2024 +0200
+
+    He creado los ficheros para crear las MTF
+    
+    aun sin generar ni comprobar si funciona
+
+[33mcommit 915df84e76b03461f34e5565fdc0905e8feb9abf[m
+Author: Adriano <72881543+adrianoggm@users.noreply.github.com>
+Date:   Thu Jun 13 13:42:55 2024 +0200
+
+    Arreglo la generación de las recurrence plot he introduzco la primera prueba de generacion global de ts
+
+[33mcommit 5286eb16351766c2c5bb5a0737149a83954a3d58[m
+Author: Adriano <72881543+adrianoggm@users.noreply.github.com>
+Date:   Mon Jun 10 17:00:09 2024 +0200
+
+    Creacion de archivo para generacion de ts
+
+[33mcommit 5291c0b33a2c658d0d8e2c21a10db88bbe7ad7a3[m
+Author: Adriano <72881543+adrianoggm@users.noreply.github.com>
+Date:   Mon May 27 18:31:29 2024 +0200
+
+    Consigue Implementar bien RP
+    
+    fixed #9
+
+[33mcommit 7364576409f66b0fdf5fb4eda73a2d1660fad150[m
+Author: Adriano <72881543+adrianoggm@users.noreply.github.com>
+Date:   Fri May 17 22:05:07 2024 +0200
+
+    Subo una mejora en la implementacion de la rconstruccion y metodo de comparacion
+    
+    fixes #5
+
+[33mcommit c0ab489063663fffb1e3287386fe4509c99b41a5[m
+Author: Adriano <72881543+adrianoggm@users.noreply.github.com>
+Date:   Thu May 16 11:41:08 2024 +0200
+
+    Se  crea normalización y dif methods
+    
+    Closes: #2
+
+[33mcommit 252db36df766d24c4eb94645312d97603898a1ae[m
+Author: Adriano <72881543+adrianoggm@users.noreply.github.com>
+Date:   Tue May 7 13:16:52 2024 +0200
+
+    Fixing data y generando Recurrence plots
+
+[33mcommit 454e6fcf7b594bde6e1fc5cd3617478d438cc3f9[m
+Merge: 83897bf 4150da8
+Author: Fran <fmgarmor@ugr.es>
+Date:   Tue Nov 7 13:34:44 2023 +0100
+
+    Merge branch 'master' of https://github.com/frangam/diff-tsd
+
+[33mcommit 83897bf464b6a3d2d379bc30e0bdb80a83471822[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Tue Nov 7 13:34:36 2023 +0100
+
+    final results
+
+[33mcommit 4150da80220b0587635101224e04cd9f64b25af3[m
+Author: Francisco M. García-Moreno <fmgarmor@ugr.es>
+Date:   Tue Oct 24 19:53:58 2023 +0200
+
+    Update README.md
+
+[33mcommit a11a0febf991d16ad188b9d7213b87691b30e1a8[m
+Merge: cb8751f 4dd13b0
+Author: Fran <fmgarmor@ugr.es>
+Date:   Tue Oct 24 19:50:01 2023 +0200
+
+    Merge branch 'master' of https://github.com/frangam/diff-tsd
+
+[33mcommit cb8751f977fc2f9352a6a06349efe36a1223580e[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Tue Oct 24 19:49:58 2023 +0200
+
+    doc
+
+[33mcommit 4dd13b084ef3eb89cc10ad295d45656766c31f1a[m
+Author: Francisco M. García-Moreno <fmgarmor@ugr.es>
+Date:   Tue Oct 24 19:44:39 2023 +0200
+
+    Update README.md
+
+[33mcommit 45c7831e9348a1ec67dc3b99eb4cf24ce46b9c42[m
+Author: Francisco M. García-Moreno <fmgarmor@ugr.es>
+Date:   Tue Oct 24 19:44:17 2023 +0200
+
+    Update README.md
+
+[33mcommit 66a3f5a052352603faad31fea97f2056850cf670[m
+Author: Francisco M. García-Moreno <fmgarmor@ugr.es>
+Date:   Tue Oct 24 19:43:42 2023 +0200
+
+    Update README.md
+
+[33mcommit 0781cd247372b38484f788a86ae5b78da5a89d3f[m
+Author: Francisco M. García-Moreno <fmgarmor@ugr.es>
+Date:   Tue Oct 24 19:41:45 2023 +0200
+
+    Update README.md
+
+[33mcommit ad817494d76c53910068e1e4da6a273e0887948d[m
+Author: Francisco M. García-Moreno <fmgarmor@ugr.es>
+Date:   Tue Oct 24 19:41:23 2023 +0200
+
+    Update README.md
+
+[33mcommit bdf915fccb7a123a3871d951f5b15c3693a477e9[m
+Author: Francisco M. García-Moreno <fmgarmor@ugr.es>
+Date:   Tue Oct 24 19:40:50 2023 +0200
+
+    Update README.md
+
+[33mcommit 2dd38abdabc5cc0dd22fde9b494f7bf23e48d63f[m
+Author: Francisco M. García-Moreno <fmgarmor@ugr.es>
+Date:   Tue Oct 24 19:32:53 2023 +0200
+
+    Update README.md
+
+[33mcommit 6659b7e21a3edfa24fe61535dbec45b75ebea396[m
+Author: Francisco M. García-Moreno <fmgarmor@ugr.es>
+Date:   Tue Oct 24 19:21:40 2023 +0200
+
+    Update README.md
+
+[33mcommit 64869979ede3bba343f7ad9eeb9afdf0c0734461[m
+Author: Francisco M. García-Moreno <fmgarmor@ugr.es>
+Date:   Tue Oct 24 19:20:27 2023 +0200
+
+    Update README.md
+
+[33mcommit 1c5a94038954eb1efde5359f254eb0a7db78a075[m
+Author: Francisco M. García-Moreno <fmgarmor@ugr.es>
+Date:   Tue Oct 24 19:13:32 2023 +0200
+
+    Update README.md
+
+[33mcommit ba4e3a1d40a26cd3f7e4771b22cf103f8d9e0744[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Tue Oct 24 19:11:40 2023 +0200
+
+    readme
+
+[33mcommit 6600bc3786c7ba7911f86593d826e06873d7f043[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Tue Oct 24 19:00:21 2023 +0200
+
+    readme
+
+[33mcommit 02bdb2f77cb87d8707ee1b0ed0cfcbb63cc2cf9b[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Tue Oct 24 16:51:15 2023 +0200
+
+    updated ignores
+
+[33mcommit b702918f4de2412cb284e88f1c5b36ad3c4b1172[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Tue Oct 24 16:45:26 2023 +0200
+
+    updated ignores
+
+[33mcommit 0e0dbf45c2a3ff1d816ae3d8347c51bf9f66e331[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Tue Oct 24 16:40:39 2023 +0200
+
+    added additional eval metrics
+
+[33mcommit 986e317a3706cc61e888719cf9d985bf1fef1490[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Thu Sep 28 11:11:18 2023 +0200
+
+    added version to wandb model artifact
+
+[33mcommit 29ee2c669c626da0d7168cb28d6192aa3fc10d34[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Thu Sep 28 10:39:41 2023 +0200
+
+    fix model name to upload
+
+[33mcommit ab524893144d8a3e01f6f13c82e49215ccb81177[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Thu Sep 28 10:38:21 2023 +0200
+
+    add option to sample for specific model by epoch; and upload and download models
+
+[33mcommit d94abdd02152f09e82310247fd285d679edc0ee4[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Tue May 30 21:37:01 2023 +0200
+
+    update
+
+[33mcommit 27d4107bf3835c9864387ebf458bf290de34fa84[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Mon May 29 11:08:56 2023 +0200
+
+    added execution in specific device for eval and sampling
+
+[33mcommit 961d0088c9dc2e373e1695073651fbb29a15f06a[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Sun May 28 09:26:19 2023 +0200
+
+    updated train to select specific fold
+
+[33mcommit ca59354be5dd277819e84d82866274a189e373ac[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Tue May 23 11:45:12 2023 +0200
+
+    support for sampling from the best fid model and save and evaluate at the same step in the train
+
+[33mcommit 28456bc623e976fd45d8fb242bd94a2b42f7965a[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Sat May 20 12:18:57 2023 +0200
+
+    updated train and readme
+
+[33mcommit b27d1555c39b481fb92391c80c3afe55d44fcbc6[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Thu May 18 23:45:50 2023 +0200
+
+    updates
+
+[33mcommit a12ffc3e9227135edc8e710cd0c1a3ab73342c24[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Thu May 11 16:08:49 2023 +0200
+
+    readme
+
+[33mcommit 68991d15765e5766a75f5da6674a7671817d0294[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Thu May 11 16:07:42 2023 +0200
+
+    readme
+
+[33mcommit e7ab99b0cc213127546c86efc7bd6c7b9cf5b146[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Thu May 11 16:01:38 2023 +0200
+
+    update with readme instruction also
+
+[33mcommit c6e298fac12e7d65f33465201203f180acd20981[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Tue May 9 17:18:19 2023 +0200
+
+    eval
+
+[33mcommit 28c1a006d16eba7fabe099b13a199dcdd71236e1[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Tue May 9 16:00:06 2023 +0200
+
+    2
+
+[33mcommit d57d3ec45f8a327ebe875c59984c1aee07d17e26[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Tue May 9 15:57:23 2023 +0200
+
+    gitignore
+
+[33mcommit 1808869d675188588f24c2e2ebe36d1feffb0e61[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Tue May 9 15:54:56 2023 +0200
+
+    updated
+
+[33mcommit 8c6bc8fd7925d59248ce87a223cafa6afe36016a[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Fri Mar 17 12:44:08 2023 +0100
+
+    256 bz
+
+[33mcommit 6f7ecc981e5538f6b3daf287d3979de410741b4f[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Thu Mar 9 12:25:35 2023 +0100
+
+    readme
+
+[33mcommit a9c75013a94d082e2a7afb7931c1c0901d71b528[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Thu Mar 9 12:24:10 2023 +0100
+
+    updated readme
+
+[33mcommit fcf1ee844f20343dd9acbbdd5eef46b1d4002402[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Thu Mar 9 11:01:04 2023 +0100
+
+    readme
+
+[33mcommit 5d466449c7e41ee5bfb76e0c199b057999438db6[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Wed Mar 8 18:25:04 2023 +0100
+
+    Deleted rersults files from the git repository
+
+[33mcommit 76340c903a1cffc4d096431343e5c8b13872f669[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Wed Mar 8 18:20:14 2023 +0100
+
+    Deleted wandb from the git repository
+
+[33mcommit d79f652c5cfbfffbaf6949dc27420e83dcba4bd3[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Wed Mar 8 18:15:20 2023 +0100
+
+    updated gitignore again
+
+[33mcommit 18af4c976a99a4b4c0b58a352e373c7c992d73e8[m
+Author: Fran <fmgarmor@ugr.es>
+Date:   Wed Mar 8 17:11:08 2023 +0100
+
+    updated gitignore
+
+[33mcommit ba8fbc1eeecda6f119a4bffcf8c7e37168c78208[m
+Author: Francisco M Garcia-Moreno <fmgarmor@ugr.es>
+Date:   Tue Mar 7 12:15:37 2023 +0100
+
+    gitignore updated
+
+[33mcommit ddec19856332eb57440af20a2406110203504b07[m
+Author: MIoT-Health <miot-health@ugr.es>
+Date:   Thu Feb 16 12:35:31 2023 +0000
+
+    Initial commit
