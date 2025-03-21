@@ -384,6 +384,21 @@ def generate_all_time_series(X_train, y_train, sj_train, dataset_folder="/home/a
     arch_training_data=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/y_training_data.npy"
     np.save(arch_training_data,np.array( y_training_data))
         
+        # Guardar splits de entrenamiento
+    arch_training_data = f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/training_data.npy"
+    np.save(arch_training_data, np.array(training_data))
+    arch_y_training_data = f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/y_training_data.npy"
+    np.save(arch_y_training_data, np.array(y_training_data))
+    arch_sj_training_data = f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/sj_training_data.npy"
+    np.save(arch_sj_training_data, np.array(sj_training_data))
+
+    # Guardar splits de validación
+    arch_validation_data = f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/test/validation_data.npy"
+    np.save(arch_validation_data, np.array(validation_data))
+    arch_y_validation_data = f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/test/y_validation_data.npy"
+    np.save(arch_y_validation_data, np.array(y_validation_data))
+    arch_sj_validation_data = f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/test/sj_validation_data.npy"
+    np.save(arch_sj_validation_data, np.array(sj_validation_data))
 
     ##aqui añadir una opcion si quieres todas o una en especifico
     if reconstruction=="MTF":
@@ -400,7 +415,7 @@ def generate_all_time_series(X_train, y_train, sj_train, dataset_folder="/home/a
     if reconstruction=="RP":
       #generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       
-      generate_and_save_time_series_fromRP(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data,dictionary_val,TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+      #generate_and_save_time_series_fromRP(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data,dictionary_val,TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       print("se hace 1 vez")
       break
     if reconstruction=="all":
