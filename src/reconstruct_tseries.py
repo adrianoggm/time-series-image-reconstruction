@@ -369,7 +369,14 @@ def generate_all_time_series(X_train, y_train, sj_train, dataset_folder="/home/a
          maximos=[np.max(l[:,0]),np.max(l[:,1]),np.max(l[:,2])]
          minimos=[np.min(l[:,0]),np.min(l[:,1]),np.min(l[:,2])]
          dictionary[k]=[maximos,minimos]
-         
+    # Generar diccionario para validación
+    dictionary_val = dict()
+    for k in range(validation_data.shape[0]):
+        serie = validation_data[k]
+        maximos = [np.max(serie[:,0]), np.max(serie[:,1]), np.max(serie[:,2])]
+        minimos = [np.min(serie[:,0]), np.min(serie[:,1]), np.min(serie[:,2])]
+        dictionary_val[k] = [maximos, minimos]     
+
     print("training_data.shape", training_data.shape, "y_training_data.shape", y_training_data.shape, "sj_training_data.shape", sj_training_data.shape)
     print("validation_data.shape", validation_data.shape, "y_validation_data.shape", y_validation_data.shape, "sj_validation_data.shape", sj_validation_data.shape)
     arch_training_data=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/training_data.npy"
@@ -380,17 +387,20 @@ def generate_all_time_series(X_train, y_train, sj_train, dataset_folder="/home/a
 
     ##aqui añadir una opcion si quieres todas o una en especifico
     if reconstruction=="MTF":
-      generate_and_save_time_series_fromMTF(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
- 
+      #generate_and_save_time_series_fromMTF(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+      generate_and_save_time_series_fromMTF(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data,dictionary_val,TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       print("se hace 1 vez")
       break
     if reconstruction=="GAF":
-      generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+      
+      #generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+      generate_and_save_time_series_fromGAF(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data,dictionary_val,TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       print("se hace 1 vez")
       break
     if reconstruction=="RP":
-      generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
-
+      #generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+      
+      generate_and_save_time_series_fromRP(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data,dictionary_val,TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       print("se hace 1 vez")
       break
     if reconstruction=="all":
