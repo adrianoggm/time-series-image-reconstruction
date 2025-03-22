@@ -2,6 +2,7 @@ import os
 import numpy as np
 from scipy.interpolate import CubicSpline
 from sklearn.metrics.pairwise import cosine_similarity
+import matplotlib.pyplot as plt
 
 def upsample_series(data, new_n_points):
     """
@@ -15,14 +16,12 @@ def upsample_series(data, new_n_points):
       data_upsampled: np.ndarray de forma (n_samples, new_n_points, n_channels)
     """
     n_samples, n_points, n_channels = data.shape
-    # Vector de tiempo original y nuevo
     t_original = np.linspace(0, 1, n_points)
     t_new = np.linspace(0, 1, new_n_points)
     
     data_upsampled = np.zeros((n_samples, new_n_points, n_channels))
     for i in range(n_samples):
         for ch in range(n_channels):
-            # Ajusta un spline a los datos originales de cada canal
             cs = CubicSpline(t_original, data[i, :, ch], bc_type='natural')
             data_upsampled[i, :, ch] = cs(t_new)
     return data_upsampled
@@ -100,7 +99,6 @@ def compute_metrics(coeffs_ref, coeffs_comp):
             cosine_sim = cosine_similarity(v_ref.reshape(1, -1), v_comp.reshape(1, -1))[0, 0]
             cosine_similarities.append(cosine_sim)
 
-    # Calcular matriz de covarianza para las diferencias y usar la pseudo-inversa
     diff_vectors = np.array(diff_vectors)  # (n_samples*n_channels, vector_size)
     cov = np.cov(diff_vectors, rowvar=False)
     inv_cov = np.linalg.pinv(cov)
@@ -116,9 +114,60 @@ def compute_metrics(coeffs_ref, coeffs_comp):
 
     return avg_euclidean, avg_manhattan, avg_cosine, avg_mahalanobis
 
+def compute_pearson_coeff(x, y):
+    """
+    Calcula el coeficiente de correlación de Pearson para cada muestra y canal entre
+    dos series x e y (con forma: n_samples, n_points, n_channels). 
+    
+    Retorna:
+      channel_mean: array de tamaño (n_channels,) con el promedio de Pearson por canal.
+      overall_mean: promedio global (todos los canales y muestras).
+    """
+    n_samples, n_points, n_channels = x.shape
+    corr_all = np.zeros((n_samples, n_channels))
+    for i in range(n_samples):
+        for ch in range(n_channels):
+            r = np.corrcoef(x[i, :, ch], y[i, :, ch])[0, 1]
+            corr_all[i, ch] = r
+    channel_mean = np.mean(corr_all, axis=0)
+    overall_mean = np.mean(corr_all)
+    return channel_mean, overall_mean
+
+def plot_rp_sample(original, upsampled, sample_index=0, channel=0, save_folder=None):
+    """
+    Grafica una muestra de la serie RP, mostrando los valores originales y la versión upsampleada.
+    
+    Parámetros:
+      original: np.ndarray de forma (n_samples, 128, n_channels) con la serie original RP.
+      upsampled: np.ndarray de forma (n_samples, 129, n_channels) con la serie RP remuestreada.
+      sample_index: índice de la muestra a graficar.
+      channel: canal a graficar.
+      save_folder: ruta de la carpeta donde se guardará la imagen (opcional).
+    """
+    t_original = np.linspace(0, 1, original.shape[1])
+    t_upsampled = np.linspace(0, 1, upsampled.shape[1])
+    
+    plt.figure(figsize=(8, 4))
+    plt.plot(t_original, original[sample_index, :, channel], 'o', label="RP original (128 pts)")
+    plt.plot(t_upsampled, upsampled[sample_index, :, channel], '-', label="RP upsampled (129 pts)")
+    plt.title(f"Muestra {sample_index}, Canal {channel} - RP y Spline")
+    plt.xlabel("Tiempo")
+    plt.ylabel("Valor")
+    plt.legend()
+    
+    if save_folder:
+        if not os.path.exists(save_folder):
+            os.makedirs(save_folder)
+        save_path = os.path.join(save_folder, f"rp_sample_{sample_index}_ch{channel}.png")
+        plt.savefig(save_path)
+        print(f"Imagen guardada en: {save_path}")
+    
+    plt.show()
+
 def main():
     # Define las rutas a tus datos
     dataset_folder = "C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/"
+    images_folder = "C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/images"
 
     train_data_path = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train/training_data.npy")
     series_rp_path   = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train/X_all_rec.npy")
@@ -137,37 +186,37 @@ def main():
     print("Shape de X_mtf:", X_mtf.shape)
 
     # Reordena las reconstrucciones para que tengan la forma (n_samples, puntos, canales)
-    X_rp    = np.transpose(X_rp, (0, 2, 1))  # (n_samples, 128, 3)
-    X_gaf   = np.transpose(X_gaf, (0, 2, 1))  # (n_samples, 129, 3)
-    X_mtf   = np.transpose(X_mtf, (0, 2, 1))  # (n_samples, 129, 3)
+    X_rp = np.transpose(X_rp, (0, 2, 1))   # (n_samples, 128, 3)
+    X_gaf = np.transpose(X_gaf, (0, 2, 1)) # (n_samples, 129, 3)
+    X_mtf = np.transpose(X_mtf, (0, 2, 1)) # (n_samples, 129, 3)
 
     # Parámetros para X_train, GAF y MTF (129 puntos)
     n_samples, n_points_train, n_channels = X_train.shape
     t_train = np.linspace(0, 1, n_points_train)
 
-    # Para RP: originalmente tiene 128 puntos, lo remuestreamos a 129 puntos
+    # Para RP: originalmente tiene 128 puntos, se remuestrea a 129 puntos
     X_rp_upsampled = upsample_series(X_rp, n_points_train)  # ahora (n_samples, 129, 3)
-    t_rp_new = t_train  # ya que coincide con 129 puntos
+    t_rp_new = t_train  # coincide con 129 puntos
 
     # Calcula los coeficientes de spline para cada conjunto
-    coeffs_train    = compute_spline_coefficients(X_train, t_train)
-    coeffs_rp       = compute_spline_coefficients(X_rp_upsampled, t_train)
-    coeffs_gaf      = compute_spline_coefficients(X_gaf, t_train)
-    coeffs_mtf      = compute_spline_coefficients(X_mtf, t_train)
+    coeffs_train = compute_spline_coefficients(X_train, t_train)
+    coeffs_rp = compute_spline_coefficients(X_rp_upsampled, t_train)
+    coeffs_gaf = compute_spline_coefficients(X_gaf, t_train)
+    coeffs_mtf = compute_spline_coefficients(X_mtf, t_train)
 
     # Normaliza los coeficientes
     coeffs_train_norm = normalize_coeffs(coeffs_train)
-    coeffs_rp_norm    = normalize_coeffs(coeffs_rp)
-    coeffs_gaf_norm   = normalize_coeffs(coeffs_gaf)
-    coeffs_mtf_norm   = normalize_coeffs(coeffs_mtf)
+    coeffs_rp_norm = normalize_coeffs(coeffs_rp)
+    coeffs_gaf_norm = normalize_coeffs(coeffs_gaf)
+    coeffs_mtf_norm = normalize_coeffs(coeffs_mtf)
 
     # Calcula las métricas con los coeficientes originales
-    metrics_rp  = compute_metrics(coeffs_train, coeffs_rp)
+    metrics_rp = compute_metrics(coeffs_train, coeffs_rp)
     metrics_gaf = compute_metrics(coeffs_train, coeffs_gaf)
     metrics_mtf = compute_metrics(coeffs_train, coeffs_mtf)
 
     # Calcula las métricas con los coeficientes normalizados
-    metrics_rp_norm  = compute_metrics(coeffs_train_norm, coeffs_rp_norm)
+    metrics_rp_norm = compute_metrics(coeffs_train_norm, coeffs_rp_norm)
     metrics_gaf_norm = compute_metrics(coeffs_train_norm, coeffs_gaf_norm)
     metrics_mtf_norm = compute_metrics(coeffs_train_norm, coeffs_mtf_norm)
 
@@ -213,6 +262,23 @@ def main():
     print("  Distancia Manhattan promedio:", manhat_mtf_norm)
     print("  Similitud del coseno promedio:", cosine_mtf_norm)
     print("  Distancia de Mahalanobis promedio:", maha_mtf_norm)
+    
+    # Calcula el coeficiente de correlación de Pearson para cada canal y globalmente
+    pearson_rp_channel, pearson_rp_overall = compute_pearson_coeff(X_train, X_rp_upsampled)
+    pearson_gaf_channel, pearson_gaf_overall = compute_pearson_coeff(X_train, X_gaf)
+    pearson_mtf_channel, pearson_mtf_overall = compute_pearson_coeff(X_train, X_mtf)
+    
+    print("\nCoeficiente de correlación de Pearson:")
+    print("RP por canal:", pearson_rp_channel)
+    print("RP promedio global:", pearson_rp_overall)
+    print("GAF por canal:", pearson_gaf_channel)
+    print("GAF promedio global:", pearson_gaf_overall)
+    print("MTF por canal:", pearson_mtf_channel)
+    print("MTF promedio global:", pearson_mtf_overall)
+    
+    # Grafica y guarda una muestra de RP: original vs. upsampleada.
+    # Se toma la muestra 0, canal 0.
+    plot_rp_sample(X_rp, X_rp_upsampled, sample_index=0, channel=0, save_folder=images_folder)
 
 if __name__ == '__main__':
     main()
