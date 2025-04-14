@@ -14,7 +14,7 @@ def main():
     data_name="WISDM"
     data_folder="C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM//tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
      #voy a  obtener el maximo de todo el data set.
-    img_type="RP"
+    img_type="GAF"
     indices_T=np.load(f"{data_folder}/training_data.npy")
     
     if img_type=="RP":

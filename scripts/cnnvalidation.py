@@ -85,9 +85,9 @@ def create_cnn_model_paper(input_shape, num_classes=6, l2_reg=0.001, bins=10):
 
 def main():
     # Flag para decidir si se entrena un modelo nuevo o se carga uno existente
-    created = False
+    created = True
     # Selección de representación: "RP", "GAF" o "MTF"
-    stype = "GAF"  # Si usas GAF o MTF se asume que la forma es (129, 3)
+    stype = "MTF"  # Si usas GAF o MTF se asume que la forma es (129, 3)
     
     # Directorio base de los datos
     dataset_folder = "C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/"
@@ -97,7 +97,7 @@ def main():
     train_y_path    = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train/y_training_data.npy")
     val_data_path   = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0/test/validation_data.npy")
     val_y_path      = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0/test/y_validation_data.npy")
-    
+        
     # Cargamos los datos
     X_train = np.load(train_data_path)
     y_train = np.load(train_y_path)
@@ -109,34 +109,16 @@ def main():
     
     # Transformación de datos según la técnica.
     # Para "RP": se descarta el último time step (de 129 se toman 128)
-    if stype == "RP":
-        num_train = X_train.shape[0]
-        X_train_processed = np.zeros((num_train, 128, 3))
-        for i in range(num_train):
-            X_train_processed[i, :, 0] = X_train[i, :-1, 0]
-            X_train_processed[i, :, 1] = X_train[i, :-1, 1]
-            X_train_processed[i, :, 2] = X_train[i, :-1, 2]
-        num_val = X_val.shape[0]
-        X_val_processed = np.zeros((num_val, 128, 3))
-        for i in range(num_val):
-            X_val_processed[i, :, 0] = X_val[i, :-1, 0]
-            X_val_processed[i, :, 1] = X_val[i, :-1, 1]
-            X_val_processed[i, :, 2] = X_val[i, :-1, 2]
-        input_shape = (128, 3)
-    else:
-        X_train_processed = X_train
-        X_val_processed = X_val
-        input_shape = (129, 3)
+    X_train_processed = X_train
+    X_val_processed = X_val
+    input_shape = (129, 3)
     
     # Convertimos las etiquetas (se esperan 6 clases)
     y_train_trans = transformary(y_train)
     y_val_trans   = transformary(y_val)
     
-    # Ruta para guardar o cargar el modelo
-    if stype == "RP":
-        model_path = os.path.join(dataset_folder, "modelo_cnnPaperRP.h5")
-    else:
-        model_path = os.path.join(dataset_folder, "modelo_cnnPaperX.h5")
+    
+    model_path = os.path.join(dataset_folder, "modelo_cnnPaperX.h5")
     
     if not created:
         model = create_cnn_model_paper(input_shape=input_shape, num_classes=6, l2_reg=0.0001, bins=10)
@@ -162,11 +144,12 @@ def main():
     data_folder_rp = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0")
     data_folder_gaf = os.path.join(dataset_folder, "tseries/GAF/sampling_loto/3-fold/fold-0")
     data_folder_mtf = os.path.join(dataset_folder, "tseries/MTF/sampling_loto/3-fold/fold-0")
-    
+        
     if stype == "RP":
         rec_path = os.path.join(data_folder_rp, "test", "X_all_rec.npy")
         X_all_rec = np.load(rec_path)
-        X_recon = np.transpose(X_all_rec, (0, 2, 1))
+        X_recon =X_all_rec #np.transpose(X_all_rec, (0, 2, 1))
+        print("X_recon shape:", X_all_rec.shape)
     elif stype == "GAF":
         gaf_path = os.path.join(data_folder_gaf, "test", "X_all_gaf.npy")
         X_all_gaf = np.load(gaf_path)

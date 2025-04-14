@@ -170,7 +170,8 @@ def main():
     images_folder = "C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/images"
 
     train_data_path = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train/training_data.npy")
-    series_rp_path   = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train/X_all_rec.npy")
+    series_rp_path   = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0/test/X_all_rec.npy")
+    series_rp_path2   = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0/test/X_all_rec2.npy")
     series_gaf_path  = os.path.join(dataset_folder, "tseries/GAF/sampling_loto/3-fold/fold-0/train/X_all_gaf.npy")
     series_mtf_path  = os.path.join(dataset_folder, "tseries/MTF/sampling_loto/3-fold/fold-0/train/X_all_mtf.npy")
 
@@ -196,6 +197,11 @@ def main():
 
     # Para RP: originalmente tiene 128 puntos, se remuestrea a 129 puntos
     X_rp_upsampled = upsample_series(X_rp, n_points_train)  # ahora (n_samples, 129, 3)
+    
+    # Guardamos el RP upsampleado en el mismo path que el original X_all_rec.npy
+    np.save(series_rp_path2, X_rp_upsampled)
+    print("Archivo X_rp_upsampled", X_rp_upsampled.shape, "guardado en:", series_rp_path2)
+
     t_rp_new = t_train  # coincide con 129 puntos
 
     # Calcula los coeficientes de spline para cada conjunto

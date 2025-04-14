@@ -31,9 +31,9 @@ def flatten_series(X, stype):
 
 def main():
     # Flag: si True, se carga el modelo ya entrenado; si False, se entrena uno nuevo.
-    created = False  
+    created = True  
     # Selección de representación: "RP", "GAF" o "MTF"
-    stype = "GAF"  # Modifica según la técnica que quieras evaluar
+    stype = "RP"  # Modifica según la técnica que quieras evaluar
 
     # Directorio base de los datos
     dataset_folder = "C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/"
