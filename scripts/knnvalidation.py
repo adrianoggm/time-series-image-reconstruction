@@ -30,9 +30,9 @@ def flatten_series(X, stype):
 
 def main():
     # Flag: si True, se carga el modelo ya entrenado; si False, se entrena uno nuevo.
-    created = False  
+    created = True  
     # Selección de representación: "RP", "GAF" o "MTF"
-    stype = "GAF"  # Modifica según la técnica que quieras evaluar
+    stype = "RP"  # Modifica según la técnica que quieras evaluar
 
     # Directorio base de los datos
     dataset_folder = "C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/"
@@ -61,10 +61,8 @@ def main():
     y_val_trans   = transformary(y_val)
     
     # Definición de la ruta para guardar o cargar el modelo KNN
-    if stype == "RP":
-        model_path = os.path.join(dataset_folder, "modelo_knnRP.joblib")
-    else:
-        model_path = os.path.join(dataset_folder, "modelo_knnX.joblib")
+    
+    model_path = os.path.join(dataset_folder, "modelo_knnX.joblib")
     
     # Entrenar o cargar el modelo KNN
     if not created:
@@ -92,7 +90,7 @@ def main():
         rec_path = os.path.join(data_folder_rp, "test", "X_all_rec.npy")
         X_all_rec = np.load(rec_path)
         # Se asume que X_all_rec tiene forma (N, 3, 128); se transpone a (N, 128, 3)
-        X_recon = np.transpose(X_all_rec, (0, 2, 1))
+        X_recon = X_all_rec#np.transpose(X_all_rec, (0, 2, 1))
     elif stype == "GAF":
         gaf_path = os.path.join(data_folder_gaf, "test", "X_all_gaf.npy")
         X_all_gaf = np.load(gaf_path)

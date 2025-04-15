@@ -198,3 +198,58 @@ python -m scripts.generate_images --data-name WISDM --n-folds 3 --image-type MTF
  python -m scripts.generate_time_series --data-name WISDM --n-folds 3 --image-type GAF --data-folder C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/ --sampling loto > ts_plots_loto_gaf.log 
 
  python -m scripts.generate_time_series --data-name WISDM --n-folds 3 --image-type RP --data-folder C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/ --sampling loto > ts_plots_loto_rp.log 
+
+ Evaluación sobre validation_data.npy: ORIGINALES
+              precision    recall  f1-score   support
+
+         0.0       0.80      0.95      0.87       543
+         1.0       0.99      0.98      0.98       532
+         2.0       0.90      0.75      0.82       536
+         3.0       0.89      0.93      0.91       551
+         4.0       0.94      0.88      0.91       559
+
+    accuracy                           0.90      2721
+   macro avg       0.90      0.90      0.90      2721
+weighted avg       0.90      0.90      0.90      2721
+
+86/86 [==============================] - 1s 7ms/step
+Evaluación sobre datos reconstruidos: RP
+              precision    recall  f1-score   support
+
+         0.0       0.68      0.34      0.45       543
+         1.0       0.73      0.89      0.80       532
+         2.0       0.48      0.70      0.57       536
+         3.0       0.83      0.79      0.81       551
+         4.0       0.87      0.76      0.81       559
+
+    accuracy                           0.70      2721
+   macro avg       0.72      0.70      0.69      2721
+weighted avg       0.72      0.70      0.69      2721
+86/86 [==============================] - 1s 6ms/step
+Evaluación sobre datos reconstruidos: MTF
+              precision    recall  f1-score   support
+
+         0.0       0.60      0.47      0.52       543
+         1.0       0.58      0.97      0.73       532
+         2.0       0.48      0.43      0.45       536
+         3.0       0.92      0.81      0.86       551
+         4.0       0.96      0.76      0.85       559
+
+    accuracy                           0.69      2721
+   macro avg       0.71      0.69      0.68      2721
+weighted avg       0.71      0.69      0.68      2721
+
+86/86 [==============================] - 1s 7ms/step
+Evaluación sobre datos reconstruidos: GAF
+              precision    recall  f1-score   support
+
+         0.0       0.80      0.95      0.87       543
+         1.0       0.99      0.98      0.98       532
+         2.0       0.90      0.76      0.82       536
+         3.0       0.89      0.93      0.91       551
+         4.0       0.94      0.88      0.91       559
+
+    accuracy                           0.90      2721
+   macro avg       0.90      0.90      0.90      2721
+weighted avg       0.90      0.90      0.90      2721
+
