@@ -35,7 +35,7 @@ def main():
     # Flag: si True, se carga el modelo ya entrenado; si False, se entrena uno nuevo.
     created = True  
     # Selección de representación: "RP", "GAF" o "MTF"
-    stype = "GAF"  # Modifica según la técnica que quieras evaluar
+    stype = "RP"  # Modifica según la técnica que quieras evaluar
 
     # Directorio base de los datos
     dataset_folder = "C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/"
@@ -56,16 +56,10 @@ def main():
     print("X_val shape:", X_val.shape, "y_val shape:", y_val.shape)
     
     # Según el tipo de representación, transformamos los datos.
-    # Para "RP": se descarta el último time step (de 129 se toman 128) y se reordena a (time_steps, canales).
-    if stype == "RP":
-        X_train_processed = X_train
-        X_val_processed   = X_val
-        input_shape = (3, 129)
-    else:
-        # Para "GAF" o "MTF" se asume que las series ya tienen forma (129, 3)
-        X_train_processed = X_train
-        X_val_processed   = X_val
-        input_shape = (129, 3)
+    # Para "GAF" o "MTF" se asume que las series ya tienen forma (129, 3)
+    X_train_processed = X_train
+    X_val_processed   = X_val
+    input_shape = (129, 3)
     
     # Convertimos las etiquetas
     y_train_trans = transformary(y_train)
