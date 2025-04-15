@@ -30,9 +30,9 @@ def create_lstm_model(input_shape, num_classes=5):
 
 def main():
     # Flag: si True, se carga el modelo ya entrenado; si False, se entrena uno nuevo.
-    created = False  
+    created = True  
     # Selección de representación: "RP", "GAF" o "MTF"
-    stype = "RP"  # Modifica según la técnica que quieras evaluar
+    stype = "GAF"  # Modifica según la técnica que quieras evaluar
 
     # Directorio base de los datos
     dataset_folder = "C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/"
@@ -54,37 +54,19 @@ def main():
     
     # Según el tipo de representación, transformamos los datos.
     # Para "RP": se descarta el último time step (de 129 se toman 128) y se reordena a (time_steps, canales).
-    if stype == "RP":
-        # Procesamos datos de entrenamiento
-        num_train = X_train.shape[0]
-        X_train_processed = np.zeros((num_train, 128, 3))
-        for i in range(num_train):
-            X_train_processed[i, :, 0] = X_train[i, :-1, 0]
-            X_train_processed[i, :, 1] = X_train[i, :-1, 1]
-            X_train_processed[i, :, 2] = X_train[i, :-1, 2]
-        # Procesamos datos de validación
-        num_val = X_val.shape[0]
-        X_val_processed = np.zeros((num_val, 128, 3))
-        for i in range(num_val):
-            X_val_processed[i, :, 0] = X_val[i, :-1, 0]
-            X_val_processed[i, :, 1] = X_val[i, :-1, 1]
-            X_val_processed[i, :, 2] = X_val[i, :-1, 2]
-        input_shape = (128, 3)
-    else:
+    
         # Para "GAF" o "MTF" se asume la forma ya es (129, 3)
-        X_train_processed = X_train
-        X_val_processed   = X_val
-        input_shape = (129, 3)
+    X_train_processed = X_train
+    X_val_processed   = X_val
+    input_shape = (129, 3)
     
     # Convertimos las etiquetas
     y_train_trans = transformary(y_train)
     y_val_trans   = transformary(y_val)
     
     # Definimos la ruta del modelo según el tipo de representación
-    if stype == "RP":
-        model_path = "modelo_lstmRP.h5"
-    else:
-        model_path = "modelo_lstmX.h5"
+    
+    model_path = "modelo_lstmX.h5"
     
     # Entrenar o cargar el modelo
     if not created:
@@ -118,7 +100,7 @@ def main():
         rec_path = os.path.join(data_folder_rp, "test", "X_all_rec.npy")
         X_all_rec = np.load(rec_path)
         # Suponemos que X_all_rec tiene forma (N, 3, 128); se transpone a (N, 128, 3)
-        X_recon = np.transpose(X_all_rec, (0, 2, 1))
+        X_recon = X_all_rec#np.transpose(X_all_rec, (0, 2, 1))
     elif stype == "GAF":
         gaf_path = os.path.join(data_folder_gaf, "test", "X_all_gaf.npy")
         X_all_gaf = np.load(gaf_path)
