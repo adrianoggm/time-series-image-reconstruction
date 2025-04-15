@@ -182,31 +182,31 @@ def main():
     X_mtf   = np.load(series_mtf_path)   # (n_samples, 3, 129)
 
     print("Shape de X_train:", X_train.shape)
+    
+
+    # Reordena las reconstrucciones para que tengan la forma (n_samples, puntos, canales)
+    X_rp = X_rp#np.transpose(X_rp, (0, 2, 1))   # (n_samples, 128, 3)
+    X_gaf = np.transpose(X_gaf, (0, 2, 1)) # (n_samples, 129, 3)
+    X_mtf = np.transpose(X_mtf, (0, 2, 1)) # (n_samples, 129, 3)
     print("Shape de X_rp:", X_rp.shape)
     print("Shape de X_gaf:", X_gaf.shape)
     print("Shape de X_mtf:", X_mtf.shape)
-
-    # Reordena las reconstrucciones para que tengan la forma (n_samples, puntos, canales)
-    X_rp = np.transpose(X_rp, (0, 2, 1))   # (n_samples, 128, 3)
-    X_gaf = np.transpose(X_gaf, (0, 2, 1)) # (n_samples, 129, 3)
-    X_mtf = np.transpose(X_mtf, (0, 2, 1)) # (n_samples, 129, 3)
-
     # Parámetros para X_train, GAF y MTF (129 puntos)
     n_samples, n_points_train, n_channels = X_train.shape
     t_train = np.linspace(0, 1, n_points_train)
+    """
+        # Para RP: originalmente tiene 128 puntos, se remuestrea a 129 puntos
+        X_rp_upsampled = upsample_series(X_rp, n_points_train)  # ahora (n_samples, 129, 3)
+        
+        # Guardamos el RP upsampleado en el mismo path que el original X_all_rec.npy
+        np.save(series_rp_path2, X_rp_upsampled)
+        print("Archivo X_rp_upsampled", X_rp_upsampled.shape, "guardado en:", series_rp_path2)
 
-    # Para RP: originalmente tiene 128 puntos, se remuestrea a 129 puntos
-    X_rp_upsampled = upsample_series(X_rp, n_points_train)  # ahora (n_samples, 129, 3)
-    
-    # Guardamos el RP upsampleado en el mismo path que el original X_all_rec.npy
-    np.save(series_rp_path2, X_rp_upsampled)
-    print("Archivo X_rp_upsampled", X_rp_upsampled.shape, "guardado en:", series_rp_path2)
-
-    t_rp_new = t_train  # coincide con 129 puntos
-
+        t_rp_new = t_train  # coincide con 129 puntos
+    """
     # Calcula los coeficientes de spline para cada conjunto
     coeffs_train = compute_spline_coefficients(X_train, t_train)
-    coeffs_rp = compute_spline_coefficients(X_rp_upsampled, t_train)
+    coeffs_rp = compute_spline_coefficients(X_rp, t_train)
     coeffs_gaf = compute_spline_coefficients(X_gaf, t_train)
     coeffs_mtf = compute_spline_coefficients(X_mtf, t_train)
 
@@ -270,7 +270,7 @@ def main():
     print("  Distancia de Mahalanobis promedio:", maha_mtf_norm)
     
     # Calcula el coeficiente de correlación de Pearson para cada canal y globalmente
-    pearson_rp_channel, pearson_rp_overall = compute_pearson_coeff(X_train, X_rp_upsampled)
+    pearson_rp_channel, pearson_rp_overall = compute_pearson_coeff(X_train, X_rp)
     pearson_gaf_channel, pearson_gaf_overall = compute_pearson_coeff(X_train, X_gaf)
     pearson_mtf_channel, pearson_mtf_overall = compute_pearson_coeff(X_train, X_mtf)
     
@@ -284,7 +284,7 @@ def main():
     
     # Grafica y guarda una muestra de RP: original vs. upsampleada.
     # Se toma la muestra 0, canal 0.
-    plot_rp_sample(X_rp, X_rp_upsampled, sample_index=0, channel=0, save_folder=images_folder)
+    plot_rp_sample(X_rp, X_rp, sample_index=0, channel=0, save_folder=images_folder)
 
 if __name__ == '__main__':
     main()
