@@ -44,13 +44,13 @@ def main():
      p.add_argument('--val',type=int, default="0", help='0-5442 valores') 
      args = p.parse_args()
      
-     data_folder="/home/adriano/Escritorio/TFG/data/WISDM/tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
+     data_folder="C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
      X_train=np.load(f"{data_folder}/training_data.npy")#print(sj_train[:,0])
      #print(y_train[:,0])
      #print(X_train)
      #he obtenido el máximo y el minimo del dataset minimo -78.47761 maximo 66.615074
      a=args.val
-     w = X_train[a]  
+     w = X_train[a]*-1 
      
      rp=[]
      print(w.shape)

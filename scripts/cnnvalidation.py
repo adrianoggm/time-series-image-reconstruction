@@ -87,7 +87,7 @@ def main():
     # Flag para decidir si se entrena un modelo nuevo o se carga uno existente
     created = True
     # Selección de representación: "RP", "GAF" o "MTF"
-    stype = "MTF"  # Si usas GAF o MTF se asume que la forma es (129, 3)
+    stype = "GAF"  # Si usas GAF o MTF se asume que la forma es (129, 3)
     
     # Directorio base de los datos
     dataset_folder = "C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/"

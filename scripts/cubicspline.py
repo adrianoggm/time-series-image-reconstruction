@@ -3,6 +3,55 @@ import numpy as np
 from scipy.interpolate import CubicSpline
 from sklearn.metrics.pairwise import cosine_similarity
 import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
+import pandas as pd
+
+# Global style matching comparative plots
+sns.set(style="whitegrid", context="paper", font="serif", rc={
+    "axes.titlesize": 16,
+    "axes.labelsize": 14,
+    "xtick.labelsize": 12,
+    "ytick.labelsize": 12,
+    "legend.fontsize": 12,
+    "figure.dpi": 300,
+    "savefig.dpi": 300,
+    "lines.linewidth": 1.5,
+    "grid.color": "0.8",
+    "grid.linestyle": "--",
+    "grid.linewidth": 0.5,
+})
+
+def plot_rp_sample(original, upsampled, sample_index=0, channel=0, save_folder=None):
+    """
+    Plot a sample from the RP series, showing original and upsampled versions
+    using the same style as the comparative plots.
+    """
+    t_orig = np.linspace(0, 1, original.shape[1])
+    t_up = np.linspace(0, 1, upsampled.shape[1])
+    
+    fig, ax = plt.subplots(figsize=(12, 4.5))
+    ax.plot(t_orig, original[sample_index, :, channel],
+            'o', label="Original RP (128 pts)", markersize=4, color="C0")
+    ax.plot(t_up, upsampled[sample_index, :, channel],
+            '-', label="Upsampled RP (129 pts)", color="C1")
+    
+    ax.set_title(f"Recurrence Plot Sample — Sample {sample_index}, Channel {channel}")
+    ax.set_xlabel("Normalized Time")
+    ax.set_ylabel("Recurrence Value")
+    # Place legend outside
+    ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1), frameon=False)
+    ax.grid(True)
+    fig.tight_layout(rect=[0, 0, 0.78, 1])  # adjust right margin
+    
+    if save_folder:
+        os.makedirs(save_folder, exist_ok=True)
+        save_path = os.path.join(save_folder,
+                                 f"rp_sample_{sample_index}_ch{channel}.png")
+        fig.savefig(save_path, bbox_inches="tight")
+        print(f"Image saved to: {save_path}")
+    plt.close(fig)
+
 
 def upsample_series(data, new_n_points):
     """
@@ -133,36 +182,6 @@ def compute_pearson_coeff(x, y):
     overall_mean = np.mean(corr_all)
     return channel_mean, overall_mean
 
-def plot_rp_sample(original, upsampled, sample_index=0, channel=0, save_folder=None):
-    """
-    Grafica una muestra de la serie RP, mostrando los valores originales y la versión upsampleada.
-    
-    Parámetros:
-      original: np.ndarray de forma (n_samples, 128, n_channels) con la serie original RP.
-      upsampled: np.ndarray de forma (n_samples, 129, n_channels) con la serie RP remuestreada.
-      sample_index: índice de la muestra a graficar.
-      channel: canal a graficar.
-      save_folder: ruta de la carpeta donde se guardará la imagen (opcional).
-    """
-    t_original = np.linspace(0, 1, original.shape[1])
-    t_upsampled = np.linspace(0, 1, upsampled.shape[1])
-    
-    plt.figure(figsize=(8, 4))
-    plt.plot(t_original, original[sample_index, :, channel], 'o', label="RP original (128 pts)")
-    plt.plot(t_upsampled, upsampled[sample_index, :, channel], '-', label="RP upsampled (129 pts)")
-    plt.title(f"Muestra {sample_index}, Canal {channel} - RP y Spline")
-    plt.xlabel("Tiempo")
-    plt.ylabel("Valor")
-    plt.legend()
-    
-    if save_folder:
-        if not os.path.exists(save_folder):
-            os.makedirs(save_folder)
-        save_path = os.path.join(save_folder, f"rp_sample_{sample_index}_ch{channel}.png")
-        plt.savefig(save_path)
-        print(f"Imagen guardada en: {save_path}")
-    
-    plt.show()
 
 def main():
     # Define las rutas a tus datos
