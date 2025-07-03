@@ -21,11 +21,8 @@ def flatten_series(X, stype):
     Para RP se descarta el último time step (de 129 se usan 128).
     Para GAF/MTF se asume la forma (129, 3).
     """
-    if stype == "RP":
-        # Se descarta el último time step
-        X_proc = X[:, :-1, :]
-    else:
-        X_proc = X
+
+    X_proc = X
     # Aplanar: de (N, time_steps, canales) a (N, time_steps*canales)
     num_samples = X_proc.shape[0]
     return X_proc.reshape(num_samples, -1)
@@ -34,7 +31,7 @@ def main():
     # Flag: si True, se carga el modelo ya entrenado; si False, se entrena uno nuevo.
     created = True  
     # Selección de representación: "RP", "GAF" o "MTF"
-    stype = "MTF"  # Modifica según la técnica que quieras evaluar
+    stype = "GAF"  # Modifica según la técnica que quieras evaluar
 
     # Directorio base de los datos
     dataset_folder = "C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/"
@@ -63,10 +60,8 @@ def main():
     y_val_trans   = transformary(y_val)
     
     # Definición de la ruta para guardar o cargar el modelo SVM
-    if stype == "RP":
-        model_path = os.path.join(dataset_folder, "modelo_svcRP.joblib")
-    else:
-        model_path = os.path.join(dataset_folder, "modelo_svcX.joblib")
+
+    model_path = os.path.join(dataset_folder, "modelo_svcX.joblib")
     
     # Entrenar o cargar el modelo SVM
     if not created:
@@ -94,7 +89,7 @@ def main():
         rec_path = os.path.join(data_folder_rp, "test", "X_all_rec.npy")
         X_all_rec = np.load(rec_path)
         # Se asume que X_all_rec tiene forma (N, 3, 128); se transpone a (N, 128, 3) para luego aplanar.
-        X_all_rec = np.transpose(X_all_rec, (0, 2, 1))
+        X_all_rec = X_all_rec
         X_recon_flat = X_all_rec.reshape(X_all_rec.shape[0], -1)
     elif stype == "GAF":
         gaf_path = os.path.join(data_folder_gaf, "test", "X_all_gaf.npy")

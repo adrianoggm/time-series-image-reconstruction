@@ -25,6 +25,7 @@ def main():
     X_all_gaf=np.load(f"{data_folder1}/X_all_gaf.npy")
     X_all_mtf=np.load(f"{data_folder2}/X_all_mtf.npy")
     X_all_rec=np.load(f"{data_folder}/X_all_rec.npy")
+    X_all_rec=np.transpose(X_all_rec, (0, 2, 1))
     
     
     t=0
@@ -34,7 +35,7 @@ def main():
          w=indices_T[i]
          rp=X_all_mtf[i]
          error=[]
-         error_abs,error_r,error_q,error_std,error_p,te=cerr.ts_error(w,rp,flag=False)
+         error_abs,error_r,error_q,error_std,error_p,te=cerr.ts_error(w,rp,flag=True)
          t+=te
          error.append(error_abs)
          error.append(error_r)
