@@ -3,6 +3,7 @@ import numpy as np
 import src.activity_data as act
 import src.recurrence_plots as rec
 import src.GAF as gaf
+import src.GADF as gadf
 import src.MTF as mtf
 import src.ts_plots as plots
 import cv2
@@ -39,18 +40,18 @@ Valpres interesantes para porbar
 """
 def main():
      p = argparse.ArgumentParser(description=__doc__,formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-     p.add_argument('--image-type',type=str, default="RP", help='Also you can reconstruct one specific image type GAF,RP,MTF')
+     p.add_argument('--image-type',type=str, default="RP", help='Also you can reconstruct one specific image type GAF,GADF,RP,MTF')
      p.add_argument('--dim',type=int, default="0", help='0,1,2')
      p.add_argument('--val',type=int, default="0", help='0-5442 valores') 
      args = p.parse_args()
      
-     data_folder="/home/adriano/Escritorio/TFG/data/WISDM/tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
+     data_folder="C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
      X_train=np.load(f"{data_folder}/training_data.npy")#print(sj_train[:,0])
      #print(y_train[:,0])
      #print(X_train)
      #he obtenido el máximo y el minimo del dataset minimo -78.47761 maximo 66.615074
      a=args.val
-     w = X_train[a]  
+     w = X_train[a]
      
      rp=[]
      print(w.shape)
@@ -62,6 +63,7 @@ def main():
          minimos=[np.min(l[:,0]),np.min(l[:,1]),np.min(l[:,2])]
          dictionary[k]=[maximos,minimos]
 
+     print("Dictionary",dictionary[0])
      dim=args.dim
      if args.image_type=="MTF":
         img = mtf.SavevarMTF_XYZ(w, 0, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129) 
@@ -81,6 +83,12 @@ def main():
         imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
         print("Image shape",imagen.shape)
         rp=gaf.Reconstruct_GAF(imagen,dictionary,a)
+     if args.image_type=="GADF":
+         img = gadf.SavevarGADF_XYZ(w, 0, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129)
+         imagen = cv2.imread("./0x0gadf.png")  
+         imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
+         print("Image shape",imagen.shape)
+         rp=gadf.Reconstruct_GADF(imagen,dictionary,a) 
      
      plots.plot_time_series(w,rp,dim)#dimensión deber ser un valor entre 0-2
      plots.plot_time_series_g(w,rp)
