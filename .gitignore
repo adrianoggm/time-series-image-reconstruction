@@ -18,7 +18,6 @@ dist/
 
 # Package files
 *.jar
-*.png
 # Maven
 target/
 dist/
