@@ -1,0 +1,1 @@
+=== RANDOMFOREST con GADF ===\nEjecutado: 2025-08-02 01:38:00.428965\nDuracion: 12.47 segundos\nComando: C:\Users\adria\OneDrive\Documentos\TFG-Tratamiento-de-Series-Temporales\venv\Scripts\python.exe scripts\randomforestvalidation.py --technique GADF\nCodigo de retorno: 0\n==================================================\n\nSTDOUT:\n

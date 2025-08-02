@@ -1,0 +1,52 @@
+{
+  "timestamp": "2025-08-02T01:16:47.391282",
+  "duration_minutes": 0.026058725516001382,
+  "total_combinations": 20,
+  "successful": 0,
+  "success_rate": 0.0,
+  "results": {
+    "cnn": {
+      "GAF": false,
+      "GADF": false,
+      "RP": false,
+      "MTF": false
+    },
+    "lstm": {
+      "GAF": false,
+      "GADF": false,
+      "RP": false,
+      "MTF": false
+    },
+    "gru": {
+      "GAF": false,
+      "GADF": false,
+      "RP": false,
+      "MTF": false
+    },
+    "knn": {
+      "GAF": false,
+      "GADF": false,
+      "RP": false,
+      "MTF": false
+    },
+    "randomforest": {
+      "GAF": false,
+      "GADF": false,
+      "RP": false,
+      "MTF": false
+    }
+  },
+  "classifiers": [
+    "cnn",
+    "lstm",
+    "gru",
+    "knn",
+    "randomforest"
+  ],
+  "techniques": [
+    "GAF",
+    "GADF",
+    "RP",
+    "MTF"
+  ]
+}

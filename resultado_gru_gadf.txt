@@ -1,0 +1,4 @@
+=== GRU con GADF ===\nEjecutado: 2025-08-02 01:19:02.578555\nDuracion: 0.03 segundos\nComando: C:\Users\adria\AppData\Local\Programs\Python\Python311\python.exe scripts\gruvalidation.py --technique GADF\nCodigo de retorno: 1\n==================================================\n\nSTDOUT:\n\n\nSTDERR:\n  File "C:\Users\adria\OneDrive\Documentos\TFG-Tratamiento-de-Series-Temporales\scripts\gruvalidation.py", line 42
+    \nimport argparse\n    data_folder_rp = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0")
+     ^
+SyntaxError: unexpected character after line continuation character

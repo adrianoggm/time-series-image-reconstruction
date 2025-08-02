@@ -85,7 +85,7 @@ def varMTF(data, dim,TIME_STEPS):
     print(MTF)
     return MTF 
 
-def generate_and_save_markov_transition_field(fold, dataset_folder, training_data, y_data, sj_train, TIME_STEPS=129, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
+def generate_and_save_markov_transition_field(fold, dataset_folder, training_data, y_data, sj_train, TIME_STEPS=128, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
     subject_samples = 0
     p_bar = tqdm(range(len(training_data)))
 
@@ -122,7 +122,7 @@ def generate_and_save_markov_transition_field(fold, dataset_folder, training_dat
       subject_samples += 1
       
      
-def SavevarMTF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=129):
+def SavevarMTF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=128):
     if not all([(x==0).all()]):
      _r = varMTF2(x,'x', TIME_STEPS)
      _g = varMTF2(x,'y', TIME_STEPS)
@@ -211,7 +211,7 @@ def cosine_similarity(vec1, vec2):
         norm_vec2 = np.linalg.norm(vec2)
         return dot_product / (norm_vec1 * norm_vec2)
 
-def MTF_to_TS(mtf,dictionary,index=0,numstates=4,TIMESTEPS=129):
+def MTF_to_TS(mtf,dictionary,index=0,numstates=4,TIMESTEPS=128):
     similaritymatrix=np.zeros_like(mtf)
     #CLASIFICACIÓN 
     #Cálculo matriz de similaridades
@@ -223,7 +223,7 @@ def MTF_to_TS(mtf,dictionary,index=0,numstates=4,TIMESTEPS=129):
     #Clasificación de los estados
     estados=[]
     estado=[0]
-    estadosfaltantes=np.arange(0, 129)
+    estadosfaltantes=np.arange(0, 128)
     nvalores=TIMESTEPS//numstates
     #print(len(estadosfaltantes),nvalores)
     for i in range(0,numstates):
@@ -231,24 +231,26 @@ def MTF_to_TS(mtf,dictionary,index=0,numstates=4,TIMESTEPS=129):
         estadosfaltantes=np.delete(estadosfaltantes, 0)
         
         for j in range(0,nvalores-1):
-            v=[]
-            #print("LLEGA",j)
-            
-            for k in range(0,len(estadosfaltantes)):
-                set2=[]
-                set2.append(estadosfaltantes[k])
-                set1=estado
-                similarities=[similaritymatrix[vec1][vec2]for vec1, vec2 in zip(set1, set2)]
-                v.append(np.mean(similarities))
-            newval=np.argmax(v)
-            estado.append(estadosfaltantes[newval])
-            estadosfaltantes=np.delete(estadosfaltantes, newval)
-            #print("TAMANO",len(estado))
+            if len(estadosfaltantes) > 0:  # Verificar que hay elementos disponibles
+                v=[]
+                #print("LLEGA",j)
+                
+                for k in range(0,len(estadosfaltantes)):
+                    set2=[]
+                    set2.append(estadosfaltantes[k])
+                    set1=estado
+                    similarities=[similaritymatrix[vec1][vec2]for vec1, vec2 in zip(set1, set2)]
+                    v.append(np.mean(similarities))
+                newval=np.argmax(v)
+                estado.append(estadosfaltantes[newval])
+                estadosfaltantes=np.delete(estadosfaltantes, newval)
+                #print("TAMANO",len(estado))
         estados.append(estado)
            
     
-    #lo meto al ultimo estado 
-    estados[0].append(estadosfaltantes[0])
+    #lo meto al ultimo estado si quedan elementos
+    if len(estadosfaltantes) > 0:
+        estados[0].append(estadosfaltantes[0])
     #print("ESTADOS",estados)
     statematrix=np.zeros((numstates, numstates))
     for i in range(0,numstates):
@@ -318,7 +320,7 @@ def MTF_to_TS(mtf,dictionary,index=0,numstates=4,TIMESTEPS=129):
     valores=vector
     #print(valores)
     f=np.array([-1,1,3,5])
-    serie=np.arange(0, 129)
+    serie=np.arange(0, 128)
     #print(estados)
     for i in range(0,numstates):
         for j in range(0,len(estados[i])):
@@ -335,7 +337,7 @@ def MTF_to_TS(mtf,dictionary,index=0,numstates=4,TIMESTEPS=129):
     
     serie=np.interp(serie,(min_a,max_a),(MIN[index], MAX[index]))
     return serie
-def generate_all_markov_transition_field(X_train, y_train, sj_train, dataset_folder="/home/fmgarmor/proyectos/TGEN-timeseries-generation/data/WISDM/", TIME_STEPS=129,  FOLDS_N=3, sampling="loso"):
+def generate_all_markov_transition_field(X_train, y_train, sj_train, dataset_folder="/home/fmgarmor/proyectos/TGEN-timeseries-generation/data/WISDM/", TIME_STEPS=128,  FOLDS_N=3, sampling="loso"):
   groups = sj_train 
   if sampling == "loto":
     #TODO change 100 for an automatic extracted number greater than the max subject ID: max(sj_train)*10

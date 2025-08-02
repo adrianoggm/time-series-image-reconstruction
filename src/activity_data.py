@@ -32,7 +32,7 @@ def get_time_setup(DATASET_NAME="WISDM"):
     else:
         DATASET_HZ = 32
 
-    TIME_STEPS = int(DATASET_HZ * TIME_SECS) + 1  # +1 por los recurrence plots
+    TIME_STEPS = int(DATASET_HZ * TIME_SECS)  # 128 points for WISDM
     STEP = TIME_STEPS  # without overlapping; 50% overlaps == TIME_STEPS//2
     print("dataset:", DATASET_NAME, "Sampling rate:", DATASET_HZ, "samples per window:", TIME_STEPS)
     return TIME_STEPS, STEP

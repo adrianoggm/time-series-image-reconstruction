@@ -3,6 +3,7 @@ from keras.utils import to_categorical
 import src.recurrence_plots as rec
 import src.GAF as gaf
 import src.MTF as mtf
+import src.GADF as gadf
 import numpy as np
 import os
 from tqdm.auto import trange, tqdm
@@ -10,7 +11,7 @@ import time
 
 from sklearn.model_selection import StratifiedGroupKFold, GroupKFold
 
-def generate_and_save_images(fold, dataset_folder, training_data, y_data, sj_train, TIME_STEPS=129, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso",image_type="RP"):
+def generate_and_save_images(fold, dataset_folder, training_data, y_data, sj_train, TIME_STEPS=128, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso",image_type="RP"):
     subject_samples = 0
     p_bar = tqdm(range(len(training_data)))
 
@@ -62,13 +63,20 @@ def generate_and_save_images(fold, dataset_folder, training_data, y_data, sj_tra
                 img = gaf.SavevarGAF_XYZ(w, sj, subject_samples, "x", normalized = 1, path=f"{dataset_folder}plots/GAF/sampling_{sampling}/{data_type}/{w_y_no_cat}/", TIME_STEPS=TIME_STEPS)
             else:
                 img = gaf.SavevarGAF_XYZ(w, sj, subject_samples, "x", normalized = 1, path=f"{dataset_folder}plots/GAF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/", TIME_STEPS=TIME_STEPS)
+      if image_type=="GADF":
+            if fold < 0:
+                img = gadf.SavevarGADF_XYZ(w, sj, subject_samples, "x", normalized = 1, path=f"{dataset_folder}plots/GADF/sampling_{sampling}/{data_type}/{w_y_no_cat}/", TIME_STEPS=TIME_STEPS)
+            else:
+                img = gadf.SavevarGADF_XYZ(w, sj, subject_samples, "x", normalized = 1, path=f"{dataset_folder}plots/GADF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/", TIME_STEPS=TIME_STEPS)
             
       subject_samples += 1
 
-def generate_all_images(X_train, y_train, sj_train, dataset_folder="/home/fmgarmor/proyectos/TGEN-timeseries-generation/data/WISDM/", TIME_STEPS=129,  FOLDS_N=3, sampling="loso",imagetype="RP"):
+def generate_all_images(X_train, y_train, sj_train, dataset_folder="/home/fmgarmor/proyectos/TGEN-timeseries-generation/data/WISDM/", TIME_STEPS=128,  FOLDS_N=3, sampling="loso",imagetype="RP"):
   name=imagetype
   if(name=="RP"):
      name="recurrence_plot"
+  elif(name=="GADF"):
+     name="GADF"
   groups = sj_train 
   if sampling == "loto":
     #TODO change 100 for an automatic extracted number greater than the max subject ID: max(sj_train)*10

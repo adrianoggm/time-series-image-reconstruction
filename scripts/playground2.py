@@ -16,15 +16,15 @@ def main():
                    help='Which channel to plot (0=cos, 1=sin, 2=sin(cos))')
     args = p.parse_args()
 
-    # 1) Generate synthetic time series w of shape (129, 3)
-    N = 129
+    # 1) Generate synthetic time series w of shape (128, 3)
+    N = 128
     t = np.linspace(0, 2 * np.pi, N)
     w = np.stack([
         np.cos(t),           # dim 0: cos(t)
         np.sin(t),           # dim 1: sin(t) (could be changed to sin(t) if desired)
         np.sin(t)- np.cos(t)    # dim 2: sin(cos(t))
     ], axis=1)
-    print("Generated w with shape:", w.shape)  # should be (129, 3)
+    print("Generated w with shape:", w.shape)  # should be (128, 3)
 
     # 2) Build dictionary of extremes for reconstruction
     maximos = [w[:, i].max() for i in range(w.shape[1])]

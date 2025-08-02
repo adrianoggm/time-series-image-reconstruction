@@ -39,7 +39,7 @@ def main():
          maximos=[np.max(l[:,0]),np.max(l[:,1]),np.max(l[:,2])]
          minimos=[np.min(l[:,0]),np.min(l[:,1]),np.min(l[:,2])]
          dictionary[k]=[maximos,minimos]
-     img = rec.SavevarRP_XYZ(w, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129) 
+     img = rec.SavevarRP_XYZ(w, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=128) 
      
      
      

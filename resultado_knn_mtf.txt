@@ -1,0 +1,1 @@
+=== KNN con MTF ===\nEjecutado: 2025-08-02 01:37:35.698932\nDuracion: 5.48 segundos\nComando: C:\Users\adria\OneDrive\Documentos\TFG-Tratamiento-de-Series-Temporales\venv\Scripts\python.exe scripts\knnvalidation.py --technique MTF\nCodigo de retorno: 0\n==================================================\n\nSTDOUT:\n

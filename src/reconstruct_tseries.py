@@ -21,6 +21,7 @@ import seaborn as sns
 from sklearn.model_selection import StratifiedGroupKFold, GroupKFold
 import src.recurrence_plots as rpts
 import src.GAF as gaf
+import src.GADF as gadf
 #import tgen.GAF2 as gaf2
 import time
 import src.MTF as mtf2
@@ -30,7 +31,7 @@ import os
     track of the acuracy and the metrics from the original Time series
 """
 """""
-def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_data, sj_train,dictionary, TIME_STEPS=129, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
+def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_data, sj_train,dictionary, TIME_STEPS=128, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
     
     subject_samples = 0
     p_bar = tqdm(range(len(training_data)))
@@ -148,7 +149,7 @@ def _process_sample(i, fold, dataset_folder, dictionary, training_data, y_data, 
     return rp, a
 
 def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_data, sj_train,
-                                           dictionary, TIME_STEPS=129, data_type="train",
+                                           dictionary, TIME_STEPS=128, data_type="train",
                                            single_axis=False, FOLDS_N=3, sampling="loso"):
     """
     Genera y guarda series temporales a partir de RP, calculando además métricas como el
@@ -189,7 +190,7 @@ def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_
     
     return X_all_rec, errores
 
-def generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y_data, sj_train,dictionary, TIME_STEPS=129, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
+def generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y_data, sj_train,dictionary, TIME_STEPS=128, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
 
     subject_samples = 0
     p_bar = tqdm(range(len(training_data)))
@@ -245,7 +246,7 @@ def generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y
     
     #print("Numero total desplazamientos",t)
     return X_all_rec
-def generate_and_save_time_series_fromMTF(fold, dataset_folder, training_data, y_data, sj_train,dictionary, TIME_STEPS=129, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
+def generate_and_save_time_series_fromMTF(fold, dataset_folder, training_data, y_data, sj_train,dictionary, TIME_STEPS=128, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
 
     subject_samples = 0
     p_bar = tqdm(range(len(training_data)))
@@ -317,8 +318,66 @@ def generate_and_save_time_series_fromMTF(fold, dataset_folder, training_data, y
     
     #print("Numero total desplazamientos",t)
     return X_all_rec
+
+def generate_and_save_time_series_fromGADF(fold, dataset_folder, training_data, y_data, sj_train,dictionary, TIME_STEPS=128, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
+
+    subject_samples = 0
+    p_bar = tqdm(range(len(training_data)))
+    X_all_rec=[]
+    tiempos=[]
+    start_gl=time.time()
+    
+    #Colocar timer
+    
+    
+    for i in p_bar:
+      #start=time.time()
+      w = training_data[i]
+      sj = sj_train[i][0]
+      w_y = y_data[i]
+      w_y_no_cat = np.argmax(w_y)
+      #print("w_y", w_y, "w_y_no_cat", w_y_no_cat)
+      #print("w", w.shape)
+      
+      # Update Progress Bar after a while
+      #time.sleep(0.01)
+      #p_bar.set_description(f'[{data_type} | FOLD {fold} | Class {w_y_no_cat}] Subject {sj}')
+      path=f"{dataset_folder}plots/GADF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/"
+      path=f"{path}{sj}x{subject_samples}gadf.png"  
+      imagen = cv2.imread(path)  
+      imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
+      ##We need to change path 
+      gadf_rec=gadf.Reconstruct_GADF(imagen,dictionary,subject_samples)
+      #end=time.time()
+      
+      #Si queremos guardar los datos
+      path=f"{dataset_folder}tseries/GADF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/{sj}x{subject_samples}.npy"
+      np.save(path, np.array(gadf_rec))
+      
+      #print(rp)
+      X_all_rec.append(gadf_rec)
+   
+      
+      subject_samples += 1
+
+    end_gl=time.time()
+    ttotal=end_gl-start_gl
+
+    #maybe we should calculate here the global of errors and the mean.
+    archivoX_all=f"{dataset_folder}tseries/GADF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/X_all_gadf.npy"
+    np.save(archivoX_all,np.array(X_all_rec))
+    
+
+    #archivotiempos=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/tiempos_rec.npy"
+    #np.save(archivotiempos,np.array(ttotal/subject_samples))
+    #print("Tiempo medio",np.mean(tiempos))
+    print("Tiempo medio total",np.mean(ttotal/subject_samples))
+    
+    #print("Numero total desplazamientos",t)
+    return X_all_rec
+
 #Generates all time series
-def generate_all_time_series(X_train, y_train, sj_train, dataset_folder="/home/adriano/Escritorio/TFG/data/WISDM/", TIME_STEPS=129,  FOLDS_N=3, sampling="loso",reconstruction="all"):
+def generate_all_time_series(X_train, y_train, sj_train, dataset_folder="/home/adriano/Escritorio/TFG/data/WISDM/", TIME_STEPS=128,  FOLDS_N=3, sampling="loso",reconstruction="all"):
   groups = sj_train 
   if sampling == "loto":
     #TODO change 100 for an automatic extracted number greater than the max subject ID: max(sj_train)*10
@@ -344,6 +403,8 @@ def generate_all_time_series(X_train, y_train, sj_train, dataset_folder="/home/a
         os.makedirs(f"{dataset_folder}tseries/MTF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/test/{y}/", exist_ok=True) 
         os.makedirs(f"{dataset_folder}tseries/GAF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/{y}/", exist_ok=True) 
         os.makedirs(f"{dataset_folder}tseries/GAF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/test/{y}/", exist_ok=True) 
+        os.makedirs(f"{dataset_folder}tseries/GADF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/{y}/", exist_ok=True) 
+        os.makedirs(f"{dataset_folder}tseries/GADF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/test/{y}/", exist_ok=True) 
         os.makedirs(f"{dataset_folder}tseries/single_axis/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/{y}/", exist_ok=True)
         os.makedirs(f"{dataset_folder}tseries/single_axis/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/test/{y}/", exist_ok=True)
   
@@ -402,26 +463,33 @@ def generate_all_time_series(X_train, y_train, sj_train, dataset_folder="/home/a
 
     ##aqui añadir una opcion si quieres todas o una en especifico
     if reconstruction=="MTF":
-      #generate_and_save_time_series_fromMTF(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+      generate_and_save_time_series_fromMTF(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       generate_and_save_time_series_fromMTF(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data,dictionary_val,TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       print("se hace 1 vez")
       break
     if reconstruction=="GAF":
       
-      #generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+      generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       generate_and_save_time_series_fromGAF(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data,dictionary_val,TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       print("se hace 1 vez")
       break
-    if reconstruction=="RP":
-      #generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+    if reconstruction=="GADF":
       
-      #generate_and_save_time_series_fromRP(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data,dictionary_val,TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+      generate_and_save_time_series_fromGADF(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+      generate_and_save_time_series_fromGADF(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data,dictionary_val,TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+      print("se hace 1 vez")
+      break
+    if reconstruction=="RP":
+      generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+      
+      generate_and_save_time_series_fromRP(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data,dictionary_val,TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       print("se hace 1 vez")
       break
     if reconstruction=="all":
       generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       generate_and_save_time_series_fromMTF(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+      generate_and_save_time_series_fromGADF(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
   
       print("se hace 1 vez")
       break

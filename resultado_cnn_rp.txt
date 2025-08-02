@@ -1,0 +1,4 @@
+=== CNN con RP ===\nEjecutado: 2025-08-02 01:19:02.737041\nDuracion: 0.03 segundos\nComando: C:\Users\adria\AppData\Local\Programs\Python\Python311\python.exe scripts\cnnvalidation.py --technique RP\nCodigo de retorno: 1\n==================================================\n\nSTDOUT:\n\n\nSTDERR:\n  File "C:\Users\adria\OneDrive\Documentos\TFG-Tratamiento-de-Series-Temporales\scripts\cnnvalidation.py", line 94
+    \nimport argparse\n    data_folder_rp = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0")
+     ^
+SyntaxError: unexpected character after line continuation character

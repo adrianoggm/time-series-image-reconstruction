@@ -66,25 +66,25 @@ def main():
      print("Dictionary",dictionary[0])
      dim=args.dim
      if args.image_type=="MTF":
-        img = mtf.SavevarMTF_XYZ(w, 0, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129) 
+        img = mtf.SavevarMTF_XYZ(w, 0, 0, "x", normalized = 1, path=f"./", TIME_STEPS=128) 
         imagen = cv2.imread("./0x0mtf.png")  
         imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
         print("Image shape",imagen.shape)
         rp=mtf.Reconstruct_MTF(imagen,dictionary,a)
      if  args.image_type=="RP": 
-        img = rec.SavevarRP_XYZ(w, 0, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129) 
+        img = rec.SavevarRP_XYZ(w, 0, 0, "x", normalized = 1, path=f"./", TIME_STEPS=128) 
         imagen = cv2.imread("./0x0.png")  
         imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
         print("Image shape",imagen.shape)
         rp,aux=rec.Reconstruct_RP(imagen,dictionary,a)
      if  args.image_type=="GAF": 
-        img = gaf.SavevarGAF_XYZ(w, 0, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129) 
+        img = gaf.SavevarGAF_XYZ(w, 0, 0, "x", normalized = 1, path=f"./", TIME_STEPS=128) 
         imagen = cv2.imread("./0x0gasf.png")  
         imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
         print("Image shape",imagen.shape)
         rp=gaf.Reconstruct_GAF(imagen,dictionary,a)
      if args.image_type=="GADF":
-         img = gadf.SavevarGADF_XYZ(w, 0, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129)
+         img = gadf.SavevarGADF_XYZ(w, 0, 0, "x", normalized = 1, path=f"./", TIME_STEPS=128)
          imagen = cv2.imread("./0x0gadf.png")  
          imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
          print("Image shape",imagen.shape)

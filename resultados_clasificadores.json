@@ -1,0 +1,202 @@
+[
+  {
+    "classifier": "knn",
+    "technique": "GAF",
+    "timestamp": "2025-08-02T01:03:55.025131",
+    "duration": 0.03364753723144531,
+    "success": false,
+    "stdout": "",
+    "stderr": "C:\\Users\\adria\\AppData\\Local\\Programs\\Python\\Python311\\python.exe: can't open file 'C:\\\\Users\\\\adria\\\\OneDrive\\\\Documentos\\\\TFG-Tratamiento-de-Series-Temporales\\\\scripts\\\\scripts\\\\knnvalidation.py': [Errno 2] No such file or directory\n",
+    "return_code": 2
+  },
+  {
+    "classifier": "knn",
+    "technique": "RP",
+    "timestamp": "2025-08-02T01:03:55.057775",
+    "duration": 0.02964472770690918,
+    "success": false,
+    "stdout": "",
+    "stderr": "C:\\Users\\adria\\AppData\\Local\\Programs\\Python\\Python311\\python.exe: can't open file 'C:\\\\Users\\\\adria\\\\OneDrive\\\\Documentos\\\\TFG-Tratamiento-de-Series-Temporales\\\\scripts\\\\scripts\\\\knnvalidation.py': [Errno 2] No such file or directory\n",
+    "return_code": 2
+  },
+  {
+    "classifier": "knn",
+    "technique": "MTF",
+    "timestamp": "2025-08-02T01:03:55.094796",
+    "duration": 0.02751636505126953,
+    "success": false,
+    "stdout": "",
+    "stderr": "C:\\Users\\adria\\AppData\\Local\\Programs\\Python\\Python311\\python.exe: can't open file 'C:\\\\Users\\\\adria\\\\OneDrive\\\\Documentos\\\\TFG-Tratamiento-de-Series-Temporales\\\\scripts\\\\scripts\\\\knnvalidation.py': [Errno 2] No such file or directory\n",
+    "return_code": 2
+  },
+  {
+    "classifier": "knn",
+    "technique": "GADF",
+    "timestamp": "2025-08-02T01:03:55.131789",
+    "duration": 0.027733325958251953,
+    "success": false,
+    "stdout": "",
+    "stderr": "C:\\Users\\adria\\AppData\\Local\\Programs\\Python\\Python311\\python.exe: can't open file 'C:\\\\Users\\\\adria\\\\OneDrive\\\\Documentos\\\\TFG-Tratamiento-de-Series-Temporales\\\\scripts\\\\scripts\\\\knnvalidation.py': [Errno 2] No such file or directory\n",
+    "return_code": 2
+  },
+  {
+    "classifier": "randomforest",
+    "technique": "GAF",
+    "timestamp": "2025-08-02T01:03:55.171475",
+    "duration": 0.030527114868164062,
+    "success": false,
+    "stdout": "",
+    "stderr": "C:\\Users\\adria\\AppData\\Local\\Programs\\Python\\Python311\\python.exe: can't open file 'C:\\\\Users\\\\adria\\\\OneDrive\\\\Documentos\\\\TFG-Tratamiento-de-Series-Temporales\\\\scripts\\\\scripts\\\\randomforestvalidation.py': [Errno 2] No such file or directory\n",
+    "return_code": 2
+  },
+  {
+    "classifier": "randomforest",
+    "technique": "RP",
+    "timestamp": "2025-08-02T01:03:55.212989",
+    "duration": 0.031000137329101562,
+    "success": false,
+    "stdout": "",
+    "stderr": "C:\\Users\\adria\\AppData\\Local\\Programs\\Python\\Python311\\python.exe: can't open file 'C:\\\\Users\\\\adria\\\\OneDrive\\\\Documentos\\\\TFG-Tratamiento-de-Series-Temporales\\\\scripts\\\\scripts\\\\randomforestvalidation.py': [Errno 2] No such file or directory\n",
+    "return_code": 2
+  },
+  {
+    "classifier": "randomforest",
+    "technique": "MTF",
+    "timestamp": "2025-08-02T01:03:55.262780",
+    "duration": 0.03869342803955078,
+    "success": false,
+    "stdout": "",
+    "stderr": "C:\\Users\\adria\\AppData\\Local\\Programs\\Python\\Python311\\python.exe: can't open file 'C:\\\\Users\\\\adria\\\\OneDrive\\\\Documentos\\\\TFG-Tratamiento-de-Series-Temporales\\\\scripts\\\\scripts\\\\randomforestvalidation.py': [Errno 2] No such file or directory\n",
+    "return_code": 2
+  },
+  {
+    "classifier": "randomforest",
+    "technique": "GADF",
+    "timestamp": "2025-08-02T01:03:55.312205",
+    "duration": 0.0344083309173584,
+    "success": false,
+    "stdout": "",
+    "stderr": "C:\\Users\\adria\\AppData\\Local\\Programs\\Python\\Python311\\python.exe: can't open file 'C:\\\\Users\\\\adria\\\\OneDrive\\\\Documentos\\\\TFG-Tratamiento-de-Series-Temporales\\\\scripts\\\\scripts\\\\randomforestvalidation.py': [Errno 2] No such file or directory\n",
+    "return_code": 2
+  },
+  {
+    "classifier": "lstm",
+    "technique": "GAF",
+    "timestamp": "2025-08-02T01:03:55.361673",
+    "duration": 0.03796267509460449,
+    "success": false,
+    "stdout": "",
+    "stderr": "C:\\Users\\adria\\AppData\\Local\\Programs\\Python\\Python311\\python.exe: can't open file 'C:\\\\Users\\\\adria\\\\OneDrive\\\\Documentos\\\\TFG-Tratamiento-de-Series-Temporales\\\\scripts\\\\scripts\\\\lstmvalidation.py': [Errno 2] No such file or directory\n",
+    "return_code": 2
+  },
+  {
+    "classifier": "lstm",
+    "technique": "RP",
+    "timestamp": "2025-08-02T01:03:55.407986",
+    "duration": 0.0312955379486084,
+    "success": false,
+    "stdout": "",
+    "stderr": "C:\\Users\\adria\\AppData\\Local\\Programs\\Python\\Python311\\python.exe: can't open file 'C:\\\\Users\\\\adria\\\\OneDrive\\\\Documentos\\\\TFG-Tratamiento-de-Series-Temporales\\\\scripts\\\\scripts\\\\lstmvalidation.py': [Errno 2] No such file or directory\n",
+    "return_code": 2
+  },
+  {
+    "classifier": "lstm",
+    "technique": "MTF",
+    "timestamp": "2025-08-02T01:03:55.442959",
+    "duration": 0.025447607040405273,
+    "success": false,
+    "stdout": "",
+    "stderr": "C:\\Users\\adria\\AppData\\Local\\Programs\\Python\\Python311\\python.exe: can't open file 'C:\\\\Users\\\\adria\\\\OneDrive\\\\Documentos\\\\TFG-Tratamiento-de-Series-Temporales\\\\scripts\\\\scripts\\\\lstmvalidation.py': [Errno 2] No such file or directory\n",
+    "return_code": 2
+  },
+  {
+    "classifier": "lstm",
+    "technique": "GADF",
+    "timestamp": "2025-08-02T01:03:55.481994",
+    "duration": 0.030030250549316406,
+    "success": false,
+    "stdout": "",
+    "stderr": "C:\\Users\\adria\\AppData\\Local\\Programs\\Python\\Python311\\python.exe: can't open file 'C:\\\\Users\\\\adria\\\\OneDrive\\\\Documentos\\\\TFG-Tratamiento-de-Series-Temporales\\\\scripts\\\\scripts\\\\lstmvalidation.py': [Errno 2] No such file or directory\n",
+    "return_code": 2
+  },
+  {
+    "classifier": "gru",
+    "technique": "GAF",
+    "timestamp": "2025-08-02T01:03:55.521132",
+    "duration": 0.029756784439086914,
+    "success": false,
+    "stdout": "",
+    "stderr": "C:\\Users\\adria\\AppData\\Local\\Programs\\Python\\Python311\\python.exe: can't open file 'C:\\\\Users\\\\adria\\\\OneDrive\\\\Documentos\\\\TFG-Tratamiento-de-Series-Temporales\\\\scripts\\\\scripts\\\\gruvalidation.py': [Errno 2] No such file or directory\n",
+    "return_code": 2
+  },
+  {
+    "classifier": "gru",
+    "technique": "RP",
+    "timestamp": "2025-08-02T01:03:55.561617",
+    "duration": 0.030718326568603516,
+    "success": false,
+    "stdout": "",
+    "stderr": "C:\\Users\\adria\\AppData\\Local\\Programs\\Python\\Python311\\python.exe: can't open file 'C:\\\\Users\\\\adria\\\\OneDrive\\\\Documentos\\\\TFG-Tratamiento-de-Series-Temporales\\\\scripts\\\\scripts\\\\gruvalidation.py': [Errno 2] No such file or directory\n",
+    "return_code": 2
+  },
+  {
+    "classifier": "gru",
+    "technique": "MTF",
+    "timestamp": "2025-08-02T01:03:55.601928",
+    "duration": 0.02980184555053711,
+    "success": false,
+    "stdout": "",
+    "stderr": "C:\\Users\\adria\\AppData\\Local\\Programs\\Python\\Python311\\python.exe: can't open file 'C:\\\\Users\\\\adria\\\\OneDrive\\\\Documentos\\\\TFG-Tratamiento-de-Series-Temporales\\\\scripts\\\\scripts\\\\gruvalidation.py': [Errno 2] No such file or directory\n",
+    "return_code": 2
+  },
+  {
+    "classifier": "gru",
+    "technique": "GADF",
+    "timestamp": "2025-08-02T01:03:55.641926",
+    "duration": 0.029759645462036133,
+    "success": false,
+    "stdout": "",
+    "stderr": "C:\\Users\\adria\\AppData\\Local\\Programs\\Python\\Python311\\python.exe: can't open file 'C:\\\\Users\\\\adria\\\\OneDrive\\\\Documentos\\\\TFG-Tratamiento-de-Series-Temporales\\\\scripts\\\\scripts\\\\gruvalidation.py': [Errno 2] No such file or directory\n",
+    "return_code": 2
+  },
+  {
+    "classifier": "cnn",
+    "technique": "GAF",
+    "timestamp": "2025-08-02T01:03:55.681893",
+    "duration": 0.03191828727722168,
+    "success": false,
+    "stdout": "",
+    "stderr": "C:\\Users\\adria\\AppData\\Local\\Programs\\Python\\Python311\\python.exe: can't open file 'C:\\\\Users\\\\adria\\\\OneDrive\\\\Documentos\\\\TFG-Tratamiento-de-Series-Temporales\\\\scripts\\\\scripts\\\\cnnvalidation.py': [Errno 2] No such file or directory\n",
+    "return_code": 2
+  },
+  {
+    "classifier": "cnn",
+    "technique": "RP",
+    "timestamp": "2025-08-02T01:03:55.721295",
+    "duration": 0.03024125099182129,
+    "success": false,
+    "stdout": "",
+    "stderr": "C:\\Users\\adria\\AppData\\Local\\Programs\\Python\\Python311\\python.exe: can't open file 'C:\\\\Users\\\\adria\\\\OneDrive\\\\Documentos\\\\TFG-Tratamiento-de-Series-Temporales\\\\scripts\\\\scripts\\\\cnnvalidation.py': [Errno 2] No such file or directory\n",
+    "return_code": 2
+  },
+  {
+    "classifier": "cnn",
+    "technique": "MTF",
+    "timestamp": "2025-08-02T01:03:55.763395",
+    "duration": 0.03157353401184082,
+    "success": false,
+    "stdout": "",
+    "stderr": "C:\\Users\\adria\\AppData\\Local\\Programs\\Python\\Python311\\python.exe: can't open file 'C:\\\\Users\\\\adria\\\\OneDrive\\\\Documentos\\\\TFG-Tratamiento-de-Series-Temporales\\\\scripts\\\\scripts\\\\cnnvalidation.py': [Errno 2] No such file or directory\n",
+    "return_code": 2
+  },
+  {
+    "classifier": "cnn",
+    "technique": "GADF",
+    "timestamp": "2025-08-02T01:03:55.806928",
+    "duration": 0.03201580047607422,
+    "success": false,
+    "stdout": "",
+    "stderr": "C:\\Users\\adria\\AppData\\Local\\Programs\\Python\\Python311\\python.exe: can't open file 'C:\\\\Users\\\\adria\\\\OneDrive\\\\Documentos\\\\TFG-Tratamiento-de-Series-Temporales\\\\scripts\\\\scripts\\\\cnnvalidation.py': [Errno 2] No such file or directory\n",
+    "return_code": 2
+  }
+]

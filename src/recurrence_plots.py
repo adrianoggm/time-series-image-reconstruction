@@ -21,7 +21,7 @@ def NormalizeMatrix_Adri(_r):
             _normalizedRP[i][j] = (_r[i][j]-_min)/_max_min
     
     return _normalizedRP
-def varRP2(data, TIME_STEPS=129):#dim:=x,y,z
+def varRP2(data, TIME_STEPS=128):#dim:=x,y,z
     x = data
     
     
@@ -68,7 +68,7 @@ def Cosin2vec(a,b):
     return  x / y if y>0 else 0
 def WeightAngle(a,b):
     return math.exp(2*(1.1 - Cosin2vec(a,b)))
-def varRP_axis(data, axis,  TIME_STEPS=129):#dim:=x,y,z
+def varRP_axis(data, axis,  TIME_STEPS=128):#dim:=x,y,z
     x = []
     
     for j in range(TIME_STEPS):
@@ -94,7 +94,7 @@ def varRP_axis(data, axis,  TIME_STEPS=129):#dim:=x,y,z
                 sign =-1.0
             R[i][j] = sign*Distance2dim(s[i],s[j])
     return R
-def varRP(data, dim, TIME_STEPS=129):#dim:=x,y,z
+def varRP(data, dim, TIME_STEPS=128):#dim:=x,y,z
     x = []
     if dim == 'x':
         for j in range(TIME_STEPS):
@@ -136,7 +136,7 @@ def varRP(data, dim, TIME_STEPS=129):#dim:=x,y,z
             R[i][j] = sign*Distance2dim(s[i],s[j])
             # R[i][j] = Distance2dim(s[i],s[j])
     return R
-def RP(data, dim, TIME_STEPS=129):#dim:=x,y,z
+def RP(data, dim, TIME_STEPS=128):#dim:=x,y,z
     x = []
     if dim == 'x':
         for j in range(TIME_STEPS):
@@ -166,7 +166,7 @@ def RP(data, dim, TIME_STEPS=129):#dim:=x,y,z
         for j in range(dimR):
             R[i][j] = Distance2dim(s[i],s[j])
     return R
-def RP_axis(data, axis, th=None, TIME_STEPS=129):#dim:=x,y,z
+def RP_axis(data, axis, th=None, TIME_STEPS=128):#dim:=x,y,z
     x = []
     
     for j in range(TIME_STEPS):
@@ -257,7 +257,7 @@ def RGBfromRPMatrix_of_single_axis(X):
             # _pixel.append(Z[i][j])
             newImage[i][j] = _pixel
     return newImage
-def SaveRP(x_array,y_array,z_array, TIME_STEPS=129):
+def SaveRP(x_array,y_array,z_array, TIME_STEPS=128):
     _r = RP(x_array, "x", TIME_STEPS)
     _g = RP(y_array, "y", TIME_STEPS)
     _b = RP(z_array, "z", TIME_STEPS)
@@ -271,7 +271,7 @@ def SaveRP(x_array,y_array,z_array, TIME_STEPS=129):
     plt.imshow(newImage)
     # plt.savefig('D:\Datasets\ADL_Dataset\\'+action+'\\'+'RP\\''{}{}.png' .format(action, subject[15:]),bbox_inches='tight',pad_inches = 0)
     plt.close('all')
-def SaveRP_XYZ(x, sj, item_idx, action, normalized, path, saveImage=True, TIME_STEPS=129):
+def SaveRP_XYZ(x, sj, item_idx, action, normalized, path, saveImage=True, TIME_STEPS=128):
     _r = RP(x,'x', TIME_STEPS)
     _g = RP(x,'y', TIME_STEPS)
     _b = RP(x,'z', TIME_STEPS)
@@ -302,7 +302,7 @@ def SaveRP_XYZ(x, sj, item_idx, action, normalized, path, saveImage=True, TIME_S
         # plt.close('all')
     return newImage
 
-def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=129):
+def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=128):
     if not all([(x==0).all()]):
      #print(x.shape)
      _r = varRP(x,'x', TIME_STEPS)
@@ -346,7 +346,7 @@ def SavevarRP_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, save
     else:
      return None
   
-def SavevarRP_fran(x, axis, sj=0, item_idx=0, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=129):
+def SavevarRP_fran(x, axis, sj=0, item_idx=0, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=128):
     _r = varRP_axis(x, axis, TIME_STEPS) 
     # _g = varRP(x,'x') #np.full((_b.shape[0], _b.shape[1]), 255) #varRP(x,'x')
     # _b = varRP(x,'x')
@@ -381,7 +381,7 @@ def SavevarRP_fran(x, axis, sj=0, item_idx=0, action=None, normalized=True, path
           # plt.savefig(f"{path}{sj}{action}_{axis}_{item_idx}.png",bbox_inches='tight',pad_inches = 0, dpi='figure')
         # plt.close('all')
     return newImage
-def SaveRP_fran(x, axis, sj=0, item_idx=0, action=None, normalized=True, path=None, saveImage=True, th=None, TIME_STEPS=129):
+def SaveRP_fran(x, axis, sj=0, item_idx=0, action=None, normalized=True, path=None, saveImage=True, th=None, TIME_STEPS=128):
     _r = RP_axis(x, axis, th, TIME_STEPS) 
     _g = RP_axis(x, axis, th, TIME_STEPS) 
     _b = RP_axis(x, axis, th, TIME_STEPS) 
@@ -534,7 +534,7 @@ def Reconstruct_RP(img,dictionary,valor):
         N.append(rp)
     N=np.array(N)
     return N,ninversiones
-def fix_rotationscale(rporiginal,seriereconstruida,i,dictionary,TIME_STEPS=129):
+def fix_rotationscale(rporiginal,seriereconstruida,i,dictionary,TIME_STEPS=128):
      #print(dictionary)
      MAX=dictionary[0]
      MIN=dictionary[1]

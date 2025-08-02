@@ -1,0 +1,1 @@
+=== RANDOMFOREST con GAF ===\nEjecutado: 2025-08-02 01:37:47.954691\nDuracion: 12.25 segundos\nComando: C:\Users\adria\OneDrive\Documentos\TFG-Tratamiento-de-Series-Temporales\venv\Scripts\python.exe scripts\randomforestvalidation.py --technique GAF\nCodigo de retorno: 0\n==================================================\n\nSTDOUT:\n

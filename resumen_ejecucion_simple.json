@@ -1,0 +1,150 @@
+{
+  "timestamp": "2025-08-02T01:19:02.777809",
+  "duration_minutes": 0.021348023414611818,
+  "successful": 0,
+  "failed": 20,
+  "total": 20,
+  "success_rate": 0.0,
+  "results": [
+    {
+      "classifier": "knn",
+      "technique": "GAF",
+      "success": false,
+      "info": "resultado_knn_gaf.txt",
+      "timestamp": "2025-08-02T01:19:01.612000"
+    },
+    {
+      "classifier": "knn",
+      "technique": "GADF",
+      "success": false,
+      "info": "resultado_knn_gadf.txt",
+      "timestamp": "2025-08-02T01:19:01.722932"
+    },
+    {
+      "classifier": "knn",
+      "technique": "RP",
+      "success": false,
+      "info": "resultado_knn_rp.txt",
+      "timestamp": "2025-08-02T01:19:01.840477"
+    },
+    {
+      "classifier": "knn",
+      "technique": "MTF",
+      "success": false,
+      "info": "resultado_knn_mtf.txt",
+      "timestamp": "2025-08-02T01:19:01.956999"
+    },
+    {
+      "classifier": "randomforest",
+      "technique": "GAF",
+      "success": false,
+      "info": "resultado_randomforest_gaf.txt",
+      "timestamp": "2025-08-02T01:19:02.066346"
+    },
+    {
+      "classifier": "randomforest",
+      "technique": "GADF",
+      "success": false,
+      "info": "resultado_randomforest_gadf.txt",
+      "timestamp": "2025-08-02T01:19:02.175152"
+    },
+    {
+      "classifier": "randomforest",
+      "technique": "RP",
+      "success": false,
+      "info": "resultado_randomforest_rp.txt",
+      "timestamp": "2025-08-02T01:19:02.281595"
+    },
+    {
+      "classifier": "randomforest",
+      "technique": "MTF",
+      "success": false,
+      "info": "resultado_randomforest_mtf.txt",
+      "timestamp": "2025-08-02T01:19:02.386677"
+    },
+    {
+      "classifier": "lstm",
+      "technique": "GAF",
+      "success": false,
+      "info": "resultado_lstm_gaf.txt",
+      "timestamp": "2025-08-02T01:19:02.419570"
+    },
+    {
+      "classifier": "lstm",
+      "technique": "GADF",
+      "success": false,
+      "info": "resultado_lstm_gadf.txt",
+      "timestamp": "2025-08-02T01:19:02.449722"
+    },
+    {
+      "classifier": "lstm",
+      "technique": "RP",
+      "success": false,
+      "info": "resultado_lstm_rp.txt",
+      "timestamp": "2025-08-02T01:19:02.481612"
+    },
+    {
+      "classifier": "lstm",
+      "technique": "MTF",
+      "success": false,
+      "info": "resultado_lstm_mtf.txt",
+      "timestamp": "2025-08-02T01:19:02.514339"
+    },
+    {
+      "classifier": "gru",
+      "technique": "GAF",
+      "success": false,
+      "info": "resultado_gru_gaf.txt",
+      "timestamp": "2025-08-02T01:19:02.546890"
+    },
+    {
+      "classifier": "gru",
+      "technique": "GADF",
+      "success": false,
+      "info": "resultado_gru_gadf.txt",
+      "timestamp": "2025-08-02T01:19:02.578555"
+    },
+    {
+      "classifier": "gru",
+      "technique": "RP",
+      "success": false,
+      "info": "resultado_gru_rp.txt",
+      "timestamp": "2025-08-02T01:19:02.609802"
+    },
+    {
+      "classifier": "gru",
+      "technique": "MTF",
+      "success": false,
+      "info": "resultado_gru_mtf.txt",
+      "timestamp": "2025-08-02T01:19:02.640634"
+    },
+    {
+      "classifier": "cnn",
+      "technique": "GAF",
+      "success": false,
+      "info": "resultado_cnn_gaf.txt",
+      "timestamp": "2025-08-02T01:19:02.672161"
+    },
+    {
+      "classifier": "cnn",
+      "technique": "GADF",
+      "success": false,
+      "info": "resultado_cnn_gadf.txt",
+      "timestamp": "2025-08-02T01:19:02.704191"
+    },
+    {
+      "classifier": "cnn",
+      "technique": "RP",
+      "success": false,
+      "info": "resultado_cnn_rp.txt",
+      "timestamp": "2025-08-02T01:19:02.737041"
+    },
+    {
+      "classifier": "cnn",
+      "technique": "MTF",
+      "success": false,
+      "info": "resultado_cnn_mtf.txt",
+      "timestamp": "2025-08-02T01:19:02.775217"
+    }
+  ]
+}

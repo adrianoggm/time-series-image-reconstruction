@@ -1,0 +1,4 @@
+=== RANDOMFOREST con MTF ===\nEjecutado: 2025-08-02 01:19:02.386677\nDuracion: 0.11 segundos\nComando: C:\Users\adria\AppData\Local\Programs\Python\Python311\python.exe scripts\randomforestvalidation.py --technique MTF\nCodigo de retorno: 1\n==================================================\n\nSTDOUT:\n\n\nSTDERR:\nTraceback (most recent call last):
+  File "C:\Users\adria\OneDrive\Documentos\TFG-Tratamiento-de-Series-Temporales\scripts\randomforestvalidation.py", line 5, in <module>
+    import src.ts_plots as plt
+ModuleNotFoundError: No module named 'src'
