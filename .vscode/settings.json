@@ -1,4 +1,4 @@
 {
     "nuxt.isNuxtApp": false,
-    "python.pythonPath": "/home/fmgarmor/miot_env/bin/python3"
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python"
 }
