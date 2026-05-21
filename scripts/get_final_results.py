@@ -1,5 +1,4 @@
-#!/home/adriano/Escritorio/TFG/venv/bin/python3
-
+#!/usr/bin/env python3
 import os
 import numpy as np
 import pandas as pd

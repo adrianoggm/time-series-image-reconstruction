@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
 import pandas as pd
+from src.config import DEFAULT_DATA_DIR, REPO_ROOT
 
 # Global style matching comparative plots
 sns.set(style="whitegrid", context="paper", font="serif", rc={
@@ -185,8 +186,8 @@ def compute_pearson_coeff(x, y):
 
 def main():
     # Define las rutas a tus datos
-    dataset_folder = "C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/"
-    images_folder = "C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/images"
+    dataset_folder = DEFAULT_DATA_DIR
+    images_folder = str(REPO_ROOT / "images")
 
     train_data_path = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train/training_data.npy")
     series_rp_path   = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0/test/X_all_rec.npy")

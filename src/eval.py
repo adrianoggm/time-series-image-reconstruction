@@ -37,15 +37,11 @@ from torch import multiprocessing as mp
 # Carga de datasets (por ejemplo, Hugging Face)
 from datasets import load_dataset
 
-# Keras y TensorFlow-Addons
+# Keras
 import keras
 from keras.preprocessing.image import ImageDataGenerator
 from keras import layers
 from keras import backend as K
-import tensorflow_addons as tfa
-
-# Opcional: Si prefieres usar Keras de TensorFlow, comenta la línea anterior e importa:
-# from tensorflow import keras
 
 
 sns.set_style("darkgrid")

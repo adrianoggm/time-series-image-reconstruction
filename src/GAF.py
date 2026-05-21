@@ -1,4 +1,4 @@
-#!/home/adriano/Escritorio/TFG/venv/bin/python3
+#!/usr/bin/env python3
 import math
 import numpy as np
 import matplotlib.pyplot as plt

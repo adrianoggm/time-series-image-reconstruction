@@ -1,5 +1,4 @@
-#!/home/adriano/Escritorio/TFG/venv/bin/python3
-
+#!/usr/bin/env python3
 from math import sqrt
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,9 +10,10 @@ import cv2
 import os
 import time
 import seaborn as sns
+from src.config import DEFAULT_DATA_DIR
 def main():
      data_name="WISDM"
-     data_folder="C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/"
+     data_folder=DEFAULT_DATA_DIR
      #voy a  obtener el maximo de todo el data set.
      X_train, y_train, sj_train = act.load_numpy_datasets(data_name, data_folder, USE_RECONSTRUCTED_DATA=False)
      print("X_train", X_train.shape, "y_train", y_train.shape, "sj_train", sj_train.shape)
