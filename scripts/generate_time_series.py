@@ -1,8 +1,9 @@
-#!/home/adriano/Escritorio/TFG/venv/bin/python3
+#!/usr/bin/env python3
 from keras.utils import to_categorical
 import argparse
 import src.activity_data as act
 import src.reconstruct_tseries as ts
+from src.config import DEFAULT_DATA_DIR
 def main():
     '''Examples of runs:
     - load LOSO numpies
@@ -22,11 +23,11 @@ def main():
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     p.add_argument('--data-name', type=str, default="WISDM", help='the database name')
-    p.add_argument('--data-folder', type=str, default="/home/adriano/Escritorio/TFG/data/WISDM/", help='the data folder path')
+    p.add_argument('--data-folder', type=str, default=DEFAULT_DATA_DIR, help='the data folder path')
     p.add_argument('--n-folds', type=int, default=3, help='the number of k-folds')
     p.add_argument('--sampling', type=str, default="loso", help='loso: leave-one-subject-out; loto: leave-one-trial-out')
     p.add_argument('--create-numpies', action="store_true", help='create numpies before; if not, load numpies')
-    p.add_argument('--image-type',type=str, default="all", help='Also you can reconstruct one specific image type GAF,RP,MTF')
+    p.add_argument('--image-type', type=str, default="all", choices=["all", "RP", "GAF", "GADF", "MTF"], help='reconstruct from one specific encoding or all of them')
 
     args = p.parse_args()
     create_numpies = args.create_numpies
