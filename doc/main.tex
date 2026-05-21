@@ -746,8 +746,8 @@ There is no direct inverse transformation for converting time series into recurr
     \item \textbf{Shortest Path Calculation:}  
     Compute the shortest path distances in the graph using Dijkstra's algorithm \cite{cherkassky1996shortest}. For larger graphs, an alternative method for finding the shortest path can be employed.
 
-    \item \textbf{Multidimensional Scaling:}  
-    Finally, apply a multidimensional scaling technique that orders the set of points using the component corresponding to the largest eigenvalue.
+    \item \textbf{Multidimensional Scaling:}
+    Finally, apply a multidimensional scaling technique that orders the set of points using the component corresponding to the largest eigenvalue. We use \emph{classical} (Torgerson) MDS, i.e.\ the closed-form double-centering eigendecomposition of $-\tfrac{1}{2}J D^{2} J$ with $J=I-\tfrac{1}{n}\mathbf{1}\mathbf{1}^{\top}$, rather than the SMACOF iterative optimiser. For a Euclidean-compatible distance matrix this is the exact least-squares embedding rather than an iterative approximation, and it removes the stochastic dependence on the SMACOF initialisation that affected our earlier runs.
 \end{enumerate}
 
 Although this graph-based method can recover a consistent state ordering, it has a notable drawback, also discussed in \cite{hirata2008reproduction}: multidimensional scaling may return a mirror-symmetric reconstruction. In our WISDM experiments, this ambiguity was observed before applying the signed-RP orientation check described below; therefore, the observed ambiguity should be understood as an empirical diagnostic of this implementation rather than as a parameter from the cited method.
@@ -1136,7 +1136,7 @@ The final output is the reconstructed time series. This method does not inherent
 The experimental protocol is designed to answer three separate questions: whether the signal can be reconstructed point-by-point, whether its global trend is preserved, and whether the reconstructed window still supports activity recognition. These questions are intentionally separated because a representation may be poor for sample-level reconstruction while still retaining enough coarse structure for classification. This section fixes the dataset, segmentation, qualitative checks, metrics, and classifier protocol before the results are reported.
 
 \subsection{Dataset and Segmentation}
-The dataset used is the \textit{WISDM Smartphone and Smartwatch Activity and Biometrics Dataset} \cite{misc_wisdm_smartphone_and_smartwatch_activity_and_biometrics_dataset__507}. It contains data from 51 subjects, with accelerometer and gyroscope measurements collected from a smartwatch worn on the dominant hand and a mobile device kept in the pocket. The dataset includes 18 activities, each recorded for 3 minutes at a sampling rate of 50 Hz (i.e., one sample every 20 ms).
+The dataset used is the \textit{WISDM Smartphone and Smartwatch Activity and Biometrics Dataset} \cite{misc_wisdm_smartphone_and_smartwatch_activity_and_biometrics_dataset__507}. It contains data from 51 subjects, with accelerometer and gyroscope measurements collected from a smartwatch worn on the dominant hand and a mobile device kept in the pocket. The dataset includes 18 activities, each recorded for 3 minutes. We use the smartwatch accelerometer stream, which is sampled at 20\,Hz (i.e., one sample every 50\,ms).
 
 For our experiments, we selected five common activities with nearly balanced sample counts. This subset keeps the classification task interpretable while avoiding a strongly imbalanced evaluation in which reconstruction effects could be masked by class-frequency effects. The chosen activities are:
 \begin{table}[h]
@@ -1157,13 +1157,13 @@ Jogging  & 205,787 & 19.5\% \\
 
 \end{table}
 
-We segmented the data into non-overlapping windows (FNOW) of length \(N=128\), corresponding to 2.56 seconds at 50 Hz. Non-overlapping windows reduce duplicate temporal content across samples, and the fixed length keeps the image size identical across encodings. This size is used consistently for the RP, GASF, and MTF inputs and for the classifier dataset. With \(N_{\text{bins}}=4\), the MTF partition contains four equal-size groups of 32 time indices. For the modified RP formulation, adjacent states are still written as \(s_j=(x_j,x_{j+1})\); the reconstruction pipeline restores the final signal to the same 128-sample window length used by the other encodings.
+We segmented the data into non-overlapping windows (FNOW) of length \(N=128\), corresponding to 6.4\,seconds at 20\,Hz. The window length is fixed at a power of two because it is the de-facto standard for convolutional/recurrent backbones used in human-activity recognition, and because it keeps the GASF, GADF, and MTF images at \(128\times128\) pixels. For the modified RP formulation, adjacent states are still written as \(s_j=(x_j,x_{j+1})\), so a length-\(N\) window yields an \((N-1)\times(N-1)=127\times127\) image; the reconstruction pipeline then augments the recovered \(N-1\) samples with the per-window mean (step 6.1 of the Hirata--Horai--Aihara adaptation) so that the final signal matches the 128-sample window length used by the other encodings. With \(N_{\text{bins}}=4\), the MTF partition contains four equal-size groups of \(N/Q=32\) time indices, which exactly tiles the window with no leftover index.
 
-By decomposing the X, Y, and Z dimensions into individual time series of size 128, we obtain 8,163 windows per channel, resulting in a total of $8163 \times 3 = 24\,489$ one-dimensional reconstructions for the reconstruction metrics. For classification, however, the experimental unit is the full triaxial window: the three reconstructed axes are grouped back into a single sample, yielding 8,163 labeled windows. The reported classifier tables therefore use 2,721 test windows per split, corresponding to one third of the triaxial-window dataset.
+By decomposing the X, Y, and Z dimensions into individual time series of size 128, we obtain 8\,227 windows per channel, resulting in a total of $8\,227 \times 3 = 24\,681$ one-dimensional reconstructions for the reconstruction metrics. For classification, however, the experimental unit is the full triaxial window: the three reconstructed axes are grouped back into a single sample, yielding 8\,227 labeled windows. The reported classifier tables therefore use 2\,743 test windows per split, corresponding to one third of the triaxial-window dataset.
 
 \subsection{Encoding Sensitivity to Signal Inversion}
 
-Before evaluating reconstructions, we first test whether each encoding visually distinguishes a time series from its sign-inverted counterpart. This check is important because an encoding that maps both signals to the same image cannot by itself resolve orientation during reconstruction.
+Before evaluating reconstructions, we first test whether each encoding visually distinguishes a time series from its sign-inverted counterpart. This check is important because an encoding that maps both signals to the same image cannot by itself resolve orientation during reconstruction. The same WISDM window (subject 1600, first walking window, $N=128$) is used for every encoder so the only difference across panels is the encoder itself; the inverted variant negates all three accelerometer channels.
 
 \begin{figure}[H]
     \centering
