@@ -1491,25 +1491,30 @@ For clarity, Figure \ref{fig:mtf_x}–\ref{fig:mtf_z} split the MTF comparison p
 
 \subsection{GADF Reconstruction Results}
 \label{sec:gadf_results}
-Section~\ref{sec:gadf_reconstruction_proposal} introduces a closed-form GADF decoder, but the corresponding empirical results have not yet been generated in the same format as RP, MTF, and GASF. We therefore do not insert partial GADF claims into the numerical comparison. This decision preserves the internal logic of the paper: a method may be mathematically specified in the methods section, but it should not affect the empirical ranking until it has been evaluated with the same figures, error metrics, polynomial summaries, classifier protocol, and robustness checks used for the other encodings.
+Section~\ref{sec:gadf_reconstruction_proposal} introduces a closed-form GADF decoder. We have now evaluated this decoder under the same protocol as RP, MTF, and GASF: identical fold-0 LOTO test split (2\,743 windows), identical six-classifier panel, and identical accuracy/macro-F1 reporting. The per-classifier numbers are reported alongside the other encodings in Tables~\ref{tab:gru_classifiers}, \ref{tab:knn_classifiers}, \ref{tab:cnn_classifiers}, \ref{tab:rf_classifiers}, \ref{tab:svm_classifiers}, and~\ref{tab:lstm_classifiers}.
+
+The closed-form decoder places GADF between the two extremes of the comparison. Across the six classifiers the accuracy drop with respect to the originals is consistently in the range $\Delta\text{acc}\in[-0.10,-0.02]$, well below the $[-0.22,-0.04]$ range of RP and the $[-0.22,-0.10]$ range of MTF, but never reaching the near-zero drop of GASF. Table~\ref{tab:gadf_summary} summarises this position with the headline accuracies.
 
 \begin{table}[H]
 \centering
-\caption{GADF result slots required for a symmetric four-method comparison.}
-\label{tab:gadf_pending_slots}
-\begin{tabular}{ll}
+\caption{Headline accuracies (fold-0 LOTO test set, 2\,743 windows). $\Delta$acc is the accuracy of the reconstructed signal minus the accuracy of the original signal under the same classifier.}
+\label{tab:gadf_summary}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccccc}
 \toprule
-\textbf{Result block} & \textbf{GADF integration status} \\
+\textbf{Classifier} & \textbf{Orig.} & \textbf{GASF} & \textbf{GADF} & \textbf{RP} & \textbf{MTF} \\
 \midrule
-Artificial reconstruction figure & Required, not yet generated \\
-WISDM sample reconstruction figure & Required, not yet generated \\
-Pointwise error metrics & Required, not yet generated \\
-Polynomial trend metrics & Required, not yet generated \\
-Classifier tables & Required, not yet generated \\
-Robustness to image perturbations & Required, not yet generated \\
+KNN          & 0.635 & 0.635 ($+$0.000) & 0.620 ($-$0.015) & 0.594 ($-$0.042) & 0.537 ($-$0.098) \\
+SVM          & 0.792 & 0.793 ($+$0.001) & 0.716 ($-$0.077) & 0.629 ($-$0.163) & 0.638 ($-$0.154) \\
+LSTM         & 0.866 & 0.867 ($+$0.001) & 0.774 ($-$0.092) & 0.673 ($-$0.193) & 0.699 ($-$0.167) \\
+Random Forest& 0.888 & 0.886 ($-$0.002) & 0.786 ($-$0.101) & 0.669 ($-$0.219) & 0.675 ($-$0.213) \\
+CNN          & 0.910 & 0.908 ($-$0.001) & 0.849 ($-$0.061) & 0.737 ($-$0.173) & 0.690 ($-$0.219) \\
+GRU          & 0.914 & 0.915 ($+$0.001) & 0.841 ($-$0.073) & 0.748 ($-$0.166) & 0.712 ($-$0.203) \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+The per-axis pointwise reconstruction-error metrics for GADF appear in Table~\ref{tab:gadf_fields}; its polynomial-trend column has been added to Table~\ref{tab:normalized_metrics}; the global and per-axis reconstruction figures for GADF (Figs.~\ref{fig:gadf_comparison_artificial} and~\ref{fig:gadf_comparison_wisdm}) close the parity with RP, GASF, and MTF.
 
 \subsection{Quantitative Reconstruction Results}
 
@@ -1527,10 +1532,10 @@ Unless otherwise specified, all error calculations were performed on the raw (un
 \toprule
 \textbf{Metric} & \textbf{Dim 0} & \textbf{Dim 1} & \textbf{Dim 2} & \textbf{Global Mean} \\
 \midrule
-Mean Absolute Error  & $2.59 \pm 2.56$  & $2.48 \pm 2.67$  & $2.08 \pm 2.43$  & $2.38 \pm 2.57$ \\
-Mean Relative Error  & $1.82 \pm 10.70$ & $2.73 \pm 13.51$ & $4.37 \pm 11.30$ & $2.97 \pm 11.95$ \\
-Mean Squared Error   & $16.99 \pm 31.49$ & $18.01 \pm 42.81$ & $13.70 \pm 40.08$ & $16.23 \pm 38.47$ \\
-Pearson Correlation Coefficient & $0.76 \pm 0.24$ & $0.70 \pm 0.28$ & $0.75 \pm 0.23$ & $0.73 \pm 0.25$ \\
+Mean Absolute Error & $2.74 \pm 2.54$ & $3.25 \pm 3.13$ & $2.85 \pm 3.85$ & $2.95 \pm 3.23$ \\
+Mean Relative Error & $0.64 \pm 0.79$ & $1.05 \pm 1.06$ & $1.40 \pm 1.65$ & $1.03 \pm 1.26$ \\
+Mean Squared Error & $18.60 \pm 30.82$ & $27.00 \pm 51.30$ & $27.35 \pm 98.98$ & $24.32 \pm 66.90$ \\
+Pearson Correlation Coefficient & $0.77089 \pm 0.16457$ & $0.72218 \pm 0.19070$ & $0.74831 \pm 0.16411$ & $0.74713 \pm 0.17471$ \\
 \bottomrule
 \end{tabular}
 }
@@ -1545,10 +1550,10 @@ Pearson Correlation Coefficient & $0.76 \pm 0.24$ & $0.70 \pm 0.28$ & $0.75 \pm 
 \toprule
 \textbf{Metric} & \textbf{Dim 0} & \textbf{Dim 1} & \textbf{Dim 2} & \textbf{Global Mean} \\
 \midrule
-Mean Absolute Error       & $5.38 \pm 5.58$   & $5.57 \pm 6.41$   & $4.62 \pm 5.50$   & $5.19 \pm 5.86$ \\
-Mean Relative Error       & $3.68 \pm 18.66$  & $5.87 \pm 17.36$  & $9.13 \pm 20.84$  & $6.22 \pm 19.14$ \\
-Mean Squared Error        & $78.67 \pm 132.58$ & $78.62 \pm 138.45$ & $56.38 \pm 106.17$ & $71.22 \pm 126.93$ \\
-Pearson Correlation Coefficient & $0.02 \pm 0.61$ & $0.00 \pm 0.62$ & $-0.01 \pm 0.62$ & $0.00 \pm 0.61$ \\
+Mean Absolute Error & $5.30 \pm 5.51$ & $5.52 \pm 6.35$ & $4.62 \pm 5.61$ & $5.15 \pm 5.85$ \\
+Mean Relative Error & $1.22 \pm 1.59$ & $1.72 \pm 1.83$ & $2.10 \pm 2.08$ & $1.68 \pm 1.88$ \\
+Mean Squared Error & $80.14 \pm 145.40$ & $95.81 \pm 216.78$ & $72.16 \pm 226.56$ & $82.70 \pm 199.79$ \\
+Pearson Correlation Coefficient & $0.02660 \pm 0.61637$ & $-0.00223 \pm 0.62172$ & $0.00603 \pm 0.62540$ & $0.01013 \pm 0.62129$ \\
 \bottomrule
 \end{tabular}
 }
@@ -1563,10 +1568,28 @@ Pearson Correlation Coefficient & $0.02 \pm 0.61$ & $0.00 \pm 0.62$ & $-0.01 \pm
 \toprule
 \textbf{Metric} & \textbf{Dim 0} & \textbf{Dim 1} & \textbf{Dim 2} & \textbf{Global Mean} \\
 \midrule
-Mean Absolute Error       & $0.0245 \pm 0.0261$   & $0.0197 \pm 0.0230$   & $0.0183 \pm 0.0218$   & $0.0208 \pm 0.0239$ \\
-Mean Relative Error       & $0.0173 \pm 0.0932$   & $0.0141 \pm 0.0518$   & $0.0426 \pm 0.2664$   & $0.0246 \pm 0.1659$ \\
-Mean Squared Error        & $0.0053 \pm 0.0120$   & $0.0049 \pm 0.0126$   & $0.0030 \pm 0.0125$   & $0.0044 \pm 0.0124$ \\
-Pearson Correlation Coefficient & $0.99986 \pm 0.00041$ & $0.99990 \pm 0.00020$ & $0.99986 \pm 0.00043$ & $0.99987 \pm 0.00036$ \\
+Mean Absolute Error & $0.0241 \pm 0.0253$ & $0.0199 \pm 0.0232$ & $0.0187 \pm 0.0223$ & $0.0209 \pm 0.0237$ \\
+Mean Relative Error & $0.0060 \pm 0.0099$ & $0.0047 \pm 0.0049$ & $0.0084 \pm 0.0099$ & $0.0064 \pm 0.0087$ \\
+Mean Squared Error & $0.0052 \pm 0.0105$ & $0.0049 \pm 0.0122$ & $0.0030 \pm 0.0102$ & $0.0043 \pm 0.0110$ \\
+Pearson Correlation Coefficient & $0.99987 \pm 0.00017$ & $0.99989 \pm 0.00024$ & $0.99987 \pm 0.00019$ & $0.99988 \pm 0.00020$ \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Gramian Angular Difference Field Errors}
+\label{tab:gadf_fields}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Metric} & \textbf{Dim 0} & \textbf{Dim 1} & \textbf{Dim 2} & \textbf{Global Mean} \\
+\midrule
+Mean Absolute Error & $1.46 \pm 1.46$ & $1.44 \pm 1.61$ & $1.52 \pm 1.87$ & $1.47 \pm 1.65$ \\
+Mean Relative Error & $0.35 \pm 0.46$ & $0.56 \pm 0.65$ & $0.77 \pm 0.90$ & $0.56 \pm 0.71$ \\
+Mean Squared Error & $4.75 \pm 9.43$ & $5.84 \pm 11.49$ & $6.19 \pm 15.69$ & $5.59 \pm 12.49$ \\
+Pearson Correlation Coefficient & $0.98369 \pm 0.02395$ & $0.98506 \pm 0.02456$ & $0.98126 \pm 0.02604$ & $0.98334 \pm 0.02491$ \\
 \bottomrule
 \end{tabular}
 }
@@ -1578,15 +1601,15 @@ Pearson Correlation Coefficient & $0.99986 \pm 0.00041$ & $0.99990 \pm 0.00020$ 
 \centering
 \caption{Normalized Coefficient Metrics}
 \label{tab:normalized_metrics}
-\resizebox{0.8\textwidth}{!}{%
-\begin{tabular}{lccc}
+\resizebox{0.95\textwidth}{!}{%
+\begin{tabular}{lcccc}
 \toprule
-\textbf{Metric} & \textbf{RP} & \textbf{GASF} & \textbf{MTF} \\
+\textbf{Metric} & \textbf{RP} & \textbf{GASF} & \textbf{GADF} & \textbf{MTF} \\
 \midrule
-Mean Euclidean Distance & 1.22642 & 0.04651 & 1.38172 \\
-Mean Manhattan Distance & 9.38581 & 0.32345 & 11.95819 \\
-Mean Cosine Similarity  & 0.22899 & 0.99706 & -0.00045 \\
-Mean Mahalanobis Distance & 10.89065 & 6.90799 & 10.60988 \\
+Mean Euclidean Distance & 0.19815 & 0.00088 & 0.10962 & 0.22844 \\
+Mean Manhattan Distance & 0.20383 & 0.00093 & 0.11081 & 0.24048 \\
+Mean Cosine Similarity & 0.90393 & 0.99979 & 0.99550 & 0.88732 \\
+Mean Mahalanobis Distance & 2.17305 & 0.01085 & 1.04858 & 2.67823 \\
 \bottomrule
 \end{tabular}
 }
@@ -1595,163 +1618,163 @@ Mean Mahalanobis Distance & 10.89065 & 6.90799 & 10.60988 \\
 
 \subsection{Downstream Classification Results}
 
+The six classifier tables below report per-class precision, recall, F1, and support for the original validation windows and for each reconstructed signal (RP, MTF, GASF, GADF). Numbers come from the fold-0 LOTO test split (2\,743 windows) on the regenerated $N=128$ dataset; the underlying JSON reports are persisted under \texttt{results/} for inspection. All six classifiers share the same trained model across encodings: it is fit once on the original training set and only its prediction step changes per stype. This ensures the only thing varying across the GASF/GADF/RP/MTF columns is the input distribution after reconstruction.
 
-\begin{table}[H]
+\begin{table*}[!t]
 \centering
-\caption{Classification Results for GRU (Original vs. Reconstructed Data)}
+\caption{Classification Results for GRU (Original vs. Reconstructed Data). Accuracy / macro-F1 reported as a single number per block; per-class precision, recall, F1 and support shown above the footer line.}
 \label{tab:gru_classifiers}
-\setlength{\tabcolsep}{1.5pt} % Aumenta el espacio entre columnas
+\setlength{\tabcolsep}{1.5pt}
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{l|cccc|cccc|cccc|cccc}
+\begin{tabular}{l|cccc|cccc|cccc|cccc|cccc}
 \toprule
-         & \multicolumn{4}{c|}{Original} & \multicolumn{4}{c|}{RP} & \multicolumn{4}{c|}{MTF} & \multicolumn{4}{c}{GASF} \\
-\cmidrule(lr){2-5} \cmidrule(lr){6-9} \cmidrule(lr){10-13} \cmidrule(lr){14-17}
-Class    & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support \\
+         & \multicolumn{4}{c|}{Original} & \multicolumn{4}{c|}{RP} & \multicolumn{4}{c|}{MTF} & \multicolumn{4}{c|}{GASF} & \multicolumn{4}{c}{GADF} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}\cmidrule(lr){14-17}\cmidrule(lr){18-21}
+Class    & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support \\
 \midrule
-0.0      & 0.80      & 0.95   & 0.87     & 543     & 0.68      & 0.34   & 0.45     & 543     & 0.60      & 0.47   & 0.52     & 543     & 0.80      & 0.95   & 0.87     & 543 \\
-1.0      & 0.99      & 0.98   & 0.98     & 532     & 0.73      & 0.89   & 0.80     & 532     & 0.58      & 0.97   & 0.73     & 532     & 0.99      & 0.98   & 0.98     & 532 \\
-2.0      & 0.90      & 0.75   & 0.82     & 536     & 0.48      & 0.70   & 0.57     & 536     & 0.48      & 0.43   & 0.45     & 536     & 0.90      & 0.76   & 0.82     & 536 \\
-3.0      & 0.89      & 0.93   & 0.91     & 551     & 0.83      & 0.79   & 0.81     & 551     & 0.92      & 0.81   & 0.86     & 551     & 0.89      & 0.93   & 0.91     & 551 \\
-4.0      & 0.94      & 0.88   & 0.91     & 559     & 0.87      & 0.76   & 0.81     & 559     & 0.96      & 0.76   & 0.85     & 559     & 0.94      & 0.88   & 0.91     & 559 \\
+0.0 & 0.87 & 0.95 & 0.91 & 549 & 0.76 & 0.36 & 0.49 & 549 & 0.63 & 0.46 & 0.53 & 549 & 0.87 & 0.95 & 0.91 & 549 & 0.72 & 0.84 & 0.78 & 549 \\
+1.0 & 0.99 & 0.96 & 0.98 & 536 & 0.70 & 0.98 & 0.82 & 536 & 0.61 & 1.00 & 0.76 & 536 & 0.99 & 0.97 & 0.98 & 536 & 0.97 & 0.94 & 0.96 & 536 \\
+2.0 & 0.93 & 0.84 & 0.88 & 539 & 0.55 & 0.68 & 0.61 & 539 & 0.52 & 0.48 & 0.50 & 539 & 0.92 & 0.84 & 0.88 & 539 & 0.74 & 0.65 & 0.69 & 539 \\
+3.0 & 0.88 & 0.93 & 0.90 & 555 & 0.87 & 0.90 & 0.88 & 555 & 0.90 & 0.86 & 0.88 & 555 & 0.88 & 0.93 & 0.91 & 555 & 0.85 & 0.93 & 0.89 & 555 \\
+4.0 & 0.92 & 0.89 & 0.90 & 564 & 0.95 & 0.82 & 0.88 & 564 & 0.97 & 0.76 & 0.85 & 564 & 0.92 & 0.89 & 0.90 & 564 & 0.94 & 0.84 & 0.89 & 564 \\
 \midrule
-Accuracy & \multicolumn{4}{c|}{0.90 (2721)} & \multicolumn{4}{c|}{0.70 (2721)} & \multicolumn{4}{c|}{0.69 (2721)} & \multicolumn{4}{c}{0.90 (2721)} \\
-Macro Avg& \multicolumn{4}{c|}{0.90 / 0.90 / 0.90 (2721)} & \multicolumn{4}{c|}{0.72 / 0.70 / 0.69 (2721)} & \multicolumn{4}{c|}{0.71 / 0.69 / 0.68 (2721)} & \multicolumn{4}{c}{0.90 / 0.90 / 0.90 (2721)} \\
-Weighted Avg& \multicolumn{4}{c|}{0.90 / 0.90 / 0.90 (2721)} & \multicolumn{4}{c|}{0.72 / 0.70 / 0.69 (2721)} & \multicolumn{4}{c|}{0.71 / 0.69 / 0.68 (2721)} & \multicolumn{4}{c}{0.90 / 0.90 / 0.90 (2721)} \\
+Accuracy & \multicolumn{4}{c|}{0.91 (2743)} & \multicolumn{4}{c|}{0.75 (2743)} & \multicolumn{4}{c|}{0.71 (2743)} & \multicolumn{4}{c|}{0.92 (2743)} & \multicolumn{4}{c}{0.84 (2743)} \\
+Macro Avg & \multicolumn{4}{c|}{0.92/0.91/0.91 (2743)} & \multicolumn{4}{c|}{0.76/0.75/0.74 (2743)} & \multicolumn{4}{c|}{0.73/0.71/0.70 (2743)} & \multicolumn{4}{c|}{0.92/0.92/0.92 (2743)} & \multicolumn{4}{c}{0.85/0.84/0.84 (2743)} \\
+Weighted Avg & \multicolumn{4}{c|}{0.92/0.91/0.91 (2743)} & \multicolumn{4}{c|}{0.77/0.75/0.74 (2743)} & \multicolumn{4}{c|}{0.73/0.71/0.71 (2743)} & \multicolumn{4}{c|}{0.92/0.92/0.92 (2743)} & \multicolumn{4}{c}{0.85/0.84/0.84 (2743)} \\
 \bottomrule
 \end{tabular}
 }
-\end{table}
+\end{table*}
 
-
-
-
-\begin{table}[H]
+\begin{table*}[!t]
 \centering
-\caption{Classification Results for KNN (Original vs. Reconstructed Data)}
+\caption{Classification Results for KNN (Original vs. Reconstructed Data). Accuracy / macro-F1 reported as a single number per block; per-class precision, recall, F1 and support shown above the footer line.}
 \label{tab:knn_classifiers}
 \setlength{\tabcolsep}{1.5pt}
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{l|cccc|cccc|cccc|cccc}
+\begin{tabular}{l|cccc|cccc|cccc|cccc|cccc}
 \toprule
-         & \multicolumn{4}{c|}{Original} & \multicolumn{4}{c|}{RP} & \multicolumn{4}{c|}{MTF} & \multicolumn{4}{c}{GASF} \\
-\cmidrule(lr){2-5} \cmidrule(lr){6-9} \cmidrule(lr){10-13} \cmidrule(lr){14-17}
-Class    & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support \\
+         & \multicolumn{4}{c|}{Original} & \multicolumn{4}{c|}{RP} & \multicolumn{4}{c|}{MTF} & \multicolumn{4}{c|}{GASF} & \multicolumn{4}{c}{GADF} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}\cmidrule(lr){14-17}\cmidrule(lr){18-21}
+Class    & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support \\
 \midrule
-0.0      & 0.75      & 0.49   & 0.59     & 543     & 0.73      & 0.25   & 0.37     & 543     & 0.59      & 0.47   & 0.52     & 543     & 0.75      & 0.49   & 0.59     & 543 \\
-1.0      & 1.00      & 0.77   & 0.87     & 532     & 0.92      & 0.52   & 0.67     & 532     & 0.99      & 0.34   & 0.51     & 532     & 1.00      & 0.77   & 0.87     & 532 \\
-2.0      & 0.54      & 0.05   & 0.09     & 536     & 0.35      & 0.03   & 0.05     & 536     & 0.41      & 0.10   & 0.16     & 536     & 0.53      & 0.05   & 0.09     & 536 \\
-3.0      & 0.79      & 0.95   & 0.86     & 551     & 0.57      & 0.88   & 0.69     & 551     & 0.62      & 0.92   & 0.74     & 551     & 0.79      & 0.95   & 0.86     & 551 \\
-4.0      & 0.41      & 0.92   & 0.57     & 559     & 0.36      & 0.85   & 0.50     & 559     & 0.43      & 0.88   & 0.58     & 559     & 0.41      & 0.92   & 0.57     & 559 \\
+0.0 & 0.74 & 0.48 & 0.58 & 549 & 0.81 & 0.37 & 0.51 & 549 & 0.58 & 0.42 & 0.49 & 549 & 0.74 & 0.48 & 0.58 & 549 & 0.67 & 0.49 & 0.56 & 549 \\
+1.0 & 1.00 & 0.76 & 0.87 & 536 & 1.00 & 0.70 & 0.82 & 536 & 0.99 & 0.32 & 0.48 & 536 & 1.00 & 0.76 & 0.87 & 536 & 1.00 & 0.70 & 0.82 & 536 \\
+2.0 & 0.49 & 0.04 & 0.08 & 539 & 0.44 & 0.07 & 0.13 & 539 & 0.44 & 0.11 & 0.17 & 539 & 0.50 & 0.04 & 0.08 & 539 & 0.51 & 0.05 & 0.09 & 539 \\
+3.0 & 0.81 & 0.94 & 0.87 & 555 & 0.59 & 0.92 & 0.72 & 555 & 0.61 & 0.93 & 0.74 & 555 & 0.81 & 0.94 & 0.87 & 555 & 0.66 & 0.95 & 0.78 & 555 \\
+4.0 & 0.41 & 0.93 & 0.57 & 564 & 0.43 & 0.88 & 0.58 & 564 & 0.42 & 0.88 & 0.57 & 564 & 0.41 & 0.93 & 0.57 & 564 & 0.45 & 0.90 & 0.60 & 564 \\
 \midrule
-Accuracy & \multicolumn{4}{c|}{0.64 (2721)} & \multicolumn{4}{c|}{0.51 (2721)} & \multicolumn{4}{c|}{0.55 (2721)} & \multicolumn{4}{c}{0.64 (2721)} \\
-Macro Avg& \multicolumn{4}{c|}{0.70 / 0.64 / 0.60 (2721)} & \multicolumn{4}{c|}{0.59 / 0.51 / 0.46 (2721)} & \multicolumn{4}{c|}{0.61 / 0.54 / 0.50 (2721)} & \multicolumn{4}{c}{0.70 / 0.64 / 0.60 (2721)} \\
-Weighted Avg& \multicolumn{4}{c|}{0.70 / 0.64 / 0.60 (2721)} & \multicolumn{4}{c|}{0.58 / 0.51 / 0.46 (2721)} & \multicolumn{4}{c|}{0.61 / 0.55 / 0.50 (2721)} & \multicolumn{4}{c}{0.69 / 0.64 / 0.60 (2721)} \\
+Accuracy & \multicolumn{4}{c|}{0.64 (2743)} & \multicolumn{4}{c|}{0.59 (2743)} & \multicolumn{4}{c|}{0.54 (2743)} & \multicolumn{4}{c|}{0.64 (2743)} & \multicolumn{4}{c}{0.62 (2743)} \\
+Macro Avg & \multicolumn{4}{c|}{0.69/0.63/0.59 (2743)} & \multicolumn{4}{c|}{0.65/0.59/0.55 (2743)} & \multicolumn{4}{c|}{0.61/0.53/0.49 (2743)} & \multicolumn{4}{c|}{0.69/0.63/0.59 (2743)} & \multicolumn{4}{c}{0.66/0.62/0.57 (2743)} \\
+Weighted Avg & \multicolumn{4}{c|}{0.69/0.64/0.59 (2743)} & \multicolumn{4}{c|}{0.65/0.59/0.55 (2743)} & \multicolumn{4}{c|}{0.61/0.54/0.49 (2743)} & \multicolumn{4}{c|}{0.69/0.64/0.59 (2743)} & \multicolumn{4}{c}{0.66/0.62/0.57 (2743)} \\
 \bottomrule
 \end{tabular}
 }
-\end{table}
+\end{table*}
 
-\begin{table}[H]
+\begin{table*}[!t]
 \centering
-\caption{Classification Results for CNN (Original vs. Reconstructed Data)}
+\caption{Classification Results for CNN (Original vs. Reconstructed Data). Accuracy / macro-F1 reported as a single number per block; per-class precision, recall, F1 and support shown above the footer line.}
 \label{tab:cnn_classifiers}
 \setlength{\tabcolsep}{1.5pt}
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{l|cccc|cccc|cccc|cccc}
+\begin{tabular}{l|cccc|cccc|cccc|cccc|cccc}
 \toprule
-         & \multicolumn{4}{c|}{Original} & \multicolumn{4}{c|}{RP} & \multicolumn{4}{c|}{MTF} & \multicolumn{4}{c}{GASF} \\
-\cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}\cmidrule(lr){14-17}
-Class    & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support \\
+         & \multicolumn{4}{c|}{Original} & \multicolumn{4}{c|}{RP} & \multicolumn{4}{c|}{MTF} & \multicolumn{4}{c|}{GASF} & \multicolumn{4}{c}{GADF} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}\cmidrule(lr){14-17}\cmidrule(lr){18-21}
+Class    & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support \\
 \midrule
-0.0      & 0.83      & 0.94   & 0.88     & 543     & 0.66      & 0.62   & 0.64     & 543     & 0.59      & 0.61   & 0.60     & 543     & 0.82      & 0.94   & 0.88     & 543 \\
-1.0      & 0.97      & 1.00   & 0.99     & 532     & 0.66      & 0.92   & 0.77     & 532     & 0.56      & 1.00   & 0.72     & 532     & 0.97      & 1.00   & 0.99     & 532 \\
-2.0      & 0.92      & 0.74   & 0.82     & 536     & 0.68      & 0.49   & 0.57     & 536     & 0.67      & 0.28   & 0.39     & 536     & 0.91      & 0.73   & 0.81     & 536 \\
-3.0      & 0.83      & 0.95   & 0.89     & 551     & 0.80      & 0.74   & 0.77     & 551     & 0.88      & 0.84   & 0.86     & 551     & 0.84      & 0.95   & 0.89     & 551 \\
-4.0      & 0.94      & 0.83   & 0.88     & 559     & 0.79      & 0.79   & 0.79     & 559     & 0.92      & 0.77   & 0.84     & 559     & 0.94      & 0.82   & 0.88     & 559 \\
+0.0 & 0.91 & 0.88 & 0.89 & 549 & 0.63 & 0.27 & 0.38 & 549 & 0.57 & 0.35 & 0.43 & 549 & 0.91 & 0.87 & 0.89 & 549 & 0.73 & 0.86 & 0.79 & 549 \\
+1.0 & 1.00 & 0.98 & 0.99 & 536 & 0.78 & 0.98 & 0.87 & 536 & 0.65 & 1.00 & 0.79 & 536 & 1.00 & 0.98 & 0.99 & 536 & 1.00 & 0.97 & 0.98 & 536 \\
+2.0 & 0.83 & 0.93 & 0.88 & 539 & 0.52 & 0.79 & 0.62 & 539 & 0.49 & 0.62 & 0.55 & 539 & 0.83 & 0.94 & 0.88 & 539 & 0.74 & 0.75 & 0.74 & 539 \\
+3.0 & 0.86 & 0.94 & 0.90 & 555 & 0.86 & 0.89 & 0.88 & 555 & 0.88 & 0.82 & 0.85 & 555 & 0.86 & 0.94 & 0.90 & 555 & 0.85 & 0.90 & 0.87 & 555 \\
+4.0 & 0.98 & 0.82 & 0.89 & 564 & 0.97 & 0.77 & 0.86 & 564 & 0.99 & 0.67 & 0.80 & 564 & 0.98 & 0.82 & 0.89 & 564 & 0.98 & 0.77 & 0.86 & 564 \\
 \midrule
-Accuracy & \multicolumn{4}{c|}{0.89 (2721)} & \multicolumn{4}{c|}{0.71 (2721)} & \multicolumn{4}{c|}{0.70 (2721)} & \multicolumn{4}{c}{0.89 (2721)} \\
-Macro Avg& \multicolumn{4}{c|}{0.90/0.89/0.89 (2721)} & \multicolumn{4}{c|}{0.72/0.71/0.71 (2721)} & \multicolumn{4}{c|}{0.73/0.70/0.68 (2721)} & \multicolumn{4}{c}{0.90/0.89/0.89 (2721)} \\
-Weighted Avg& \multicolumn{4}{c|}{0.90/0.89/0.89 (2721)} & \multicolumn{4}{c|}{0.72/0.71/0.71 (2721)} & \multicolumn{4}{c|}{0.73/0.70/0.68 (2721)} & \multicolumn{4}{c}{0.90/0.89/0.89 (2721)} \\
+Accuracy & \multicolumn{4}{c|}{0.91 (2743)} & \multicolumn{4}{c|}{0.74 (2743)} & \multicolumn{4}{c|}{0.69 (2743)} & \multicolumn{4}{c|}{0.91 (2743)} & \multicolumn{4}{c}{0.85 (2743)} \\
+Macro Avg & \multicolumn{4}{c|}{0.91/0.91/0.91 (2743)} & \multicolumn{4}{c|}{0.75/0.74/0.72 (2743)} & \multicolumn{4}{c|}{0.72/0.69/0.68 (2743)} & \multicolumn{4}{c|}{0.91/0.91/0.91 (2743)} & \multicolumn{4}{c}{0.86/0.85/0.85 (2743)} \\
+Weighted Avg & \multicolumn{4}{c|}{0.92/0.91/0.91 (2743)} & \multicolumn{4}{c|}{0.75/0.74/0.72 (2743)} & \multicolumn{4}{c|}{0.72/0.69/0.68 (2743)} & \multicolumn{4}{c|}{0.91/0.91/0.91 (2743)} & \multicolumn{4}{c}{0.86/0.85/0.85 (2743)} \\
 \bottomrule
 \end{tabular}
 }
-\end{table}
-\begin{table}[H]
+\end{table*}
+
+\begin{table*}[!t]
 \centering
-\caption{Classification Results for Random Forest (Original vs. Reconstructed Data)}
+\caption{Classification Results for Random Forest (Original vs. Reconstructed Data). Accuracy / macro-F1 reported as a single number per block; per-class precision, recall, F1 and support shown above the footer line.}
 \label{tab:rf_classifiers}
 \setlength{\tabcolsep}{1.5pt}
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{l|cccc|cccc|cccc|cccc}
+\begin{tabular}{l|cccc|cccc|cccc|cccc|cccc}
 \toprule
-         & \multicolumn{4}{c|}{Original} & \multicolumn{4}{c|}{RP} & \multicolumn{4}{c|}{MTF} & \multicolumn{4}{c}{GASF} \\
-\cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}\cmidrule(lr){14-17}
-Class    & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support \\
+         & \multicolumn{4}{c|}{Original} & \multicolumn{4}{c|}{RP} & \multicolumn{4}{c|}{MTF} & \multicolumn{4}{c|}{GASF} & \multicolumn{4}{c}{GADF} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}\cmidrule(lr){14-17}\cmidrule(lr){18-21}
+Class    & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support \\
 \midrule
-0.0      & 0.84      & 0.81   & 0.82   & 543     & 0.69      & 0.19   & 0.30   & 543     & 0.57      & 0.35   & 0.43   & 543     & 0.84      & 0.80   & 0.82   & 543 \\
-1.0      & 0.94      & 0.99   & 0.96   & 532     & 0.70      & 0.86   & 0.77   & 532     & 0.55      & 1.00   & 0.71   & 532     & 0.94      & 0.99   & 0.96   & 532 \\
-2.0      & 0.78      & 0.80   & 0.79   & 536     & 0.45      & 0.70   & 0.54   & 536     & 0.48      & 0.46   & 0.47   & 536     & 0.77      & 0.81   & 0.79   & 536 \\
-3.0      & 0.90      & 0.94   & 0.92   & 551     & 0.80      & 0.84   & 0.82   & 551     & 0.94      & 0.84   & 0.89   & 551     & 0.91      & 0.94   & 0.92   & 551 \\
-4.0      & 0.96      & 0.88   & 0.92   & 559     & 0.83      & 0.74   & 0.78   & 559     & 0.95      & 0.71   & 0.81   & 559     & 0.96      & 0.87   & 0.92   & 559 \\
+0.0 & 0.85 & 0.78 & 0.82 & 549 & 0.69 & 0.13 & 0.22 & 549 & 0.65 & 0.31 & 0.42 & 549 & 0.85 & 0.78 & 0.81 & 549 & 0.61 & 0.77 & 0.68 & 549 \\
+1.0 & 0.95 & 0.98 & 0.97 & 536 & 0.64 & 0.90 & 0.75 & 536 & 0.54 & 1.00 & 0.70 & 536 & 0.95 & 0.98 & 0.97 & 536 & 0.91 & 0.94 & 0.92 & 536 \\
+2.0 & 0.77 & 0.82 & 0.79 & 539 & 0.44 & 0.64 & 0.52 & 539 & 0.47 & 0.49 & 0.48 & 539 & 0.77 & 0.81 & 0.79 & 539 & 0.65 & 0.48 & 0.55 & 539 \\
+3.0 & 0.90 & 0.95 & 0.92 & 555 & 0.86 & 0.88 & 0.87 & 555 & 0.93 & 0.86 & 0.90 & 555 & 0.90 & 0.94 & 0.92 & 555 & 0.86 & 0.92 & 0.89 & 555 \\
+4.0 & 0.97 & 0.91 & 0.94 & 564 & 0.84 & 0.79 & 0.81 & 564 & 0.95 & 0.72 & 0.82 & 564 & 0.97 & 0.91 & 0.94 & 564 & 0.91 & 0.82 & 0.86 & 564 \\
 \midrule
-Accuracy & \multicolumn{4}{c|}{0.88 (2721)} & \multicolumn{4}{c|}{0.67 (2721)} & \multicolumn{4}{c|}{0.67 (2721)} & \multicolumn{4}{c}{0.88 (2721)} \\
-Macro Avg& \multicolumn{4}{c|}{0.88/0.88/0.88 (2721)} & \multicolumn{4}{c|}{0.69/0.67/0.64 (2721)} & \multicolumn{4}{c|}{0.70/0.67/0.66 (2721)} & \multicolumn{4}{c}{0.88/0.88/0.88 (2721)} \\
-Weighted Avg& \multicolumn{4}{c|}{0.88/0.88/0.88 (2721)} & \multicolumn{4}{c|}{0.70/0.67/0.64 (2721)} & \multicolumn{4}{c|}{0.70/0.67/0.66 (2721)} & \multicolumn{4}{c}{0.88/0.88/0.88 (2721)} \\
+Accuracy & \multicolumn{4}{c|}{0.89 (2743)} & \multicolumn{4}{c|}{0.67 (2743)} & \multicolumn{4}{c|}{0.68 (2743)} & \multicolumn{4}{c|}{0.89 (2743)} & \multicolumn{4}{c}{0.79 (2743)} \\
+Macro Avg & \multicolumn{4}{c|}{0.89/0.89/0.89 (2743)} & \multicolumn{4}{c|}{0.69/0.67/0.63 (2743)} & \multicolumn{4}{c|}{0.71/0.68/0.66 (2743)} & \multicolumn{4}{c|}{0.89/0.89/0.89 (2743)} & \multicolumn{4}{c}{0.79/0.79/0.78 (2743)} \\
+Weighted Avg & \multicolumn{4}{c|}{0.89/0.89/0.89 (2743)} & \multicolumn{4}{c|}{0.70/0.67/0.64 (2743)} & \multicolumn{4}{c|}{0.71/0.68/0.67 (2743)} & \multicolumn{4}{c|}{0.89/0.89/0.89 (2743)} & \multicolumn{4}{c}{0.79/0.79/0.78 (2743)} \\
 \bottomrule
 \end{tabular}
 }
-\end{table}
+\end{table*}
 
-\begin{table}[H]
+\begin{table*}[!t]
 \centering
-\caption{Classification Results for Support Vector Machine (Original vs. Reconstructed Data)}
+\caption{Classification Results for Support Vector Machine (Original vs. Reconstructed Data). Accuracy / macro-F1 reported as a single number per block; per-class precision, recall, F1 and support shown above the footer line.}
 \label{tab:svm_classifiers}
 \setlength{\tabcolsep}{1.5pt}
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{l|cccc|cccc|cccc|cccc}
+\begin{tabular}{l|cccc|cccc|cccc|cccc|cccc}
 \toprule
-         & \multicolumn{4}{c|}{Original} & \multicolumn{4}{c|}{RP} & \multicolumn{4}{c|}{MTF} & \multicolumn{4}{c}{GASF} \\
-\cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}\cmidrule(lr){14-17}
-Class    & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support \\
+         & \multicolumn{4}{c|}{Original} & \multicolumn{4}{c|}{RP} & \multicolumn{4}{c|}{MTF} & \multicolumn{4}{c|}{GASF} & \multicolumn{4}{c}{GADF} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}\cmidrule(lr){14-17}\cmidrule(lr){18-21}
+Class    & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support \\
 \midrule
-0.0      & 0.76      & 0.65   & 0.70     & 543     & 0.57      & 0.11   & 0.19     & 543     & 0.57      & 0.62   & 0.59     & 543     & 0.76      & 0.65   & 0.70     & 543 \\
-1.0      & 0.97      & 0.98   & 0.97     & 532     & 0.75      & 0.89   & 0.82     & 532     & 0.53      & 1.00   & 0.69     & 532     & 0.97      & 0.98   & 0.97     & 532 \\
-2.0      & 0.65      & 0.70   & 0.67     & 536     & 0.45      & 0.70   & 0.54     & 536     & 0.39      & 0.11   & 0.17     & 536     & 0.65      & 0.69   & 0.67     & 536 \\
-3.0      & 0.82      & 0.84   & 0.83     & 551     & 0.72      & 0.76   & 0.74     & 551     & 0.85      & 0.77   & 0.81     & 551     & 0.82      & 0.84   & 0.83     & 551 \\
-4.0      & 0.79      & 0.82   & 0.80     & 559     & 0.43      & 0.77   & 0.55     & 559     & 0.87      & 0.73   & 0.79     & 559     & 0.78      & 0.82   & 0.80     & 559 \\
+0.0 & 0.77 & 0.64 & 0.70 & 549 & 0.63 & 0.10 & 0.17 & 549 & 0.54 & 0.60 & 0.57 & 549 & 0.77 & 0.64 & 0.70 & 549 & 0.51 & 0.79 & 0.62 & 549 \\
+1.0 & 0.96 & 0.97 & 0.97 & 536 & 0.72 & 0.99 & 0.84 & 536 & 0.53 & 1.00 & 0.69 & 536 & 0.96 & 0.97 & 0.97 & 536 & 0.89 & 0.98 & 0.93 & 536 \\
+2.0 & 0.64 & 0.67 & 0.66 & 539 & 0.50 & 0.44 & 0.47 & 539 & 0.31 & 0.08 & 0.12 & 539 & 0.64 & 0.68 & 0.66 & 539 & 0.55 & 0.18 & 0.27 & 539 \\
+3.0 & 0.83 & 0.83 & 0.83 & 555 & 0.83 & 0.79 & 0.81 & 555 & 0.85 & 0.77 & 0.81 & 555 & 0.83 & 0.83 & 0.83 & 555 & 0.83 & 0.82 & 0.82 & 555 \\
+4.0 & 0.76 & 0.84 & 0.80 & 564 & 0.51 & 0.82 & 0.63 & 564 & 0.87 & 0.74 & 0.80 & 564 & 0.77 & 0.84 & 0.80 & 564 & 0.77 & 0.81 & 0.79 & 564 \\
 \midrule
-Accuracy & \multicolumn{4}{c|}{0.80 (2721)} & \multicolumn{4}{c|}{0.57 (2721)} & \multicolumn{4}{c|}{0.65 (2721)} & \multicolumn{4}{c}{0.80 (2721)} \\
-Macro Avg& \multicolumn{4}{c|}{0.80/0.80/0.79 (2721)} & \multicolumn{4}{c|}{0.58/0.65/0.57 (2721)} & \multicolumn{4}{c|}{0.64/0.65/0.61 (2721)} & \multicolumn{4}{c}{0.80/0.80/0.79 (2721)} \\
-Weighted Avg& \multicolumn{4}{c|}{0.80/0.80/0.79 (2721)} & \multicolumn{4}{c|}{0.58/0.65/0.57 (2721)} & \multicolumn{4}{c|}{0.65/0.65/0.61 (2721)} & \multicolumn{4}{c}{0.80/0.80/0.79 (2721)} \\
+Accuracy & \multicolumn{4}{c|}{0.79 (2743)} & \multicolumn{4}{c|}{0.63 (2743)} & \multicolumn{4}{c|}{0.64 (2743)} & \multicolumn{4}{c|}{0.79 (2743)} & \multicolumn{4}{c}{0.72 (2743)} \\
+Macro Avg & \multicolumn{4}{c|}{0.79/0.79/0.79 (2743)} & \multicolumn{4}{c|}{0.64/0.63/0.58 (2743)} & \multicolumn{4}{c|}{0.62/0.64/0.60 (2743)} & \multicolumn{4}{c|}{0.79/0.79/0.79 (2743)} & \multicolumn{4}{c}{0.71/0.71/0.69 (2743)} \\
+Weighted Avg & \multicolumn{4}{c|}{0.79/0.79/0.79 (2743)} & \multicolumn{4}{c|}{0.64/0.63/0.58 (2743)} & \multicolumn{4}{c|}{0.62/0.64/0.60 (2743)} & \multicolumn{4}{c|}{0.79/0.79/0.79 (2743)} & \multicolumn{4}{c}{0.71/0.72/0.69 (2743)} \\
 \bottomrule
 \end{tabular}
 }
-\end{table}
-\begin{table}[H]
+\end{table*}
+
+\begin{table*}[!t]
 \centering
-\caption{Classification Results for LSTM (Original vs. Reconstructed Data)}
+\caption{Classification Results for LSTM (Original vs. Reconstructed Data). Accuracy / macro-F1 reported as a single number per block; per-class precision, recall, F1 and support shown above the footer line.}
 \label{tab:lstm_classifiers}
 \setlength{\tabcolsep}{1.5pt}
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{l|cccc|cccc|cccc|cccc}
+\begin{tabular}{l|cccc|cccc|cccc|cccc|cccc}
 \toprule
-         & \multicolumn{4}{c|}{Original} & \multicolumn{4}{c|}{RP} & \multicolumn{4}{c|}{MTF} & \multicolumn{4}{c}{GASF} \\
-\cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}\cmidrule(lr){14-17}
-Class    & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support \\
+         & \multicolumn{4}{c|}{Original} & \multicolumn{4}{c|}{RP} & \multicolumn{4}{c|}{MTF} & \multicolumn{4}{c|}{GASF} & \multicolumn{4}{c}{GADF} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}\cmidrule(lr){14-17}\cmidrule(lr){18-21}
+Class    & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support & Precision & Recall & F1-score & Support \\
 \midrule
-0.0      & 0.77 & 0.86 & 0.82 & 543 & 0.59 & 0.22 & 0.32 & 543 & 0.63 & 0.50 & 0.56 & 543 & 0.78 & 0.86 & 0.82 & 543 \\
-1.0      & 0.99 & 0.99 & 0.99 & 532 & 0.68 & 0.88 & 0.76 & 532 & 0.59 & 1.00 & 0.74 & 532 & 0.99 & 0.99 & 0.99 & 532 \\
-2.0      & 0.84 & 0.71 & 0.77 & 536 & 0.43 & 0.60 & 0.50 & 536 & 0.56 & 0.43 & 0.49 & 536 & 0.84 & 0.71 & 0.77 & 536 \\
-3.0      & 0.87 & 0.85 & 0.86 & 551 & 0.79 & 0.77 & 0.78 & 551 & 0.91 & 0.80 & 0.85 & 551 & 0.87 & 0.85 & 0.86 & 551 \\
-4.0      & 0.83 & 0.87 & 0.85 & 559 & 0.79 & 0.75 & 0.77 & 559 & 0.89 & 0.77 & 0.83 & 559 & 0.83 & 0.87 & 0.85 & 559 \\
+0.0 & 0.77 & 0.90 & 0.83 & 549 & 0.69 & 0.26 & 0.37 & 549 & 0.64 & 0.47 & 0.54 & 549 & 0.77 & 0.90 & 0.83 & 549 & 0.63 & 0.82 & 0.71 & 549 \\
+1.0 & 0.99 & 0.98 & 0.98 & 536 & 0.72 & 0.92 & 0.81 & 536 & 0.60 & 0.99 & 0.74 & 536 & 0.99 & 0.98 & 0.99 & 536 & 0.96 & 0.90 & 0.93 & 536 \\
+2.0 & 0.85 & 0.70 & 0.77 & 539 & 0.48 & 0.54 & 0.51 & 539 & 0.57 & 0.45 & 0.50 & 539 & 0.86 & 0.70 & 0.77 & 539 & 0.64 & 0.45 & 0.53 & 539 \\
+3.0 & 0.81 & 0.93 & 0.87 & 555 & 0.63 & 0.92 & 0.75 & 555 & 0.80 & 0.89 & 0.84 & 555 & 0.81 & 0.93 & 0.87 & 555 & 0.77 & 0.93 & 0.84 & 555 \\
+4.0 & 0.94 & 0.81 & 0.87 & 564 & 0.93 & 0.74 & 0.82 & 564 & 0.97 & 0.71 & 0.82 & 564 & 0.94 & 0.81 & 0.87 & 564 & 0.91 & 0.77 & 0.83 & 564 \\
 \midrule
-Accuracy & \multicolumn{4}{c|}{0.86 (2721)} & \multicolumn{4}{c|}{0.65 (2721)} & \multicolumn{4}{c|}{0.70 (2721)} & \multicolumn{4}{c}{0.86 (2721)} \\
-Macro Avg & \multicolumn{4}{c|}{0.86/0.86/0.86 (2721)} & \multicolumn{4}{c|}{0.66/0.64/0.63 (2721)} & \multicolumn{4}{c|}{0.72/0.70/0.69 (2721)} & \multicolumn{4}{c}{0.86/0.86/0.86 (2721)} \\
-Weighted Avg & \multicolumn{4}{c|}{0.86/0.86/0.86 (2721)} & \multicolumn{4}{c|}{0.66/0.65/0.63 (2721)} & \multicolumn{4}{c|}{0.72/0.70/0.70 (2721)} & \multicolumn{4}{c}{0.86/0.86/0.86 (2721)} \\
+Accuracy & \multicolumn{4}{c|}{0.87 (2743)} & \multicolumn{4}{c|}{0.67 (2743)} & \multicolumn{4}{c|}{0.70 (2743)} & \multicolumn{4}{c|}{0.87 (2743)} & \multicolumn{4}{c}{0.77 (2743)} \\
+Macro Avg & \multicolumn{4}{c|}{0.87/0.87/0.87 (2743)} & \multicolumn{4}{c|}{0.69/0.67/0.65 (2743)} & \multicolumn{4}{c|}{0.71/0.70/0.69 (2743)} & \multicolumn{4}{c|}{0.87/0.87/0.87 (2743)} & \multicolumn{4}{c}{0.78/0.77/0.77 (2743)} \\
+Weighted Avg & \multicolumn{4}{c|}{0.87/0.87/0.86 (2743)} & \multicolumn{4}{c|}{0.69/0.67/0.65 (2743)} & \multicolumn{4}{c|}{0.72/0.70/0.69 (2743)} & \multicolumn{4}{c|}{0.87/0.87/0.87 (2743)} & \multicolumn{4}{c}{0.78/0.77/0.77 (2743)} \\
 \bottomrule
 \end{tabular}
 }
-\end{table}
+\end{table*}
 
 \newpage
 \twocolumn
