@@ -1,4 +1,4 @@
-#!C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/venv/bin/python3
+#!/usr/bin/env python3
 import os
 import numpy as np
 import src.ts_plots as plt
@@ -6,6 +6,7 @@ import src.activity_data as act
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report
 import joblib
+from src.config import DEFAULT_DATA_DIR
 
 def transformary(y):
     _y = np.ones(len(y)) * -1
@@ -34,7 +35,7 @@ def main():
     stype = "GAF"  # Modifica según la técnica que quieras evaluar
 
     # Directorio base de los datos
-    dataset_folder = "C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/"
+    dataset_folder = DEFAULT_DATA_DIR
 
     # Rutas de los splits de entrenamiento y validación que se guardaron previamente
     train_data_path = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train/training_data.npy")
@@ -84,6 +85,7 @@ def main():
     data_folder_rp = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0")
     data_folder_gaf = os.path.join(dataset_folder, "tseries/GAF/sampling_loto/3-fold/fold-0")
     data_folder_mtf = os.path.join(dataset_folder, "tseries/MTF/sampling_loto/3-fold/fold-0")
+    data_folder_gadf = os.path.join(dataset_folder, "tseries/GADF/sampling_loto/3-fold/fold-0")
     
     if stype == "RP":
         rec_path = os.path.join(data_folder_rp, "test", "X_all_rec.npy")
@@ -101,6 +103,11 @@ def main():
         X_all_mtf = np.load(mtf_path)
         X_all_mtf = np.transpose(X_all_mtf, (0, 2, 1))
         X_recon_flat = X_all_mtf.reshape(X_all_mtf.shape[0], -1)
+    elif stype == "GADF":
+        gadf_path = os.path.join(data_folder_gadf, "test", "X_all_gadf.npy")
+        X_all_gadf = np.load(gadf_path)
+        X_all_gadf = np.transpose(X_all_gadf, (0, 2, 1))
+        X_recon_flat = X_all_gadf.reshape(X_all_gadf.shape[0], -1)
     else:
         raise ValueError("stype desconocido")
     
