@@ -34,7 +34,13 @@ def get_time_setup(DATASET_NAME="WISDM"):
     else:
         DATASET_HZ = 32
 
-    TIME_STEPS = int(DATASET_HZ * TIME_SECS) + 1  # +1 por los recurrence plots
+    # Window length in samples. We use a power-of-two (128 for WISDM @ 20 Hz)
+    # because most CNN/RNN tooling assumes that, and because it keeps the
+    # final RP image at (N-1) x (N-1) = 127 x 127 while GAF/GADF/MTF stay at
+    # N x N = 128 x 128. The old "+1 to make RPs 128x128" workaround is gone
+    # — see `src.recurrence_plots.fix_rotationscale`, which now augments the
+    # MDS-recovered series (N-1 samples) back to N by appending the mean.
+    TIME_STEPS = int(DATASET_HZ * TIME_SECS)
     STEP = TIME_STEPS  # without overlapping; 50% overlaps == TIME_STEPS//2
     print("dataset:", DATASET_NAME, "Sampling rate:", DATASET_HZ, "samples per window:", TIME_STEPS)
     return TIME_STEPS, STEP
