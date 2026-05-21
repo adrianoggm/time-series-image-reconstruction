@@ -75,6 +75,7 @@ __pycache__
 *.pth
 *.egg-info
 data
+wisdm+smartphone+and+smartwatch+activity+and+biometrics+dataset.zip
 demo
 *.csv
 .env
