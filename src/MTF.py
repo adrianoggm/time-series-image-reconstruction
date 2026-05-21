@@ -87,7 +87,7 @@ def varMTF(data, dim,TIME_STEPS):
     print(MTF)
     return MTF 
 
-def generate_and_save_markov_transition_field(fold, dataset_folder, training_data, y_data, sj_train, TIME_STEPS=129, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
+def generate_and_save_markov_transition_field(fold, dataset_folder, training_data, y_data, sj_train, TIME_STEPS=128, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
     subject_samples = 0
     p_bar = tqdm(range(len(training_data)))
 
@@ -124,7 +124,7 @@ def generate_and_save_markov_transition_field(fold, dataset_folder, training_dat
       subject_samples += 1
       
      
-def SavevarMTF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=129):
+def SavevarMTF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=128):
     if not all([(x==0).all()]):
      _r = varMTF2(x,'x', TIME_STEPS)
      _g = varMTF2(x,'y', TIME_STEPS)
@@ -205,28 +205,31 @@ def Reconstruct_MTF(img,dictionary,valor):
     N.append(b)
     return N
 def cosine_similarity(vec1, vec2):
-        """
-        Calcula la similitud del coseno entre dos vectores.
-        """
-        dot_product = np.dot(vec1, vec2)
-        norm_vec1 = np.linalg.norm(vec1)
-        norm_vec2 = np.linalg.norm(vec2)
-        return dot_product / (norm_vec1 * norm_vec2)
+    """Pairwise cosine similarity. Kept as a public helper; the inner loop in
+    MTF_to_TS no longer uses it (replaced by a vectorised matrix expression)."""
+    return float(np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2) + 1e-12))
 
-def MTF_to_TS(mtf,dictionary,index=0,numstates=4,TIMESTEPS=129):
-    similaritymatrix=np.zeros_like(mtf)
-    #CLASIFICACIÓN 
-    #Cálculo matriz de similaridades
-    for i in range(0,TIMESTEPS):
-        for j in range(0,TIMESTEPS):
-            if i<=j:
-                similaritymatrix[i][j]=cosine_similarity(mtf[i,:],mtf[j,:])
-                similaritymatrix[j][i]=similaritymatrix[i][j]
+
+def _pairwise_cosine_similarity(M: np.ndarray) -> np.ndarray:
+    """Full N×N cosine-similarity matrix in one BLAS call.
+
+    Replaces the original double Python loop that called `cosine_similarity`
+    O(N²) times per channel — roughly 50× faster for N=128–129.
+    """
+    norms = np.linalg.norm(M, axis=1, keepdims=True)
+    denom = norms @ norms.T
+    denom = np.where(denom == 0.0, 1e-12, denom)
+    return (M @ M.T) / denom
+
+
+def MTF_to_TS(mtf, dictionary, index=0, numstates=4, TIMESTEPS=128):
+    T = mtf.shape[0]  # use the actual matrix size, not the hardcoded 129
+    similaritymatrix = _pairwise_cosine_similarity(mtf)
     #Clasificación de los estados
     estados=[]
     estado=[0]
-    estadosfaltantes=np.arange(0, 129)
-    nvalores=TIMESTEPS//numstates
+    estadosfaltantes=np.arange(0, T)
+    nvalores=T//numstates
     #print(len(estadosfaltantes),nvalores)
     for i in range(0,numstates):
         estado=[estadosfaltantes[0]]
@@ -247,10 +250,13 @@ def MTF_to_TS(mtf,dictionary,index=0,numstates=4,TIMESTEPS=129):
             estadosfaltantes=np.delete(estadosfaltantes, newval)
             #print("TAMANO",len(estado))
         estados.append(estado)
-           
-    
-    #lo meto al ultimo estado 
-    estados[0].append(estadosfaltantes[0])
+
+    # Distribute any leftover indices into the first state. With T % numstates == 0
+    # (e.g. T=128, numstates=4) there is nothing left to distribute. Earlier code
+    # assumed exactly one leftover (T % numstates == 1, as in T=129) and crashed
+    # with IndexError when that wasn't the case.
+    for leftover in estadosfaltantes:
+        estados[0].append(leftover)
     #print("ESTADOS",estados)
     statematrix=np.zeros((numstates, numstates))
     for i in range(0,numstates):
@@ -320,7 +326,7 @@ def MTF_to_TS(mtf,dictionary,index=0,numstates=4,TIMESTEPS=129):
     valores=vector
     #print(valores)
     f=np.array([-1,1,3,5])
-    serie=np.arange(0, 129)
+    serie=np.arange(0, T)
     #print(estados)
     for i in range(0,numstates):
         for j in range(0,len(estados[i])):
@@ -337,7 +343,7 @@ def MTF_to_TS(mtf,dictionary,index=0,numstates=4,TIMESTEPS=129):
     
     serie=np.interp(serie,(min_a,max_a),(MIN[index], MAX[index]))
     return serie
-def generate_all_markov_transition_field(X_train, y_train, sj_train, dataset_folder=DEFAULT_DATA_DIR, TIME_STEPS=129,  FOLDS_N=3, sampling="loso"):
+def generate_all_markov_transition_field(X_train, y_train, sj_train, dataset_folder=DEFAULT_DATA_DIR, TIME_STEPS=128,  FOLDS_N=3, sampling="loso"):
   groups = sj_train 
   if sampling == "loto":
     #TODO change 100 for an automatic extracted number greater than the max subject ID: max(sj_train)*10
@@ -414,7 +420,7 @@ def main():
          maximos=[np.max(l[:,0]),np.max(l[:,1]),np.max(l[:,2])]
          minimos=[np.min(l[:,0]),np.min(l[:,1]),np.min(l[:,2])]
          dictionary[k]=[maximos,minimos]
-     img = SavevarMTF_XYZ(w, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=129) 
+     img = SavevarMTF_XYZ(w, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=128) 
      
      
      

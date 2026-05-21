@@ -13,7 +13,7 @@ from sklearn.model_selection import StratifiedGroupKFold, GroupKFold
 
 from src.config import DEFAULT_DATA_DIR
 
-def generate_and_save_images(fold, dataset_folder, training_data, y_data, sj_train, TIME_STEPS=129, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso",image_type="RP"):
+def generate_and_save_images(fold, dataset_folder, training_data, y_data, sj_train, TIME_STEPS=128, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso",image_type="RP"):
     subject_samples = 0
     p_bar = tqdm(range(len(training_data)))
 
@@ -73,7 +73,7 @@ def generate_and_save_images(fold, dataset_folder, training_data, y_data, sj_tra
 
       subject_samples += 1
 
-def generate_all_images(X_train, y_train, sj_train, dataset_folder=DEFAULT_DATA_DIR, TIME_STEPS=129,  FOLDS_N=3, sampling="loso",imagetype="RP"):
+def generate_all_images(X_train, y_train, sj_train, dataset_folder=DEFAULT_DATA_DIR, TIME_STEPS=128,  FOLDS_N=3, sampling="loso",imagetype="RP"):
   name=imagetype
   if(name=="RP"):
      name="recurrence_plot"

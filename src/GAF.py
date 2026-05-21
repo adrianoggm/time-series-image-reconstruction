@@ -111,7 +111,7 @@ def RGBfromGAFMatrix_of_XYZ(X,Y,Z):
     return newImage
 
 
-def SavevarGAF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=129):
+def SavevarGAF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=128):
     if not all([(x==0).all()]):
      _r = varGAF(x,'x', TIME_STEPS)
      _g = varGAF(x,'y', TIME_STEPS)

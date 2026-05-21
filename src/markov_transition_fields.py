@@ -46,7 +46,7 @@ def NormalizeMatrix_Adri(_r):
             _normalizedRP[i][j] = (_r[i][j]-_min)/_max_min
     
     return _normalizedRP
-def varRP2(data, TIME_STEPS=129):#dim:=x,y,z
+def varRP2(data, TIME_STEPS=128):#dim:=x,y,z
     x = data
     
     
@@ -109,7 +109,7 @@ def RGBfromMTFMatrix_of_XYZ(X,Y,Z):
     return newImage
 
 
-def SavevarMTF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=129):
+def SavevarMTF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=128):
     if not all([(x==0).all()]):
      _r = varMTF2(x,'x', TIME_STEPS)
      _g = varMTF2(x,'y', TIME_STEPS)
@@ -156,7 +156,7 @@ def SavevarMTF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, sav
   
 
 
-def generate_and_save_markov_transition_field(fold, dataset_folder, training_data, y_data, sj_train, TIME_STEPS=129, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
+def generate_and_save_markov_transition_field(fold, dataset_folder, training_data, y_data, sj_train, TIME_STEPS=128, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
     subject_samples = 0
     p_bar = tqdm(range(len(training_data)))
 
@@ -195,7 +195,7 @@ def generate_and_save_markov_transition_field(fold, dataset_folder, training_dat
      
 
 
-def generate_all_markov_transition_field(X_train, y_train, sj_train, dataset_folder=DEFAULT_DATA_DIR, TIME_STEPS=129,  FOLDS_N=3, sampling="loso"):
+def generate_all_markov_transition_field(X_train, y_train, sj_train, dataset_folder=DEFAULT_DATA_DIR, TIME_STEPS=128,  FOLDS_N=3, sampling="loso"):
   groups = sj_train 
   if sampling == "loto":
     #TODO change 100 for an automatic extracted number greater than the max subject ID: max(sj_train)*10

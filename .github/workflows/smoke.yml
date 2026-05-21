@@ -77,7 +77,7 @@ jobs:
           from src.activity_data import get_time_setup
           from src.config import DEFAULT_DATA_DIR
           steps, step = get_time_setup('WISDM')
-          assert steps == 129 and step == 129, (steps, step)
+          assert steps == 128 and step == 128, (steps, step)
           assert DEFAULT_DATA_DIR.endswith(('/', '\\\\')), DEFAULT_DATA_DIR
           print('time setup:', steps, step)
           print('data dir:', DEFAULT_DATA_DIR)
