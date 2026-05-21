@@ -1203,6 +1203,23 @@ Before evaluating reconstructions, we first test whether each encoding visually 
     \centering
     \begin{minipage}[b]{0.4\linewidth}
         \centering
+        \includegraphics[width=\linewidth]{images/0x0gadf.png}
+        \subfigtext{(a) Original}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[b]{0.4\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/1600x0gadfINV.png}
+        \subfigtext{(b) Inverted}
+    \end{minipage}
+    \caption{Gramian Angular Difference Field (GADF) images: original vs.\ inverted.}
+    \label{fig:INVGADF}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[b]{0.4\linewidth}
+        \centering
         \includegraphics[width=\linewidth]{images/0x0mtf.png}
         \subfigtext{(a) Original}
     \end{minipage}
@@ -1215,7 +1232,8 @@ Before evaluating reconstructions, we first test whether each encoding visually 
     \caption{Markov Transition Field (MTF) images: original vs.\ inverted.}
     \label{fig:INVMTF}
 \end{figure}
-As illustrated in Figure \ref{fig:INVRP} for the Recurrence Plot (RP) and in Figure \ref{fig:INVGASF} for the Gramian Angular Summation Field (GASF), the original and inverted time series produce distinctly different images. Conversely, as shown in Figure \ref{fig:INVMTF}, the Markov Transition Field (MTF) yields identical representations for both the original and inverted series, failing to capture their inversion-specific differences.
+
+As illustrated in Figures~\ref{fig:INVRP} (RP) and~\ref{fig:INVGASF} (GASF), the original and inverted time series produce distinctly different images. The same holds for the Gramian Angular Difference Field (Figure~\ref{fig:INVGADF}): negating the input flips the sign of $\sin(\phi_i-\phi_j)$, which after normalisation appears as a contrast inversion of the GADF image. Conversely, as shown in Figure~\ref{fig:INVMTF}, the Markov Transition Field (MTF) yields identical representations for both the original and inverted series, failing to capture their inversion-specific differences. This is a direct consequence of MTF being driven by quantile bin transitions, which are invariant under a global sign flip.
 
 
 \subsection{Evaluation Design}
@@ -1327,28 +1345,31 @@ Thus the full data matrix is
 \cos(t_{N-1}) & \sin(t_{N-1}) & \sin(t_{N-1})-\cos(t_{N-1})
 \end{bmatrix}.
 \]
-This three-dimensional signal, composed of a pure cosine channel, a pure sine channel, and their difference, serves as a controlled sanity check for the RP, GASF, and MTF reconstructions. It is not intended to represent the full WISDM distribution; instead, it provides a visually interpretable case where phase, amplitude, and orientation errors are easy to detect. To keep the evidence separated, every figure in this subsection refers only to the artificial control signal. Figure \ref{fig:artificial_encodings} shows the image encodings of the three artificial channels under each technique:
+This three-dimensional signal, composed of a pure cosine channel, a pure sine channel, and their difference, serves as a controlled sanity check for the RP, GASF, GADF, and MTF reconstructions. It is not intended to represent the full WISDM distribution; instead, it provides a visually interpretable case where phase, amplitude, and orientation errors are easy to detect. To keep the evidence separated, every figure in this subsection refers only to the artificial control signal. Figure~\ref{fig:artificial_encodings} shows the image encodings of the three artificial channels under each of the four techniques (RP is $127\times127$ because of the $N-1$ pair embedding; the others are $128\times128$).
 
 \begin{figure}[H]
     \centering
-    \begin{minipage}[b]{0.32\linewidth}
+    \begin{minipage}[b]{0.24\linewidth}
         \centering
         \includegraphics[width=\linewidth]{images/COSRP.png}
         \subfigtext{(a) RP}
-    \end{minipage}
-    \hfill
-    \begin{minipage}[b]{0.32\linewidth}
+    \end{minipage}\hfill
+    \begin{minipage}[b]{0.24\linewidth}
         \centering
         \includegraphics[width=\linewidth]{images/COSGasf.png}
         \subfigtext{(b) GASF}
-    \end{minipage}
-    \hfill
-    \begin{minipage}[b]{0.32\linewidth}
+    \end{minipage}\hfill
+    \begin{minipage}[b]{0.24\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/COSgadf.png}
+        \subfigtext{(c) GADF}
+    \end{minipage}\hfill
+    \begin{minipage}[b]{0.24\linewidth}
         \centering
         \includegraphics[width=\linewidth]{images/COSmtf.png}
-        \subfigtext{(c) MTF}
+        \subfigtext{(d) MTF}
     \end{minipage}
-    \caption{Image encodings from the artificial time series.}
+    \caption{Image encodings of the same artificial three-channel signal (cosine, sine, sine$-$cosine) under each technique.}
     \label{fig:artificial_encodings}
 \end{figure}
 After generating the encoded images, we decode them and compare the reconstructed series graphically.
@@ -1368,37 +1389,49 @@ After generating the encoded images, we decode them and compare the reconstructe
 
 \begin{figure*}[!t]
     \centering
+    \widecomparisonplot{images/Comparison_all_wideGADF.png}
+    \caption{GADF reconstruction on the artificial triaxial time series.}
+    \label{fig:gadf_comparison_artificial}
+\end{figure*}
+
+\begin{figure*}[!t]
+    \centering
     \widecomparisonplot{images/Comparison_all_widemtf.png}
     \caption{MTF reconstruction on the artificial triaxial time series.}
     \label{fig:mtf_comparison_artificial}
 \end{figure*}
-After encoding the artificial time series (Figure \ref{fig:artificial_encodings}), we reconstruct each representation and overlay it with the original signal. In this controlled example, the RP comparison (Figure \ref{fig:rp_comparison_artificial}) shows close shape recovery with small amplitude deviations. The GASF comparison (Figure \ref{fig:gaf_comparison_artificial}) is visually closest to the original in all three channels under the tested normalization. By contrast, the MTF comparison (Figure \ref{fig:mtf_comparison_artificial}) reveals two limitations that also matter in real data: possible orientation inversion and discretization errors caused by the four transition bins.
+After encoding the artificial time series (Figure~\ref{fig:artificial_encodings}), we reconstruct each representation and overlay it with the original signal. In this controlled example, the RP comparison (Figure~\ref{fig:rp_comparison_artificial}) shows close shape recovery with small amplitude deviations. The GASF comparison (Figure~\ref{fig:gaf_comparison_artificial}) is visually closest to the original in all three channels under the tested normalization. The GADF comparison (Figure~\ref{fig:gadf_comparison_artificial}) sits between GASF and MTF: the pivot-row reconstruction tracks the shape of the cosine and sine channels well but accumulates small phase offsets on the sin$-$cos channel, where the dynamic range is largest. By contrast, the MTF comparison (Figure~\ref{fig:mtf_comparison_artificial}) reveals two limitations that also matter in real data: possible orientation inversion and discretization errors caused by the four transition bins.
 \subsubsection{WISDM Sample \texttt{1600×0}}
 
-To assess encoding--decoding fidelity on real sensor data, we selected sample \texttt{1600×0} from fold 0 of the WISDM training set. This example is used for qualitative interpretation only; aggregate claims are based on the quantitative tables that follow. Figure \ref{fig:train0_encodings} shows the encoded images along the three axes (\emph{x}, \emph{y}, \emph{z}) for each technique.
+To assess encoding--decoding fidelity on real sensor data, we selected sample \texttt{1600$\times$0} from fold 0 of the WISDM training set (class~0, Walking, $N=128$ samples). This example is used for qualitative interpretation only; aggregate claims are based on the quantitative tables that follow. Figure~\ref{fig:train0_encodings} shows the encoded images of \emph{the same time-series window} under each of the four encoding techniques, with the three accelerometer axes (\emph{x}, \emph{y}, \emph{z}) mapped to the red/green/blue channels of the image. The RP image is $127\times127$ because the modified definition $s_j=(x_j,x_{j+1})$ embeds the window into $N-1$ adjacent states; GASF, GADF, and MTF are $128\times128$.
 
 \begin{figure}[H]
     \centering
-    \begin{minipage}[t]{0.32\linewidth}
+    \begin{minipage}[t]{0.24\linewidth}
         \centering
         \includegraphics[width=\linewidth]{images/1600xtrp0.png}
         \subfigtext{(a) Recurrence Plot (RP)}
     \end{minipage}\hfill
-    \begin{minipage}[t]{0.32\linewidth}
+    \begin{minipage}[t]{0.24\linewidth}
         \centering
         \includegraphics[width=\linewidth]{images/1600x0tgasf.png}
-        \subfigtext{(b) Gramian Angular Summation Field (GASF)}
+        \subfigtext{(b) GASF}
     \end{minipage}\hfill
-    \begin{minipage}[t]{0.32\linewidth}
+    \begin{minipage}[t]{0.24\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/1600x0tgadf.png}
+        \subfigtext{(c) GADF}
+    \end{minipage}\hfill
+    \begin{minipage}[t]{0.24\linewidth}
         \centering
         \includegraphics[width=\linewidth]{images/1600x0tmtf.png}
-        \subfigtext{(c) Markov Transition Field (MTF)}
+        \subfigtext{(d) Markov Transition Field (MTF)}
     \end{minipage}
-    \caption{Encoded images for sample \texttt{1600×0} (fold 0) along \emph{x}, \emph{y}, and \emph{z} axes.}
+    \caption{The four image encodings of the same WISDM window \texttt{1600$\times$0} (fold-0 train, Walking). Per-axis (x,y,z) intensities are stacked as the (R,G,B) channels of each image.}
     \label{fig:train0_encodings}
 \end{figure}
 
-After encoding, each image is decoded back into a three-axis time series and overlaid on the original signal. Figures \ref{fig:rp_comparison_wisdm}--\ref{fig:mtf_comparison_global} present the global comparison across all axes.
+After encoding, each image is decoded back into a three-axis time series and overlaid on the original signal. Figures~\ref{fig:rp_comparison_wisdm}--\ref{fig:mtf_comparison_global} present the global comparison across all four encoders (RP, GASF, GADF, MTF).
 
 \begin{figure*}[!t]
     \centering
@@ -1416,12 +1449,19 @@ After encoding, each image is decoded back into a three-axis time series and ove
 
 \begin{figure*}[!t]
     \centering
+    \widecomparisonplot{images/gadf_sample_0_global.png}
+    \caption{Original vs.\ GADF reconstruction for sample \texttt{1600×0}.}
+    \label{fig:gadf_comparison_wisdm}
+\end{figure*}
+
+\begin{figure*}[!t]
+    \centering
     \widecomparisonplot{images/mtf_sample_0_global.png}
     \caption{Original vs.\ MTF reconstruction for sample \texttt{1600×0}.}
     \label{fig:mtf_comparison_global}
 \end{figure*}
 
-Within the currently evaluated methods, GASF (Fig.~\ref{fig:gaf_comparison_wisdm}) produces the closest visual reconstruction under the tested protocol, with decoded signals nearly indistinguishable from the original. RP (Fig.~\ref{fig:rp_comparison_wisdm}) recovers part of the temporal morphology but remains less stable than GASF because its graph reconstruction still has orientation and interpolation ambiguity. MTF (Fig.~\ref{fig:mtf_comparison_global}), despite using only four quantized transition levels, captures the general shape but shows larger deviations in segments where neighboring transition states are difficult to order.
+Across the four evaluated methods, GASF (Fig.~\ref{fig:gaf_comparison_wisdm}) produces the closest visual reconstruction under the tested protocol, with decoded signals nearly indistinguishable from the original. GADF (Fig.~\ref{fig:gadf_comparison_wisdm}) follows: its pivot-row decoder recovers the global shape but smooths short-range variation, which is consistent with the moderate classifier drop reported in Section~\ref{sec:gadf_results}. RP (Fig.~\ref{fig:rp_comparison_wisdm}) recovers part of the temporal morphology but remains less stable than the GAF family because its graph reconstruction still has orientation and interpolation ambiguity. MTF (Fig.~\ref{fig:mtf_comparison_global}), despite using only four quantized transition levels, captures the general shape but shows larger deviations in segments where neighboring transition states are difficult to order.
 
 For clarity, Figure \ref{fig:mtf_x}–\ref{fig:mtf_z} split the MTF comparison per axis:
 
