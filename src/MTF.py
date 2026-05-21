@@ -1,4 +1,4 @@
-#!/home/adriano/Escritorio/TFG/venv/bin/python3
+#!/usr/bin/env python3
 from math import sqrt
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,6 +15,8 @@ from sklearn.model_selection import StratifiedGroupKFold, GroupKFold
 import os
 import time
 import seaborn as sns
+
+from src.config import DEFAULT_DATA_DIR
 def varMTF2(data, dim,TIME_STEPS):
     x = []
     k=0
@@ -335,7 +337,7 @@ def MTF_to_TS(mtf,dictionary,index=0,numstates=4,TIMESTEPS=129):
     
     serie=np.interp(serie,(min_a,max_a),(MIN[index], MAX[index]))
     return serie
-def generate_all_markov_transition_field(X_train, y_train, sj_train, dataset_folder="/home/fmgarmor/proyectos/TGEN-timeseries-generation/data/WISDM/", TIME_STEPS=129,  FOLDS_N=3, sampling="loso"):
+def generate_all_markov_transition_field(X_train, y_train, sj_train, dataset_folder=DEFAULT_DATA_DIR, TIME_STEPS=129,  FOLDS_N=3, sampling="loso"):
   groups = sj_train 
   if sampling == "loto":
     #TODO change 100 for an automatic extracted number greater than the max subject ID: max(sj_train)*10
@@ -386,7 +388,7 @@ def generate_all_markov_transition_field(X_train, y_train, sj_train, dataset_fol
 
 def main():
      data_name="WISDM"
-     data_folder="/home/adriano/Escritorio/TFG/data/WISDM/"
+     data_folder=DEFAULT_DATA_DIR
      #voy a  obtener el maximo de todo el data set.
      X_train, y_train, sj_train = act.load_numpy_datasets(data_name, data_folder, USE_RECONSTRUCTED_DATA=False)
      print("X_train", X_train.shape, "y_train", y_train.shape, "sj_train", sj_train.shape)

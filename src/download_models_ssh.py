@@ -1,5 +1,4 @@
-#!/home/fmgarmor/miot_env/bin/python3
-
+#!/usr/bin/env python3
 import os
 import pandas as pd
 import argparse

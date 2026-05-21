@@ -4,6 +4,7 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from src.config import DEFAULT_DATA_DIR, REPO_ROOT
 
 
 sns.set(style="whitegrid", context="paper", font="serif", rc={
@@ -96,8 +97,8 @@ def plot_channel(original, reconstructed, sample_index, channel, plot_type, save
     print(f"Saved comparison channel: {out3}")
 def main():
     # Hardcoded paths
-    dataset_folder = "C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM"
-    images_folder = "C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/images"
+    dataset_folder = DEFAULT_DATA_DIR
+    images_folder = str(REPO_ROOT / "images")
 
     parser = argparse.ArgumentParser(description="Plot global and per-channel comparisons for RP, GAF, or MTF")
     parser.add_argument('--type', choices=['RP','GAF','MTF'], required=True, help='Encoding type')

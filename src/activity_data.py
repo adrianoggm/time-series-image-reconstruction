@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 from keras.utils import to_categorical
 
+from src.config import DEFAULT_DATA_DIR
+
 
 # def download_data():
 #     if DATASET_NAME == "ADL_Dataset":
@@ -58,7 +60,7 @@ def create_wisdm_dataset(path):
         df = pd.concat([df, daux])
     return df
 
-def preprocess_activity_data_sets(DATASET_NAME="WISDM", dataset_folder="/home/fmgarmor/proyectos/TGEN-timeseries-generation/data/WISDM/", 
+def preprocess_activity_data_sets(DATASET_NAME="WISDM", dataset_folder=DEFAULT_DATA_DIR,
                                   column_names=['user_id', 'activity', 'timestamp', 'x_axis', 'y_axis', 'z_axis']):
 
     if DATASET_NAME == "MINDER":
@@ -204,7 +206,7 @@ def create_dataset(savepath, data_type, X, y, sj_id, time_steps=1, step=1, verbo
 
 
 
-def create_all_numpy_datasets(DATASET_NAME="WISDM", dataset_folder="/home/fmgarmor/proyectos/TGEN-timeseries-generation/data/WISDM/", 
+def create_all_numpy_datasets(DATASET_NAME="WISDM", dataset_folder=DEFAULT_DATA_DIR,
                               COL_SELECTED_IDXS=list(range(3, 3+3))):
     TIME_STEPS, STEP = get_time_setup(DATASET_NAME)
     df = preprocess_activity_data_sets(DATASET_NAME, dataset_folder, 
@@ -222,7 +224,7 @@ def create_all_numpy_datasets(DATASET_NAME="WISDM", dataset_folder="/home/fmgarm
     )
     return X_train, y_train, sj_train
 
-def load_numpy_datasets(DATASET_NAME="WISDM", dataset_folder="/home/fmgarmor/proyectos/TGEN-timeseries-generation/data/WISDM/", 
+def load_numpy_datasets(DATASET_NAME="WISDM", dataset_folder=DEFAULT_DATA_DIR,
                         USE_RECONSTRUCTED_DATA=False):
     load_path = f"{dataset_folder}numpies/train/"
     if USE_RECONSTRUCTED_DATA:

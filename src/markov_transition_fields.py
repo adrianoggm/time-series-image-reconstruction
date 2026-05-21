@@ -13,6 +13,8 @@ from sklearn.model_selection import StratifiedGroupKFold, GroupKFold
 from pyts.image import MarkovTransitionField
 from PIL import Image
 
+from src.config import DEFAULT_DATA_DIR
+
 def varMTF2(data, dim,TIME_STEPS):
     x = []
     k=0
@@ -193,7 +195,7 @@ def generate_and_save_markov_transition_field(fold, dataset_folder, training_dat
      
 
 
-def generate_all_markov_transition_field(X_train, y_train, sj_train, dataset_folder="/home/fmgarmor/proyectos/TGEN-timeseries-generation/data/WISDM/", TIME_STEPS=129,  FOLDS_N=3, sampling="loso"):
+def generate_all_markov_transition_field(X_train, y_train, sj_train, dataset_folder=DEFAULT_DATA_DIR, TIME_STEPS=129,  FOLDS_N=3, sampling="loso"):
   groups = sj_train 
   if sampling == "loto":
     #TODO change 100 for an automatic extracted number greater than the max subject ID: max(sj_train)*10

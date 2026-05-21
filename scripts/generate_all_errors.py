@@ -1,5 +1,4 @@
-#!C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/venv/bin/python3
-
+#!/usr/bin/env python3
 from keras.utils import to_categorical
 import argparse
 import src.activity_data as act
@@ -10,12 +9,13 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from dtaidistance import dtw
 import cv2
+from src.config import DEFAULT_DATA_DIR
 def main():
     
 
-    data_folder="C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
-    data_folder1="C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/tseries/GAF/sampling_loto/3-fold/fold-0/train"
-    data_folder2="C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/tseries/MTF/sampling_loto/3-fold/fold-0/train"
+    data_folder=f"{DEFAULT_DATA_DIR}tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
+    data_folder1=f"{DEFAULT_DATA_DIR}tseries/GAF/sampling_loto/3-fold/fold-0/train"
+    data_folder2=f"{DEFAULT_DATA_DIR}tseries/MTF/sampling_loto/3-fold/fold-0/train"
    
     errores_rec = []
     errores_gasf = []
