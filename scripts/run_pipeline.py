@@ -68,18 +68,13 @@ _CLASSIFIER_MODULES: dict[str, str] = {
 }
 
 
-def _run_classifier(clf: str, stype, sampling, fold, n_folds, dataset_folder, train_new):
+def _run_classifier(clf: str, stype, sampling, fold, n_folds, dataset_folder, train_new, force):
     import importlib
     mod_path = _CLASSIFIER_MODULES[clf]
     mod = importlib.import_module(mod_path)
     print(f"\n>>> VALIDATE  classifier={clf}  stype={stype}  fold={fold}")
-    kwargs = dict(stype=stype, sampling=sampling, fold=fold, n_folds=n_folds,
-                  dataset_folder=dataset_folder, save_results=True)
-    # `train_new` is supported by every validator that trains a model (all
-    # except `knn`, which always fits).
-    if "train_new" in mod.run.__code__.co_varnames:
-        kwargs["train_new"] = train_new
-    mod.run(**kwargs)
+    mod.run(stype=stype, sampling=sampling, fold=fold, n_folds=n_folds,
+            dataset_folder=dataset_folder, force=force, train_new=train_new)
 
 
 def main():
@@ -99,6 +94,8 @@ def main():
                    help="rebuild the windowed numpy cache from raw WISDM files (first run only)")
     p.add_argument("--train-new", action="store_true",
                    help="force retraining of every classifier that caches a model on disk")
+    p.add_argument("--force", action="store_true",
+                   help="re-evaluate every (stype, classifier) even if its JSON exists")
     args = p.parse_args()
 
     classifiers = [c.strip() for c in args.classifiers.split(",") if c.strip()]
@@ -114,7 +111,7 @@ def main():
     if not args.skip_validate:
         for clf in classifiers:
             _run_classifier(clf, args.stype, args.sampling, args.fold, args.n_folds,
-                            args.data_folder, args.train_new)
+                            args.data_folder, args.train_new, args.force)
     print(f"\n>>> pipeline finished in {time.time() - t0:.1f}s")
 
 

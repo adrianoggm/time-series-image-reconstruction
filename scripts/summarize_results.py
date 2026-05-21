@@ -32,10 +32,17 @@ def _safe_get(d, *keys, default=None):
 def collect(results_root: Path) -> list[dict]:
     rows: list[dict] = []
     for jf in sorted(results_root.rglob("fold-*.json")):
+        # `_originals/` holds per-classifier caches that don't follow the
+        # `<stype>/<classifier>/fold-N.json` shape — skip them here, the data
+        # they cache is already inlined in every <stype> JSON.
+        if "_originals" in jf.parts:
+            continue
         try:
             payload = json.loads(jf.read_text(encoding="utf-8"))
         except json.JSONDecodeError as e:
             print(f"  ! skip {jf}: {e}")
+            continue
+        if "stype" not in payload or "classifier" not in payload:
             continue
         orig = payload.get("evaluations", {}).get("original", {})
         rec  = payload.get("evaluations", {}).get("reconstructed", {})
