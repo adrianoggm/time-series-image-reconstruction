@@ -49,7 +49,7 @@ def save_run_metrics(
     Pass ``output_dict=True`` to ``sklearn.metrics.classification_report``
     so the input dicts are already JSON-serialisable.
     """
-    target_dir = results_dir(stype, classifier, repo_root=repo_root)
+    target_dir = results_dir(stype, classifier, sampling=sampling, repo_root=repo_root)
     target_dir.mkdir(parents=True, exist_ok=True)
     out_path = target_dir / f"fold-{fold}.json"
 

@@ -145,13 +145,28 @@ def windowed_npy(
 def results_dir(
     stype: str,
     classifier: str,
+    sampling: Sampling | None = None,
     repo_root: Path | None = None,
 ) -> Path:
-    """Where validators drop their per-run JSON reports."""
+    """Where validators drop their per-run JSON reports.
+
+    The result file is sampling-specific: LOTO fold-0 of KNN and LOSO fold-0 of
+    KNN are different runs and would otherwise collide on the same path. The
+    new layout is::
+
+        results/<stype>/<classifier>/<sampling>/fold-<k>.json   (sampling given)
+        results/<stype>/<classifier>/fold-<k>.json              (legacy, no sampling)
+
+    Callers that don't pass ``sampling`` continue to hit the legacy directory
+    so older scripts keep working; new callers should always provide it.
+    """
     _validate_stype(stype)
     from src.config import REPO_ROOT
     root = repo_root if repo_root is not None else REPO_ROOT
-    return root / "results" / stype / classifier
+    base = root / "results" / stype / classifier
+    if sampling is None:
+        return base
+    return base / sampling
 
 
 __all__ = [

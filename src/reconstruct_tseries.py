@@ -345,7 +345,11 @@ def generate_and_save_time_series_fromMTF(fold, dataset_folder, training_data, y
         print("Tiempo medio por ventana:", ttotal / n_samples)
     return X_all_rec
 #Generates all time series
-def generate_all_time_series(X_train, y_train, sj_train, dataset_folder=DEFAULT_DATA_DIR, TIME_STEPS=128,  FOLDS_N=3, sampling="loso",reconstruction="all"):
+def generate_all_time_series(X_train, y_train, sj_train, dataset_folder=DEFAULT_DATA_DIR, TIME_STEPS=128,  FOLDS_N=3, sampling="loso",reconstruction="all", target_fold=None):
+  # When ``target_fold`` is set, every fold whose index does not match is
+  # skipped. The historical behaviour (run fold-0 only) is preserved by the
+  # ``break`` statements below; passing ``target_fold=1`` or ``2`` lets the
+  # orchestrator drive each remaining fold from outside.
   groups = sj_train 
   if sampling == "loto":
     #TODO change 100 for an automatic extracted number greater than the max subject ID: max(sj_train)*10
@@ -378,9 +382,9 @@ def generate_all_time_series(X_train, y_train, sj_train, dataset_folder=DEFAULT_
   
   for fold, (train_index, val_index) in enumerate(sgkf.split(X_train, y_train_no_cat, groups=groups)):
 
-    # if fold != 2:
-    #   continue
-    
+    if target_fold is not None and fold != target_fold:
+      continue
+
     # print(f"{'*'*20}\nFold: {fold}\n{'*'*20}")
     # print("Train index", train_index)
     # print("Validation index", val_index)
