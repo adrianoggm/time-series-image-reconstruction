@@ -47,14 +47,15 @@ def _run_encode(stype, sampling, n_folds, dataset_folder, create_numpies):
     gen.generate_all_images(X, y, sj, dataset_folder, TIME_STEPS, n_folds, sampling, stype)
 
 
-def _run_reconstruct(stype, sampling, n_folds, dataset_folder):
+def _run_reconstruct(stype, sampling, n_folds, dataset_folder, target_fold=None):
     from src import activity_data as act
     from src import reconstruct_tseries as ts
 
-    print(f"\n>>> RECONSTRUCT stype={stype} sampling={sampling} n_folds={n_folds}")
+    print(f"\n>>> RECONSTRUCT stype={stype} sampling={sampling} n_folds={n_folds} fold={target_fold}")
     TIME_STEPS, _ = act.get_time_setup(DATASET_NAME="WISDM")
     X, y, sj = act.load_numpy_datasets("WISDM", dataset_folder, USE_RECONSTRUCTED_DATA=False)
-    ts.generate_all_time_series(X, y, sj, dataset_folder, TIME_STEPS, n_folds, sampling, stype)
+    ts.generate_all_time_series(X, y, sj, dataset_folder, TIME_STEPS, n_folds, sampling, stype,
+                                target_fold=target_fold)
 
 
 # Each entry is the module path that exposes a `run(stype, ...)` function.
@@ -107,7 +108,8 @@ def main():
     if not args.skip_encode:
         _run_encode(args.stype, args.sampling, args.n_folds, args.data_folder, args.create_numpies)
     if not args.skip_reconstruct:
-        _run_reconstruct(args.stype, args.sampling, args.n_folds, args.data_folder)
+        _run_reconstruct(args.stype, args.sampling, args.n_folds, args.data_folder,
+                         target_fold=args.fold)
     if not args.skip_validate:
         for clf in classifiers:
             _run_classifier(clf, args.stype, args.sampling, args.fold, args.n_folds,

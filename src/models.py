@@ -32,12 +32,30 @@ _EXT: dict[str, str] = {
 }
 
 
-def model_path(classifier: str) -> Path:
-    """Return ``<repo>/models/<classifier>.<ext>`` (parent created on demand)."""
+def model_path(classifier: str,
+               sampling: str | None = None,
+               fold: int | None = None,
+               n_folds: int | None = None) -> Path:
+    """Return the cached-model path for one ``(classifier, sampling, fold)`` triple.
+
+    The model trained on fold k of LOTO 3-fold is **not** the same model as the
+    one trained on fold k+1: the split picks different subjects/trials. To
+    avoid silently reusing fold-0's model when evaluating fold-1, the filename
+    embeds the split identifier when one is provided:
+
+        models/<clf>__<sampling>-fold-<k>-<n>f.<ext>     (preferred)
+        models/<clf>.<ext>                                (legacy, no split info)
+
+    The legacy path is kept for backward compatibility but new callers should
+    always pass ``sampling``, ``fold``, and ``n_folds``.
+    """
     if classifier not in _EXT:
         raise ValueError(f"Unknown classifier {classifier!r}. Known: {list(_EXT)}")
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
-    return MODELS_DIR / f"{classifier}.{_EXT[classifier]}"
+    ext = _EXT[classifier]
+    if sampling is None or fold is None or n_folds is None:
+        return MODELS_DIR / f"{classifier}.{ext}"
+    return MODELS_DIR / f"{classifier}__{sampling}-fold-{fold}-{n_folds}f.{ext}"
 
 
 def original_report_path(classifier: str, sampling: str, fold: int, n_folds: int) -> Path:

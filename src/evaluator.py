@@ -103,7 +103,7 @@ def evaluate_run(
     Returns the persisted payload as a dict.
     """
     # E3 — skip if the final JSON is already on disk
-    out_path = results_dir(stype, adapter.name) / f"fold-{fold}.json"
+    out_path = results_dir(stype, adapter.name, sampling=sampling) / f"fold-{fold}.json"
     if out_path.exists() and not force:
         print(f"[skip] {stype}/{adapter.name}/fold-{fold} already exists at {out_path}")
         return json.loads(out_path.read_text(encoding="utf-8"))
@@ -116,7 +116,7 @@ def evaluate_run(
     original_report = None if (force or train_new) else load_original_report(
         adapter.name, sampling, fold, n_folds
     )
-    mp = model_path(adapter.name)
+    mp = model_path(adapter.name, sampling, fold, n_folds)
 
     if original_report is None or not mp.exists() or train_new:
         # Need to fit (model and/or original report missing or invalidated)
