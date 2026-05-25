@@ -3,9 +3,9 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11-blue)](pyproject.toml)
 
-Reference implementation for reconstructing triaxial accelerometer time series from image-based encodings on WISDM.
+This repository is a full reconstruction benchmark for image-based time-series encodings on WISDM. It does not stop at producing pretty RP/GAF/MTF images: it implements inverse maps back to triaxial accelerometer signals and tests whether those reconstructions are still usable as signals.
 
-The repository compares four encodings:
+The core contribution is a controlled, apples-to-apples comparison of four encodings:
 
 | ID | Encoding | Role in this repo |
 |----|----------|-------------------|
@@ -14,15 +14,28 @@ The repository compares four encodings:
 | `GADF` | Gramian Angular Difference Field | Closed-form pivot-row decoder with scale metadata. |
 | `MTF` | Markov Transition Field | Quantile-transition encoder plus Fiedler-vector reconstruction. |
 
-The evaluation is deliberately multi-lens: visual inspection, pointwise reconstruction error, polynomial-trend similarity, and downstream classification with KNN, SVM, Random Forest, LSTM, GRU, and CNN.
+The benchmark is deliberately multi-lens: visual inspection, pointwise reconstruction error, polynomial-trend similarity, and downstream classification with KNN, SVM, Random Forest, LSTM, GRU, and CNN.
 
 The paper draft is [doc/main.tex](doc/main.tex). The workflow diagram source is [doc/workflow_overview.md](doc/workflow_overview.md).
 
 ---
 
-## Results Preview
+## Why This Repo Matters
 
-Current headline results use WISDM smartwatch accelerometer windows of `N=128` samples. The key point is that waveform fidelity and classifier utility do not produce exactly the same ranking.
+The headline result from [doc/main.tex](doc/main.tex) is that image encodings can be made genuinely reversible under a controlled protocol, but the word "best" depends on what the reconstructed signal is used for.
+
+What is new here:
+
+- A signed-RP decoder that uses the Lu-Tong sign convention to resolve the MDS reflection ambiguity and restores the `N -> N-1` adjacent-state shrinkage.
+- A closed-form GADF pivot-row decoder, presented as the first explicit inverse map for GADF under restricted angular scaling and external scale metadata.
+- A Fiedler-vector MTF decoder, presented as the first inverse map for MTF, replacing a brittle cosine-pivot heuristic with spectral bin ordering.
+- A symmetric evaluation of RP, GASF, GADF, and MTF under the same `N=128` WISDM protocol, both LOTO and LOSO 3-fold, with 8,227 pooled paired test windows per protocol.
+
+---
+
+## Results That Sell the Benchmark
+
+The table below is the compact version of the paper's Results and Discussion sections. The important finding is not just that GASF wins. The important finding is that the ranking changes depending on whether you care about waveform fidelity or classifier utility.
 
 | Lens | Headline numbers | Ranking | Interpretation |
 |------|------------------|---------|----------------|
@@ -31,14 +44,25 @@ Current headline results use WISDM smartwatch accelerometer windows of `N=128` s
 | LOTO classifiers | Mean accuracy across six classifiers: Original `0.836`, GASF `0.836`, GADF `0.764`, MTF `0.708`, RP `0.670` | Original ~= GASF > GADF > MTF > RP | MTF is less waveform-faithful than RP, but its coarse transition structure is more useful to most classifiers. |
 | LOSO classifiers | Mean accuracy across six classifiers: Original `0.707`, GASF `0.707`, GADF `0.661`, MTF `0.624`, RP `0.600` | Original ~= GASF > GADF > MTF > RP | Subject-out evaluation is harder, but the classifier-side ranking is preserved. |
 
-Practical reading:
+Main takeaways:
 
-- GASF is the near-original decoder under the controlled inversion protocol.
-- GADF is the strongest non-GASF reconstruction and the only reconstruction that beats the raw signal in one setting: KNN under LOSO (`0.500` vs original `0.477`).
-- RP reconstructs the waveform better than MTF, but MTF beats RP on five of the six classifiers under both LOTO and LOSO.
-- The main conclusion is not "one encoding always wins"; it is that the downstream consumer matters.
+- GASF is effectively near-original: global MAE `0.0209`, Pearson `0.99988 +/- 0.00020`, and classifier accuracy statistically indistinguishable from the raw signal across all six classifiers under both LOTO and LOSO.
+- GADF is the strongest non-GASF decoder: MAE `1.47 +/- 1.65`, Pearson `0.983 +/- 0.025`, about `2.0x` tighter than RP and `2.7x` tighter than MTF in MAE.
+- GADF is the only reconstruction that strictly beats the raw signal in one setting: LOSO-KNN reaches `0.500 +/- 0.017` vs original `0.477 +/- 0.010` (`p_Holm = 6.4e-11`).
+- RP and MTF expose the central rank inversion: RP is closer pointwise (`2.95` vs `4.00` MAE), but MTF beats RP downstream on five of the six classifiers under both LOTO and LOSO.
+- The MTF decoder upgrade matters: at `Q=4`, the old cosine-pivot decoder has MAE `6.111`, plain Fiedler ordering drops it to `4.664`, and adding midpoint plus sign-bit metadata reaches `2.371`.
+- `Q=4` is not arbitrary: in the paper's sweep it minimises MTF pointwise MAE, maximises pointwise Pearson, and gives the best KNN/CNN accuracies.
 
-Detailed result tables live in [doc/_3fold_tables.tex](doc/_3fold_tables.tex), [doc/_loso_tables.tex](doc/_loso_tables.tex), and the Results section of [doc/main.tex](doc/main.tex).
+Practical recommendation:
+
+- Use GASF when you want the most faithful controlled inverse.
+- Use GADF as the best reconstruction-oriented GAF companion: closed-form, strong trend preservation, and useful smoothing under LOSO-KNN.
+- Use MTF when downstream classification is the target and coarse transition dynamics are acceptable.
+- Keep RP for recurrence/dynamical-systems diagnostics where recurrence geometry itself matters.
+
+Scope note: these numbers do not prove unconstrained generative augmentation. The decoders assume controlled encoder-side metadata such as min/max scale, sign convention, quantisation branch, or equivalent calibration. That is exactly why the benchmark is useful: it separates "can this image representation be inverted under known conditions?" from "can a generator synthesize physically calibrated signals without extra metadata?"
+
+Detailed result tables live in [doc/_3fold_tables.tex](doc/_3fold_tables.tex), [doc/_loso_tables.tex](doc/_loso_tables.tex), and the Results/Discussion sections of [doc/main.tex](doc/main.tex).
 
 ---
 
