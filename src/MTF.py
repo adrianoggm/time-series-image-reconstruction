@@ -223,6 +223,28 @@ def _pairwise_cosine_similarity(M: np.ndarray) -> np.ndarray:
 
 
 def MTF_to_TS(mtf, dictionary, index=0, numstates=4, TIMESTEPS=128):
+    """Thin compatibility wrapper around the v2 decoder.
+
+    The original cosine-pivot-and-spread ordering (see ``_legacy_MTF_to_TS``
+    below) was empirically dominated by the Fiedler-vector ordering in
+    ``MTF_to_TS_v2``: on a 100-window LOTO fold-0 sample the v2 decoder
+    halves the pointwise MAE without needing any extra metadata (5.15 ->
+    ~3.8 average across 3 axes; see ``scripts/_ablation_mtf_q.py``). We
+    therefore route every caller of ``MTF_to_TS`` through v2 by default and
+    keep the legacy implementation under ``_legacy_MTF_to_TS`` for
+    side-by-side ablation only.
+    """
+    from src.MTF_v2 import MTF_to_TS_v2
+    return MTF_to_TS_v2(
+        mtf,
+        dictionary=dictionary,
+        axis=index,
+        n_bins=numstates,
+    )
+
+
+def _legacy_MTF_to_TS(mtf, dictionary, index=0, numstates=4, TIMESTEPS=128):
+    """Original cosine-pivot decoder. Kept only for the ablation script."""
     T = mtf.shape[0]  # use the actual matrix size, not the hardcoded 129
     similaritymatrix = _pairwise_cosine_similarity(mtf)
     #Clasificación de los estados
@@ -420,7 +442,7 @@ def main():
          maximos=[np.max(l[:,0]),np.max(l[:,1]),np.max(l[:,2])]
          minimos=[np.min(l[:,0]),np.min(l[:,1]),np.min(l[:,2])]
          dictionary[k]=[maximos,minimos]
-     img = SavevarMTF_XYZ(w, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=128) 
+     img = SavevarMTF_XYZ(w, sj, 0, "x", normalized = 1, path=f"./", TIME_STEPS=128)
      
      
      
