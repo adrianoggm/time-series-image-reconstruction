@@ -1,5 +1,4 @@
-#!/home/fmgarmor/miot_env/bin/python3
-
+#!/usr/bin/env python3
 '''
 Generation of images for train/test and assess the quality of synthetic.
 Synthetic images are the train set.

@@ -1,124 +1,77 @@
-#!C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/venv/bin/python3
-import os
-import numpy as np
-import src.ts_plots as plt
-import src.activity_data as act
-from sklearn.metrics import classification_report
-from tensorflow.keras.models import Sequential, load_model
+#!/usr/bin/env python3
+"""GRU baseline on raw and reconstructed WISDM windows."""
+
+from __future__ import annotations
+
+import argparse
+
 from tensorflow.keras.layers import GRU, Dense, Dropout
+from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.optimizers import Adam
 
-def transformary(y):
-    _y = np.ones(len(y)) * -1
-    for i in range(len(y)):
-        for j in range(5):
-            if y[i, j] <= 1.1 and y[i, j] >= 0.9:
-                _y[i] = j
-    return _y
+from src.config import DEFAULT_DATA_DIR
+from src.evaluator import ClassifierAdapter, evaluate_run
+from src.paths import ALL_STYPES
 
-def create_gru_model(input_shape, num_classes=5):
-    model = Sequential()
-    # Primera capa GRU con salida secuencial para permitir apilar más capas
-    model.add(GRU(64, return_sequences=True, input_shape=input_shape))
-    model.add(Dropout(0.2))
-    # Segunda capa GRU
-    model.add(GRU(32))
-    model.add(Dropout(0.2))
-    # Capa densa final para clasificación
-    model.add(Dense(num_classes, activation='softmax'))
-    model.compile(optimizer=Adam(learning_rate=0.001),
-                  loss='sparse_categorical_crossentropy',
-                  metrics=['accuracy'])
-    return model
+CLASSIFIER_NAME = "gru"
+
+
+def _build(input_shape, num_classes=5):
+    m = Sequential([
+        GRU(64, return_sequences=True, input_shape=input_shape),
+        Dropout(0.2),
+        GRU(32),
+        Dropout(0.2),
+        Dense(num_classes, activation="softmax"),
+    ])
+    m.compile(optimizer=Adam(learning_rate=0.001),
+              loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+    return m
+
+
+def _adapter(epochs: int, batch_size: int) -> ClassifierAdapter:
+    return ClassifierAdapter(
+        name=CLASSIFIER_NAME,
+        build=lambda shape: _build(shape),
+        fit=lambda m, X, y: (m.fit(X, y, epochs=epochs, batch_size=batch_size, verbose=2), m)[1],
+        predict_labels=lambda m, X: m.predict(X, verbose=0).argmax(axis=-1),
+        save=lambda m, p: m.save(p),
+        load=lambda p: load_model(p),
+        flatten_for_model=False,
+    )
+
+
+def run(stype, sampling="loto", fold=0, n_folds=3, dataset_folder=DEFAULT_DATA_DIR,
+        force=False, train_new=False, epochs=20, batch_size=64):
+    return evaluate_run(
+        adapter=_adapter(epochs, batch_size), stype=stype, sampling=sampling,
+        fold=fold, n_folds=n_folds, dataset_folder=dataset_folder,
+        force=force, train_new=train_new,
+        extra={"epochs": epochs, "batch_size": batch_size},
+    )
+
+
+def build_argparser(prog=None):
+    p = argparse.ArgumentParser(prog=prog, description=__doc__,
+                                formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    p.add_argument("--stype", default="GAF", choices=ALL_STYPES)
+    p.add_argument("--sampling", default="loto", choices=["loto", "loso"])
+    p.add_argument("--fold", type=int, default=0)
+    p.add_argument("--n-folds", type=int, default=3)
+    p.add_argument("--data-folder", default=DEFAULT_DATA_DIR)
+    p.add_argument("--force", action="store_true")
+    p.add_argument("--train-new", action="store_true")
+    p.add_argument("--epochs", type=int, default=20)
+    p.add_argument("--batch-size", type=int, default=64)
+    return p
+
 
 def main():
-    # Flag: si True, se carga el modelo ya entrenado; si False, se entrena uno nuevo.
-    created = True  
-    # Selección de representación: "RP", "GAF" o "MTF"
-    stype = "RP"  # Modifica según la técnica que quieras evaluar
+    a = build_argparser().parse_args()
+    run(stype=a.stype, sampling=a.sampling, fold=a.fold, n_folds=a.n_folds,
+        dataset_folder=a.data_folder, force=a.force, train_new=a.train_new,
+        epochs=a.epochs, batch_size=a.batch_size)
 
-    # Directorio base de los datos
-    dataset_folder = "C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/"
 
-    # Rutas de los splits de entrenamiento y validación guardados previamente
-    train_data_path = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train/training_data.npy")
-    train_y_path    = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train/y_training_data.npy")
-    val_data_path   = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0/test/validation_data.npy")
-    val_y_path      = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0/test/y_validation_data.npy")
-    
-    # Cargamos los splits
-    X_train = np.load(train_data_path)
-    y_train = np.load(train_y_path)
-    X_val   = np.load(val_data_path)
-    y_val   = np.load(val_y_path)
-    
-    print("X_train shape:", X_train.shape, "y_train shape:", y_train.shape)
-    print("X_val shape:", X_val.shape, "y_val shape:", y_val.shape)
-    
-    # Según el tipo de representación, transformamos los datos.
-    # Para "GAF" o "MTF" se asume que las series ya tienen forma (129, 3)
-    X_train_processed = X_train
-    X_val_processed   = X_val
-    input_shape = (129, 3)
-    
-    # Convertimos las etiquetas
-    y_train_trans = transformary(y_train)
-    y_val_trans   = transformary(y_val)
-    
-    
-    model_path = "modelo_gruX.h5"
-    
-    # Entrenar o cargar el modelo GRU
-    if not created:
-        model = create_gru_model(input_shape=input_shape, num_classes=5)
-        print(model.summary())
-        model.fit(X_train_processed, y_train_trans,
-                  epochs=20,
-                  batch_size=64,
-                  validation_data=(X_val_processed, y_val_trans))
-        model.save(model_path)
-    else:
-        model = load_model(model_path)
-    
-    # ---------------------------
-    # 1. Predicción sobre validation_data.npy
-    pred_probs_val = model.predict(X_val_processed)
-    pred_val = pred_probs_val.argmax(axis=-1)
-    print("Evaluación sobre validation_data.npy:")
-    plt.plot_cm(y_val_trans, pred_val)
-    print(classification_report(y_val_trans, pred_val))
-    
-    # ---------------------------
-    # 2. Predicción sobre los datos reconstruidos
-    # Definimos las rutas para cada técnica; se asume que los archivos reconstruidos están en la carpeta "test"
-    data_folder_rp = os.path.join(dataset_folder, "tseries/recurrence_plot/sampling_loto/3-fold/fold-0")
-    data_folder_gaf = os.path.join(dataset_folder, "tseries/GAF/sampling_loto/3-fold/fold-0")
-    data_folder_mtf = os.path.join(dataset_folder, "tseries/MTF/sampling_loto/3-fold/fold-0")
-    
-    if stype == "RP":
-        rec_path = os.path.join(data_folder_rp, "test", "X_all_rec.npy")
-        X_all_rec = np.load(rec_path)
-        # Se asume que X_all_rec tiene forma (N, 3, 128); se transpone a (N, 128, 3)
-        X_recon = X_all_rec#np.transpose(X_all_rec, (0, 2, 1))
-    elif stype == "GAF":
-        gaf_path = os.path.join(data_folder_gaf, "test", "X_all_gaf.npy")
-        X_all_gaf = np.load(gaf_path)
-        # Se asume que X_all_gaf tiene forma (N, 3, 129)
-        X_recon = np.transpose(X_all_gaf, (0, 2, 1))
-    elif stype == "MTF":
-        mtf_path = os.path.join(data_folder_mtf, "test", "X_all_mtf.npy")
-        X_all_mtf = np.load(mtf_path)
-        # Se asume que X_all_mtf tiene forma (N, 3, 129)
-        X_recon = np.transpose(X_all_mtf, (0, 2, 1))
-    else:
-        raise ValueError("stype desconocido")
-    
-    # Realizamos la predicción sobre las reconstrucciones
-    pred_probs_recon = model.predict(X_recon)
-    pred_recon = pred_probs_recon.argmax(axis=-1)
-    print("Evaluación sobre datos reconstruidos:")
-    plt.plot_cm(y_val_trans, pred_recon)
-    print(classification_report(y_val_trans, pred_recon))
-    
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

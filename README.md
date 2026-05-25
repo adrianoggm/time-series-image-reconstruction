@@ -1,549 +1,290 @@
-# Official Implementation: TFG Diseño e implementación de la reconstrucción de series temporales a partir de imágenes
+# TFG Time-Series Reconstruction
 
-[![GitHub stars](https://img.shields.io/github/stars/frangam/diff-tsd.svg)](https://github.com/frangam/diff-tsd/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/frangam/diff-tsd.svg)](https://github.com/frangam/diff-tsd/network/members)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT) <img src="https://img.shields.io/github/release/frangam/diff-tsd.svg"/> [![GitHub all releases](https://img.shields.io/github/downloads/frangam/diff-tsd/total)](https://github.com/frangam/diff-tsd/releases/download/1.0/diff-tsd.zip)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11-blue)](pyproject.toml)
 
-[[`Paper`]Coming Soon] [[`Dataset`](#our-recurrence-plots-dataset)] [[`Citation`](#citation)]
+This repository is a full reconstruction benchmark for image-based time-series encodings on WISDM. It does not stop at producing pretty RP/GAF/MTF images: it implements inverse maps back to triaxial accelerometer signals and tests whether those reconstructions are still usable as signals.
 
+The core contribution is a controlled, apples-to-apples comparison of four encodings:
 
+| ID | Encoding | Role in this repo |
+|----|----------|-------------------|
+| `RP` | Recurrence Plot | Signed RP encoder plus graph/MDS reconstruction. |
+| `GAF` | Gramian Angular Summation Field, GASF | Diagonal inverse baseline; near-original reconstruction. |
+| `GADF` | Gramian Angular Difference Field | Closed-form pivot-row decoder with scale metadata. |
+| `MTF` | Markov Transition Field | Quantile-transition encoder plus Fiedler-vector reconstruction. |
 
-Welcome to the official implementation repository of the TFG "Diseño e implementación de la reconstrucción de series temporales a partir de imágenes" based on paper titled "Diff-TSD: Modelling Time-series Data Generation with Diffusion Models". This repository provides detailed insights, datasets, and other essential resources related to our research and findings.
+The benchmark is deliberately multi-lens: visual inspection, pointwise reconstruction error, polynomial-trend similarity, and downstream classification with KNN, SVM, Random Forest, LSTM, GRU, and CNN.
 
-## Introduction
-
-In the TFG "Diseño e implementación de la reconstrucción de series temporales a partir de imágenes", we explore the potential of reconstruction of the different image codification techniques and intricacies of generating time-series data using diffusion models. As an integral part of this work, this repository serves as a comprehensive platform to access the datasets, recurrence plots,grammian angular fields, markov transition fields and other relevant resources that were instrumental in our research.
-
-
-## Dataset
-We used WISDM dataset. The [WISDM dataset](https://ieeexplore.ieee.org/document/8835065/) focuses on data from smartwatch wearables. Our study particularly delves into the dataset which records 51 subjects performing 18 daily activities, such as "walking" and "jogging". We've honed in on five non-hand-oriented activities: "walking", "jogging", "stairs" (both ascending and descending), "sitting", and "standing", amassing a total of 1,053,141 instances. Data collection utilized the smartwatch's accelerometer, recording at a frequency of 20 Hz. For a visual representation of the acceleration waveforms for each activity.
-
-### Activity Distribution of WISDM
-
-| Activity | Instances | Percentage |
-|----------|-----------|------------|
-| Standing | 216,529   | 20.6%      |
-| Sitting  | 213,018   | 20.2%      |
-| Walking  | 210,495   | 20.0%      |
-| Stairs   | 207,312   | 19.7%      |
-| Jogging  | 205,787   | 19.5%      |
-
-As is common in various studies [^1^] utilizing this dataset for classification tasks, we opted to segment the data into full non-overlapping windowed segments (FNOW). Each segment contains 129 data points. The choice of 129, while seemingly unusual, is intentional; one additional data point beyond the typical 128 [^1^] allows us to create recurrence plots of 128x128 pixels.
-
-[^1^]: Abdel-Salam, H., Pham, T., & Elgendi, M. (2021). A Benchmark Dataset and Evaluation of Human Activity Recognition on Smartphones. *Journal of Information*.
-
-
-
-## Execution in background 
-You can run the scripts with [nohup](https://en.wikipedia.org/wiki/Nohup) which ignores the hangup signal. This means that you can close the terminal without stopping the execution. Also, don’t forget to add & so the script runs in the background:
-
-```sh
-$ nohup accelerate launch train.py --config CONFIG_FILE  > your.log &
-```
-
-In addition, to close remote terminal safely, you have to run the exit commant, and do not close manually the terminal:
-
-```sh
-$ exit
-```
-
-Finally, you can identify the running processes of training script with:
-```sh
-$ ps ax | grep train.py
-```
-
-or list of all running processes of Python:
-```sh
-$ ps -fA | grep python
-```
-
-then, kill the desired one:
-
-```sh
-$ kill PID
-```
-
-## 1. Create Data Splits
-In all bash command, we can combine the use "nohup" command to execute a script withouth interuptions (avoiding terminal disconnections, etc.) and "&" symbol at the end of the command for a background execution. We also can use "> filename.log" to put the results in a log file.
-
-**Sampling techniques**
-- The Leave-One-Trial-Out (LOTO) approach is a cutting-edge method in sample generation. Each trial encompasses a unique raw activity signal for a single subject, ensuring an impartial evaluation and facilitating the creation of a sufficient number of samples. Additionally, this technique prevents the duplication of trials with identical raw signals (trials of the same label) across both training and testing datasets.
-- The Leave-One-Subject-Out (LOSO) approach is a sampling technique inspired by the Leave-One-Trial-Out method. In this approach, all trials belonging to a single subject are considered as an indivisible unit, ensuring that there are no trials from the same subject duplicated in the training and testing datasets. This technique maintains data integrity and prevents potential biases caused by the presence of trials from the same subject in both datasets, allowing for a more robust and reliable evaluation of the model's performance. This technique is the most strict, which proposes a subject-wise approach instead record-wise, and in the literature is not commonly assessed, maybe due to its resulting lower accuracy.
-
-
-### Our Recurrence plots Dataset
-
-We performed two experiments: One using LOTO to compare our results with previous results and the other using LOSO.
-
-The table below presents the 3-fold data distribution for each sampling approach:
-
-The table below presents the 3-fold data distribution for each sampling approach:
-
-<table>
-  <thead>
-    <tr>
-      <th rowspan="2">3-Folds</th>
-      <th colspan="3">FNOW + LOTO</th>
-      <th colspan="3">FNOW + LOSO</th>
-    </tr>
-    <tr>
-      <th>Train samples</th>
-      <th>Test samples</th>
-      <th>Total</th>
-      <th>Train samples</th>
-      <th>Test samples</th>
-      <th>Total</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Fold-1</td>
-      <td>5392</td>
-      <td>2672</td>
-      <td>8064</td>
-      <td>5408</td>
-      <td>2688</td>
-      <td>8096</td>
-    </tr>
-    <tr>
-      <td>Fold-2</td>
-      <td>5392</td>
-      <td>2688</td>
-      <td>8080</td>
-      <td>5344</td>
-      <td>2768</td>
-      <td>8112</td>
-    </tr>
-    <tr>
-      <td>Fold-3</td>
-      <td>5392</td>
-      <td>2672</td>
-      <td>8064</td>
-      <td>5456</td>
-      <td>2640</td>
-      <td>8096</td>
-    </tr>
-  </tbody>
-</table>
-
-
-So, from the WISDM dataset, we extracted [Recurrence plots](https://ieeexplore.ieee.org/document/8691521/) with a legnth of 129 points (128x128 pixels) were generated for each of the five selected classes across every fold. These plots, inspired by the work of Lu and Tong in "Robust Single Accelerometer-Based Activity Recognition Using Modified Recurrence Plot", are available for download on the Hugging Face platform.
-
-
-
-Here, an example of the reccurente plots dataset:
-
-<table>
-<tr>
-    <td>
-        <img src="doc/model_fold_0_class_0_demo_00669000.png" alt="Class 0 Image" width="250"/><br>
-        <center>Class 0 (Walking)</center>
-    </td>
-    <td>
-        <img src="doc/model_fold_0_class_1_demo_00659000.png" alt="Class 1 Image" width="250"/><br>
-        <center>Class 1 (Jogging)</center>
-    </td>
-    <td>
-        <img src="doc/model_fold_0_class_2_demo_00669000.png" alt="Class 2 Image" width="250"/><br>
-        <center>Class 2 (Stairs)</center>
-    </td>
-</tr>
-<tr>
-    <td>
-        <img src="doc/model_fold_0_class_3_demo_00679000.png" alt="Class 3 Image" width="250"/><br>
-        <center>Class 3 (Sitting)</center>
-    </td>
-    <td>
-        <img src="doc/model_fold_0_class_4_demo_00689000.png" alt="Class 4 Image" width="250"/><br>
-        <center>Class 4 (Standing)</center>
-    </td>
-</tr>
-</table>
-
-
-
-### Create Images (RP,GASF,MTF)
-If you want to create recurrence plots:
-
-- "--create-numpies" is for create the first time the numpy arrays.
-- With "--sampling loto" you can select the sampling method "loto" or "loso" with "--sampling loso".
-- With "--image type " you can select the image construction or reconstruction method "--sampling loso".
-For LOTO approach:
-```sh
- $ nohup ./generate_images.py  --data-name WISDM --n-folds 3 --image-type GAF --data-folder /home/adriano/Escritorio/TFG/data/WISDM/  --sampling loto > generate_images.log &
-
-```
-
-
-### Reconstruct Images (RP,GASF,MTF)
-Then, we have to execute once generated the images  the reconstruction of the time series:
-
-```sh
- $ nohup  ./generate_time_series.py --data-name WISDM --n-folds 3 --image-type GAF --data-folder /home/adriano/Escritorio/TFG/data/WISDM/  --sampling loto > ts_plots_loto.log &
-
-```
-
-
-
+The paper draft is [doc/main.tex](doc/main.tex). The workflow diagram source is [doc/workflow_overview.md](doc/workflow_overview.md).
 
 ---
 
+## Why This Repo Matters
 
-Generates all diferent RP GAF MTF IMAGES for LOTO  aproach
-python -m scripts.generate_images --data-name WISDM --n-folds 3 --image-type MTF --data-folder C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/ --sampling loto > generate_images.log
+The headline result from [doc/main.tex](doc/main.tex) is that image encodings can be made genuinely reversible under a controlled protocol, but the word "best" depends on what the reconstructed signal is used for.
 
+What is new here:
 
- python -m scripts.generate_time_series --data-name WISDM --n-folds 3 --image-type GAF --data-folder C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/ --sampling loto > ts_plots_loto_mtf.log 
-
- python -m scripts.generate_time_series --data-name WISDM --n-folds 3 --image-type GAF --data-folder C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/ --sampling loto > ts_plots_loto_gaf.log 
-
- python -m scripts.generate_time_series --data-name WISDM --n-folds 3 --image-type RP --data-folder C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/ --sampling loto > ts_plots_loto_rp.log 
-
- Evaluación sobre validation_data.npy: ORIGINALES
-              precision    recall  f1-score   support
-
-         0.0       0.80      0.95      0.87       543
-         1.0       0.99      0.98      0.98       532
-         2.0       0.90      0.75      0.82       536
-         3.0       0.89      0.93      0.91       551
-         4.0       0.94      0.88      0.91       559
-
-    accuracy                           0.90      2721
-   macro avg       0.90      0.90      0.90      2721
-weighted avg       0.90      0.90      0.90      2721
-
-86/86 [==============================] - 1s 7ms/step
-Evaluación sobre datos reconstruidos: RP
-              precision    recall  f1-score   support
-
-         0.0       0.68      0.34      0.45       543
-         1.0       0.73      0.89      0.80       532
-         2.0       0.48      0.70      0.57       536
-         3.0       0.83      0.79      0.81       551
-         4.0       0.87      0.76      0.81       559
-
-    accuracy                           0.70      2721
-   macro avg       0.72      0.70      0.69      2721
-weighted avg       0.72      0.70      0.69      2721
-86/86 [==============================] - 1s 6ms/step
-Evaluación sobre datos reconstruidos: MTF
-              precision    recall  f1-score   support
-
-         0.0       0.60      0.47      0.52       543
-         1.0       0.58      0.97      0.73       532
-         2.0       0.48      0.43      0.45       536
-         3.0       0.92      0.81      0.86       551
-         4.0       0.96      0.76      0.85       559
-
-    accuracy                           0.69      2721
-   macro avg       0.71      0.69      0.68      2721
-weighted avg       0.71      0.69      0.68      2721
-
-86/86 [==============================] - 1s 7ms/step
-Evaluación sobre datos reconstruidos: GAF
-              precision    recall  f1-score   support
-
-         0.0       0.80      0.95      0.87       543
-         1.0       0.99      0.98      0.98       532
-         2.0       0.90      0.76      0.82       536
-         3.0       0.89      0.93      0.91       551
-         4.0       0.94      0.88      0.91       559
-
-    accuracy                           0.90      2721
-   macro avg       0.90      0.90      0.90      2721
-weighted avg       0.90      0.90      0.90      2721
+- A signed-RP decoder that uses the Lu-Tong sign convention to resolve the MDS reflection ambiguity and restores the `N -> N-1` adjacent-state shrinkage.
+- A closed-form GADF pivot-row decoder, presented as the first explicit inverse map for GADF under restricted angular scaling and external scale metadata.
+- A Fiedler-vector MTF decoder, presented as the first inverse map for MTF, replacing a brittle cosine-pivot heuristic with spectral bin ordering.
+- A symmetric evaluation of RP, GASF, GADF, and MTF under the same `N=128` WISDM protocol, both LOTO and LOSO 3-fold, with 8,227 pooled paired test windows per protocol.
 
 ---
-KNN
-Evaluación sobre validation_data.npy: ORGINAL
-              precision    recall  f1-score   support
 
-         0.0       0.75      0.49      0.59       543
-         1.0       1.00      0.77      0.87       532
-         2.0       0.54      0.05      0.09       536
-         3.0       0.79      0.95      0.86       551
-         4.0       0.41      0.92      0.57       559
+## Results That Sell the Benchmark
 
-    accuracy                           0.64      2721
-   macro avg       0.70      0.64      0.60      2721
-weighted avg       0.70      0.64      0.60      2721
+The table below is the compact version of the paper's Results and Discussion sections. The important finding is not just that GASF wins. The important finding is that the ranking changes depending on whether you care about waveform fidelity or classifier utility.
 
-(2721, 129, 3)
-(2721, 387)
-Evaluación sobre datos reconstruidos: RP
-              precision    recall  f1-score   support
+| Lens | Headline numbers | Ranking | Interpretation |
+|------|------------------|---------|----------------|
+| Pointwise reconstruction | Global MAE: GASF `0.0209`, GADF `1.47`, RP `2.95`, MTF `4.00` | GASF > GADF > RP > MTF | Strict waveform fidelity in native accelerometer units. |
+| Polynomial trend | Mean Euclidean distance: GASF `0.00088`, GADF `0.10962`, RP `0.19815`, MTF `0.22844` | GASF > GADF > RP > MTF | Same ordering after compressing each signal into smooth trend coefficients. |
+| LOTO classifiers | Mean accuracy across six classifiers: Original `0.836`, GASF `0.836`, GADF `0.764`, MTF `0.708`, RP `0.670` | Original ~= GASF > GADF > MTF > RP | MTF is less waveform-faithful than RP, but its coarse transition structure is more useful to most classifiers. |
+| LOSO classifiers | Mean accuracy across six classifiers: Original `0.707`, GASF `0.707`, GADF `0.661`, MTF `0.624`, RP `0.600` | Original ~= GASF > GADF > MTF > RP | Subject-out evaluation is harder, but the classifier-side ranking is preserved. |
 
-         0.0       0.73      0.25      0.37       543
-         1.0       0.92      0.52      0.67       532
-         2.0       0.35      0.03      0.05       536
-         3.0       0.57      0.88      0.69       551
-         4.0       0.36      0.85      0.50       559
+Main takeaways:
 
-    accuracy                           0.51      2721
-   macro avg       0.58      0.51      0.46      2721
-weighted avg       0.58      0.51      0.46      2721
+- GASF is effectively near-original: global MAE `0.0209`, Pearson `0.99988 +/- 0.00020`, and classifier accuracy statistically indistinguishable from the raw signal across all six classifiers under both LOTO and LOSO.
+- GADF is the strongest non-GASF decoder: MAE `1.47 +/- 1.65`, Pearson `0.983 +/- 0.025`, about `2.0x` tighter than RP and `2.7x` tighter than MTF in MAE.
+- GADF is the only reconstruction that strictly beats the raw signal in one setting: LOSO-KNN reaches `0.500 +/- 0.017` vs original `0.477 +/- 0.010` (`p_Holm = 6.4e-11`).
+- RP and MTF expose the central rank inversion: RP is closer pointwise (`2.95` vs `4.00` MAE), but MTF beats RP downstream on five of the six classifiers under both LOTO and LOSO.
+- The MTF decoder upgrade matters: at `Q=4`, the old cosine-pivot decoder has MAE `6.111`, plain Fiedler ordering drops it to `4.664`, and adding midpoint plus sign-bit metadata reaches `2.371`.
+- `Q=4` is not arbitrary: in the paper's sweep it minimises MTF pointwise MAE, maximises pointwise Pearson, and gives the best KNN/CNN accuracies.
 
-Evaluación sobre datos reconstruidos:MTF
-              precision    recall  f1-score   support
+Practical recommendation:
 
-         0.0       0.59      0.47      0.52       543
-         1.0       0.99      0.34      0.51       532
-         2.0       0.41      0.10      0.16       536
-         3.0       0.62      0.92      0.74       551
-         4.0       0.43      0.88      0.58       559
+- Use GASF when you want the most faithful controlled inverse.
+- Use GADF as the best reconstruction-oriented GAF companion: closed-form, strong trend preservation, and useful smoothing under LOSO-KNN.
+- Use MTF when downstream classification is the target and coarse transition dynamics are acceptable.
+- Keep RP for recurrence/dynamical-systems diagnostics where recurrence geometry itself matters.
 
-    accuracy                           0.55      2721
-   macro avg       0.61      0.54      0.50      2721
-weighted avg       0.61      0.55      0.50      2721
+Scope note: these numbers do not prove unconstrained generative augmentation. The decoders assume controlled encoder-side metadata such as min/max scale, sign convention, quantisation branch, or equivalent calibration. That is exactly why the benchmark is useful: it separates "can this image representation be inverted under known conditions?" from "can a generator synthesize physically calibrated signals without extra metadata?"
 
-Evaluación sobre datos reconstruidos: GAF
-              precision    recall  f1-score   support
+Detailed result tables live in [doc/_3fold_tables.tex](doc/_3fold_tables.tex), [doc/_loso_tables.tex](doc/_loso_tables.tex), and the Results/Discussion sections of [doc/main.tex](doc/main.tex).
 
-         0.0       0.75      0.49      0.59       543
-         1.0       1.00      0.77      0.87       532
-         2.0       0.53      0.05      0.09       536
-         3.0       0.79      0.95      0.86       551
-         4.0       0.41      0.92      0.57       559
+---
 
-    accuracy                           0.64      2721
-   macro avg       0.70      0.64      0.60      2721
-weighted avg       0.69      0.64      0.60      2721
+## Requirements
 
-LSTM
+- Python `>=3.10,<3.12`
+- WISDM Smartphone and Smartwatch Activity and Biometrics Dataset
+- Enough disk space for generated images, reconstructed arrays, model caches, and JSON result files
 
-Evaluación sobre validation_data.npy: ORIGINAL
-              precision    recall  f1-score   support
+TensorFlow is pinned below Keras 3 because this code still uses Keras 2 APIs. The authoritative dependency list is [pyproject.toml](pyproject.toml).
 
-         0.0       0.77      0.86      0.82       543
-         1.0       0.99      0.99      0.99       532
-         2.0       0.84      0.71      0.77       536
-         3.0       0.87      0.85      0.86       551
-         4.0       0.83      0.87      0.85       559
+---
 
-    accuracy                           0.86      2721
-   macro avg       0.86      0.86      0.86      2721
-weighted avg       0.86      0.86      0.86      2721
+## Setup
 
-86/86 [==============================] - 1s 9ms/step
-Evaluación sobre datos reconstruidos: RP
-              precision    recall  f1-score   support
+Use the setup script for your platform.
 
-         0.0       0.59      0.22      0.32       543
-         1.0       0.68      0.88      0.76       532
-         2.0       0.43      0.60      0.50       536
-         3.0       0.79      0.77      0.78       551
-         4.0       0.79      0.75      0.77       559
+Linux, macOS, or WSL:
 
-    accuracy                           0.65      2721
-   macro avg       0.65      0.65      0.63      2721
-weighted avg       0.66      0.65      0.63      2721
+```bash
+bash scripts/setup.sh
+bash scripts/setup.sh hf diffusion   # optional extras
+```
 
-86/86 [==============================] - 1s 9ms/step MTF
-Evaluación sobre datos reconstruidos:
-              precision    recall  f1-score   support
+Windows PowerShell:
 
-         0.0       0.63      0.50      0.56       543
-         1.0       0.59      1.00      0.74       532
-         2.0       0.56      0.43      0.49       536
-         3.0       0.91      0.80      0.85       551
-         4.0       0.89      0.77      0.83       559
+```powershell
+.\scripts\setup.ps1
+.\scripts\setup.ps1 -Extras hf,diffusion
+```
 
-    accuracy                           0.70      2721
-   macro avg       0.72      0.70      0.69      2721
-weighted avg       0.72      0.70      0.70      2721
-86/86 [==============================] - 1s 9ms/step
-Evaluación sobre datos reconstruidos: GAF
-              precision    recall  f1-score   support
+Manual setup:
 
-         0.0       0.78      0.86      0.82       543
-         1.0       0.99      0.99      0.99       532
-         2.0       0.84      0.71      0.77       536
-         3.0       0.87      0.85      0.86       551
-         4.0       0.83      0.87      0.85       559
+```bash
+python3.10 -m venv .venv
+source .venv/bin/activate            # Windows: .venv\Scripts\Activate.ps1
+pip install -e .
+pip install -e ".[hf,diffusion,dev]" # optional
+```
 
-    accuracy                           0.86      2721
-   macro avg       0.86      0.86      0.86      2721
-weighted avg       0.86      0.86      0.86      2721
+Windows note: TensorFlow can exceed the default 260-character path limit during installation. Enable long paths or place the virtual environment outside a deeply nested repository path, for example with `.\scripts\setup.ps1 -VenvDir "C:\Users\$env:USERNAME\tfg310"`.
 
-RANDOM FOREST
-Evaluación sobre validation_data.npy: ORIGINAL
-              precision    recall  f1-score   support
+---
 
-         0.0       0.84      0.81      0.82       543
-         1.0       0.94      0.99      0.96       532
-         2.0       0.78      0.80      0.79       536
-         3.0       0.90      0.94      0.92       551
-         4.0       0.96      0.88      0.92       559
+## Data
 
-    accuracy                           0.88      2721
-   macro avg       0.88      0.88      0.88      2721
-weighted avg       0.89      0.88      0.88      2721
+Download the WISDM dataset and unpack it so the raw files are under:
 
-Evaluación sobre datos reconstruidos: RP
-              precision    recall  f1-score   support
+```text
+data/WISDM/wisdm-dataset/raw/
+  phone/accel/
+  phone/gyro/
+  watch/accel/
+  watch/gyro/
+```
 
-         0.0       0.69      0.19      0.30       543
-         1.0       0.70      0.86      0.77       532
-         2.0       0.45      0.70      0.54       536
-         3.0       0.80      0.84      0.82       551
-         4.0       0.83      0.74      0.78       559
+Linux or WSL example:
 
-    accuracy                           0.67      2721
-   macro avg       0.69      0.67      0.64      2721
-weighted avg       0.69      0.67      0.64      2721
+```bash
+mkdir -p data/WISDM
+curl -L -o /tmp/wisdm.zip https://archive.ics.uci.edu/static/public/507/wisdm+smartphone+and+smartwatch+activity+and+biometrics+dataset.zip
+unzip -q /tmp/wisdm.zip -d data/WISDM/
+unzip -q data/WISDM/wisdm-dataset.zip -d data/WISDM/
+find data/WISDM -name ".DS_Store" -delete
+rm data/WISDM/wisdm-dataset.zip /tmp/wisdm.zip
+```
 
-Evaluación sobre datos reconstruidos: MTF
-              precision    recall  f1-score   support
+By default scripts read from `./data/WISDM/`. To use another location:
 
-         0.0       0.57      0.35      0.43       543
-         1.0       0.55      1.00      0.71       532
-         2.0       0.48      0.46      0.47       536
-         3.0       0.94      0.84      0.89       551
-         4.0       0.95      0.71      0.81       559
+```bash
+export TFG_DATA_DIR=/absolute/path/to/WISDM/
+```
 
-    accuracy                           0.67      2721
-   macro avg       0.70      0.67      0.66      2721
-weighted avg       0.70      0.67      0.67      2721
+`src/config.py` normalizes the path with a trailing separator because some legacy code still concatenates strings.
 
-Evaluación sobre datos reconstruidos: GAF
-              precision    recall  f1-score   support
+Dataset protocol:
 
-         0.0       0.84      0.80      0.82       543
-         1.0       0.94      0.99      0.96       532
-         2.0       0.77      0.81      0.79       536
-         3.0       0.91      0.94      0.92       551
-         4.0       0.96      0.87      0.92       559
+- Sensor stream: WISDM smartwatch accelerometer.
+- Activities: Walking, Jogging, Stairs, Sitting, Standing.
+- Subjects: 51.
+- Window length: `N=128` samples, about 6.4 seconds at 20 Hz.
+- `RP` internally uses adjacent states, so its image is `127x127`; the decoder pads the recovered sequence back to 128 samples.
+- `LOTO`: leave-one-trial-out.
+- `LOSO`: leave-one-subject-out.
 
-    accuracy                           0.88      2721
-   macro avg       0.88      0.88      0.88      2721
-weighted avg       0.88      0.88      0.88      2721
+---
 
+## Running the Pipeline
 
-Support vector machine
+Use `scripts.run_pipeline` for normal work. It chains encoding, reconstruction, and validation in one Python process.
 
+Run one encoder on one fold:
 
-Evaluación sobre validation_data.npy:ORGINAL
-              precision    recall  f1-score   support
+```bash
+python -m scripts.run_pipeline --stype GADF --sampling loto --fold 0 --n-folds 3 --create-numpies
+```
 
-         0.0       0.76      0.65      0.70       543
-         1.0       0.97      0.98      0.97       532
-         2.0       0.65      0.70      0.67       536
-         3.0       0.82      0.84      0.83       551
-         4.0       0.79      0.82      0.80       559
+Reuse already generated images and reconstructions, and only evaluate classifiers:
 
-    accuracy                           0.80      2721
-   macro avg       0.80      0.80      0.80      2721
-weighted avg       0.80      0.80      0.80      2721
+```bash
+python -m scripts.run_pipeline --stype GAF --sampling loto --fold 0 --skip-encode --skip-reconstruct
+```
 
-Evaluación sobre datos reconstruidos:RP 
-              precision    recall  f1-score   support
+Evaluate a subset of classifiers:
 
-         0.0       0.57      0.11      0.19       543
-         1.0       0.75      0.89      0.82       532
-         2.0       0.45      0.33      0.38       536
-         3.0       0.72      0.76      0.74       551
-         4.0       0.43      0.77      0.55       559
+```bash
+python -m scripts.run_pipeline --stype MTF --sampling loso --fold 1 --classifiers knn,svc,randomforest
+```
 
-    accuracy                           0.57      2721
-   macro avg       0.58      0.57      0.53      2721
-weighted avg       0.58      0.57      0.53      2721
+Useful flags:
 
+| Flag | Meaning |
+|------|---------|
+| `--stype RP|GAF|GADF|MTF` | Encoding to process. `GAF` means GASF. |
+| `--sampling loto|loso` | Split protocol. |
+| `--fold 0|1|2` | Fold used for reconstruction/validation. |
+| `--create-numpies` | Rebuild cached WISDM window arrays from raw files. Use on the first run. |
+| `--skip-encode` | Reuse PNG images under `data/WISDM/plots/`. |
+| `--skip-reconstruct` | Reuse reconstructed arrays under `data/WISDM/tseries/`. |
+| `--skip-validate` | Stop after encoding/reconstruction. |
+| `--train-new` | Force model retraining instead of loading cached models. |
+| `--force` | Recompute result JSON files even if they already exist. |
 
+Low-level stages are also available:
 
-Evaluación sobre datos reconstruidos: MTF
-              precision    recall  f1-score   support
+```bash
+python -m scripts.generate_images --image-type GADF --sampling loto --n-folds 3 --create-numpies
+python -m scripts.generate_time_series --image-type GADF --sampling loto --n-folds 3
+python -m scripts.knnvalidation --stype GADF --sampling loto --fold 0
+python -m scripts.Validation --stype GADF --sampling loto --fold 0  # SVM
+```
 
-         0.0       0.57      0.62      0.59       543
-         1.0       0.53      1.00      0.69       532
-         2.0       0.39      0.11      0.17       536
-         3.0       0.85      0.77      0.81       551
-         4.0       0.87      0.73      0.79       559
+---
 
-    accuracy                           0.65      2721
-   macro avg       0.64      0.65      0.61      2721
-weighted avg       0.64      0.65      0.61      2721
+## Outputs
 
-Evaluación sobre datos reconstruidos: GAF
-              precision    recall  f1-score   support
+Generated artifacts are intentionally kept out of Git.
 
-         0.0       0.76      0.65      0.70       543
-         1.0       0.97      0.98      0.97       532
-         2.0       0.65      0.69      0.67       536
-         3.0       0.82      0.84      0.83       551
-         4.0       0.78      0.82      0.80       559
+```text
+data/WISDM/plots/<encoding>/sampling_<loto|loso>/3-fold/fold-<k>/
+data/WISDM/tseries/<encoding>/sampling_<loto|loso>/3-fold/fold-<k>/
+models/
+results/
+```
 
-    accuracy                           0.80      2721
-   macro avg       0.80      0.80      0.80      2721
-weighted avg       0.80      0.80      0.80      2721
+Path conventions are centralized in [src/paths.py](src/paths.py):
 
-\section{Reconstructions from the Artificial Time Series}
+- `ALL_STYPES = ("RP", "GAF", "GADF", "MTF")`
+- `GAF` is the code identifier for GASF.
+- Per-run metrics are written under `results/<stype>/<classifier>/<sampling>/fold-<k>.json`.
+- Original-signal classifier reports are cached under `results/_originals/`.
 
-For our first experiment, we construct a synthetic time series \( \mathbf{w} \in \mathbb{R}^{N \times 3} \) of length \(N=129\) by sampling an underlying parameter \(t\) uniformly over \([0,\pi]\).  Concretely, define
-\[
-t_i = \frac{i}{N-1}\,\pi,\qquad i=0,1,\dots,N-1,
-\]
-and let each vector \(\mathbf{w}_i = [w_{i,0},\,w_{i,1},\,w_{i,2}]^\top\) be given by
-\[
-w_{i,0} = \cos(t_i), 
-\qquad
-w_{i,1} = \sin(t_i),
-\qquad
-w_{i,2} = \sin(t_i)\;-\;\cos(t_i).
-\]
-Thus the full data matrix is
-\[
-\mathbf{w} = 
-\begin{bmatrix}
-\cos(t_0) & \sin(t_0) & \sin(t_0)-\cos(t_0) \\
-\cos(t_1) & \sin(t_1) & \sin(t_1)-\cos(t_1) \\
-\vdots    & \vdots    & \vdots             \\
-\cos(t_{N-1}) & \sin(t_{N-1}) & \sin(t_{N-1})-\cos(t_{N-1})
-\end{bmatrix}.
-\]
-This three‐dimensional signal—composed of a pure cosine channel, a pure sine channel, and their difference serves as the input for our RP, GAF and MTF reconstructions.
-Figure \ref{fig:artificial_encodings} shows the image encodings of the three  channels under each technique:
+---
 
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[b]{0.32\linewidth}
-        \centering
-        \includegraphics[width=\linewidth,height=0.13\textheight]{images/COSRP.png}
-        \caption{ RP}
-        \label{fig:cos_rp}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.32\linewidth}
-        \centering
-        \includegraphics[width=\linewidth,height=0.13\textheight]{images/COSGasf.png}
-        \caption{GASF}
-        \label{fig:cos_gasf}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.32\linewidth}
-        \centering
-        \includegraphics[width=\linewidth,height=0.13\textheight]{images/COSmtf.png}
-        \caption{MTF}
-        \label{fig:cos_mtf}
-    \end{subfigure}
-    \caption{Image encodings of the cosine channel from the artificial time series.}
-    \label{fig:artificial_encodings}
-\end{figure}
-Once created the images we calculate the reconstruction through the decoding of the images:let's see the graphic comparison. 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\linewidth,height=0.31\textheight]{images/Comparison_all_wideRP.png}
-    \caption{Comparasion RP reconstruction with Artifical time series.}
-\end{figure}
+## Paper Utilities
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\linewidth,height=0.31\textheight]{images/Comparison_all_wideGAF.png}
-    \caption{Comparasion from GASF reconstruction with Artifical time series.}
-\end{figure}
+The paper tables are stored as LaTeX fragments:
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\linewidth,height=0.31\textheight]{images/Comparison_all_widemtf.png}
-    \caption{Comparasion from MTF reconstruction with Artifical time series.}
-\end{figure}
+- LOTO tables: [doc/_3fold_tables.tex](doc/_3fold_tables.tex)
+- LOSO tables: [doc/_loso_tables.tex](doc/_loso_tables.tex)
+- Main paper: [doc/main.tex](doc/main.tex)
 
+Useful checks:
+
+```bash
+python scripts/_check_refs.py
+python scripts/_verify_paper_tables.py
+python scripts/_verify_error_tables.py
+```
+
+No command here compiles the paper; these scripts only check consistency between the paper text/tables and stored result artifacts.
+
+---
+
+## Repository Layout
+
+```text
+.
+  src/
+    activity_data.py          WISDM loading and windowing
+    recurrence_plots.py       RP encoder/decoder
+    GAF.py                    GASF encoder/decoder
+    GADF.py                   GADF encoder/decoder
+    MTF.py                    MTF encoder/decoder wrapper
+    MTF_v2.py                 Fiedler-vector MTF decoder
+    reconstruct_tseries.py    image-to-signal reconstruction entry point
+    evaluator.py              shared classifier evaluation pipeline
+    models.py                 model and original-report cache helpers
+    paths.py                  canonical path mapping
+    results.py                JSON metric persistence
+  scripts/
+    run_pipeline.py           preferred orchestration entry point
+    generate_images.py        image encoding stage
+    generate_time_series.py   reconstruction stage
+    *validation.py            classifier validators
+    _*.py / _*.sh             paper, audit, smoke, and batch helper scripts
+  doc/
+    main.tex                  paper draft
+    _3fold_tables.tex         LOTO paper tables
+    _loso_tables.tex          LOSO paper tables
+    workflow_overview.md      pipeline diagram source
+  docs/
+    experiments/              supporting experiment notes
+```
+
+---
+
+## Troubleshooting
+
+- If a validator silently reuses old behavior, delete the relevant file under `models/` and `results/_originals/`, or run with `--train-new --force`.
+- If reconstructed arrays have the wrong shape, regenerate the corresponding fold under `data/WISDM/tseries/`; old `N=129` artifacts are not compatible with the current `N=128` protocol.
+- If Windows install fails inside TensorFlow, shorten the repository or virtualenv path and enable long paths.
+- If `TFG_DATA_DIR` points outside the repo, make sure it points to the directory that contains `wisdm-dataset/`.
+
+---
+
+## Citation
+
+```bibtex
+@misc{tfg-tsd,
+  title  = {Time-series reconstruction from image-based encodings on WISDM},
+  author = {Garcia-Giralda, Adriano},
+  year   = {2026}
+}
+```

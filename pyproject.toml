@@ -1,0 +1,97 @@
+[project]
+name = "tfg-tsd"
+version = "0.1.0"
+description = "Time-series reconstruction from image-based encodings (RP, GASF, GADF, MTF) on WISDM."
+readme = "README.md"
+requires-python = ">=3.10,<3.12"
+license = { text = "MIT" }
+authors = [
+    { name = "Adriano García-Giralda" },
+]
+keywords = ["time-series", "recurrence-plot", "gramian-angular-field", "markov-transition-field", "wisdm"]
+classifiers = [
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+]
+
+# Core dependencies — what every code path in src/ and scripts/ needs to import cleanly.
+# Pins are looser than the original requirements.txt: we use ranges that span
+# TF 2.11 (Python 3.10) up to TF 2.15 (Python 3.11). Keras 2 API is preserved
+# across that range; Keras 3 (TF 2.16+) is intentionally excluded because the
+# repo uses `keras.preprocessing.image` which Keras 3 removed.
+dependencies = [
+    # Scientific stack — numpy stays on 1.x because TF 2.11–2.15 wheels do not
+    # support numpy 2.x at build time.
+    "numpy>=1.23,<2.0",
+    "pandas>=2.0,<3",
+    "scipy>=1.10,<2",
+    "scikit-learn>=1.3,<2",
+    "matplotlib>=3.7,<4",
+    "seaborn>=0.13,<1",
+
+    # Image / signal toolkit
+    "pyts==0.13.0",
+    "dtaidistance>=2.3,<3",
+    "Pillow>=10,<12",
+    "opencv-python-headless>=4.8,<5",
+    "tqdm>=4.65,<5",
+    "joblib>=1.3,<2",
+    "numba>=0.58,<1",
+
+    # Deep learning — TF/Keras for CNN/GRU/LSTM scripts, torch for diffusion modules.
+    # `src/__init__.py` imports both eagerly, so they belong in core.
+    "tensorflow>=2.11,<2.16",
+    "torch>=2.0,<3",
+    "torchvision>=0.15,<1",
+]
+
+[project.optional-dependencies]
+# Hugging Face Hub + Weights & Biases — only needed by `src/upload_*.py`.
+hf = [
+    "huggingface-hub>=0.20,<1",
+    "datasets>=2.14,<4",
+    "wandb>=0.16,<1",
+]
+# k-diffusion training (used by `src/data.py`, `scripts/train.py`, `scripts/sample.py`,
+# `scripts/eval_diffusion.py`, `scripts/plots.py`).
+diffusion = [
+    "k-diffusion>=0.1",
+    "accelerate>=0.20",
+]
+# Dev tooling.
+dev = [
+    "ruff>=0.5",
+    "pytest>=7",
+    "pre-commit>=3",
+]
+# Convenience: install everything.
+all = ["tfg-tsd[hf,diffusion,dev]"]
+
+[project.urls]
+Homepage = "https://github.com/adrianoggm/TFG-Tratamiento-de-Series-Temporales"
+Repository = "https://github.com/adrianoggm/TFG-Tratamiento-de-Series-Temporales"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# The repo lays out code in `src/` and `scripts/` as packages (each has __init__.py).
+# We keep that layout instead of renaming, to avoid touching every `import src.X` call site.
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*", "scripts*"]
+exclude = ["data*", "doc*", "docs*", "tests*", ".venv*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501", "E402"]

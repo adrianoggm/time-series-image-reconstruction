@@ -1,0 +1,84 @@
+# Lightweight CI: install the project with pip and check that every src/ and
+# scripts/ module imports cleanly across a (Python × OS) matrix. Runs no
+# experiment — the WISDM dataset is large and the training scripts are slow.
+# The point is to catch regressions in pins, missing deps, or accidental
+# hardcoded paths whenever someone edits pyproject.toml.
+
+name: smoke
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  imports:
+    name: imports ${{ matrix.os }} / py${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.10', '3.11']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Enable Windows long paths
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' `
+            -Name LongPathsEnabled -Value 1 -Type DWord
+          git config --system core.longpaths true
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install project (editable, core extras only)
+        run: uv pip install --system -e .
+
+      - name: Smoke import every src/ and scripts/ module
+        shell: bash
+        run: |
+          python - <<'PY'
+          import importlib, pkgutil, sys, traceback
+
+          failed = []
+          for pkg in ["src", "scripts"]:
+              mod = importlib.import_module(pkg)
+              for finder, name, ispkg in pkgutil.iter_modules(mod.__path__, prefix=f"{pkg}."):
+                  try:
+                      importlib.import_module(name)
+                      print(f"ok  {name}")
+                  except Exception as e:
+                      print(f"FAIL {name}: {e.__class__.__name__}: {e}")
+                      failed.append(name)
+          if failed:
+              print(f"\n{len(failed)} module(s) failed to import")
+              sys.exit(1)
+          print("\nAll modules imported cleanly.")
+          PY
+
+      - name: Verify get_time_setup + DEFAULT_DATA_DIR
+        shell: bash
+        run: |
+          python -c "
+          from src.activity_data import get_time_setup
+          from src.config import DEFAULT_DATA_DIR
+          steps, step = get_time_setup('WISDM')
+          assert steps == 128 and step == 128, (steps, step)
+          assert DEFAULT_DATA_DIR.endswith(('/', '\\\\')), DEFAULT_DATA_DIR
+          print('time setup:', steps, step)
+          print('data dir:', DEFAULT_DATA_DIR)
+          "
