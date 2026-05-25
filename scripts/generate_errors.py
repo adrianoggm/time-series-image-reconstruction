@@ -1,4 +1,4 @@
-#!C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/venv/bin/python3
+#!/usr/bin/env python3
 from keras.utils import to_categorical
 import argparse
 import src.activity_data as act
@@ -10,27 +10,28 @@ import src.ts_plots as plot
 from PIL import Image
 from dtaidistance import dtw
 import statistics
+from src.config import DEFAULT_DATA_DIR
 def main():
     data_name="WISDM"
-    data_folder="C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM//tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
+    data_folder=f"{DEFAULT_DATA_DIR}tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
      #voy a  obtener el maximo de todo el data set.
     img_type="GAF"
     indices_T=np.load(f"{data_folder}/training_data.npy")
     
     if img_type=="RP":
-        data_F1="C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
+        data_F1=f"{DEFAULT_DATA_DIR}tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
         errores = np.load(f"{data_F1}/errores_rec.npy")
         X_all_rec=np.load(f"{data_folder}/X_all_rec.npy")
     if img_type=="GAF":
-        data_F1="C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/tseries/GAF/sampling_loto/3-fold/fold-0/train"
+        data_F1=f"{DEFAULT_DATA_DIR}tseries/GAF/sampling_loto/3-fold/fold-0/train"
         errores = np.load(f"{data_F1}/errores_gaf.npy")
-        X_all_rec=np.load(f"C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/tseries/GAF/sampling_loto/3-fold/fold-0/train/X_all_gaf.npy")
+        X_all_rec=np.load(f"{DEFAULT_DATA_DIR}tseries/GAF/sampling_loto/3-fold/fold-0/train/X_all_gaf.npy")
         #errores2 = np.load(f"{data_folder}/errores_rec.npy")
-    #data_folder="C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
+    #data_folder=f"{DEFAULT_DATA_DIR}tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
     if img_type=="MTF":
-        data_F1="C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/tseries/MTF/sampling_loto/3-fold/fold-0/train"
+        data_F1=f"{DEFAULT_DATA_DIR}tseries/MTF/sampling_loto/3-fold/fold-0/train"
         errores = np.load(f"{data_F1}/errores_mtf.npy")
-        X_all_rec=np.load(f"C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/tseries/MTF/sampling_loto/3-fold/fold-0/train/X_all_mtf.npy")
+        X_all_rec=np.load(f"{DEFAULT_DATA_DIR}tseries/MTF/sampling_loto/3-fold/fold-0/train/X_all_mtf.npy")
     
     tipoerrores=["Error Absoluto Promedio","Error Relativo Promedio","Error Quadrático medio","Error desviacion típica","Coeficiente de correlación pearson"]
     print("errores",errores.shape)

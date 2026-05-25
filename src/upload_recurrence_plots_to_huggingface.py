@@ -1,4 +1,4 @@
-#!/home/adriano/Escritorio/TFG/venv/bin/python3
+#!/usr/bin/env python3
 
 import argparse
 from datasets import load_dataset
@@ -13,6 +13,8 @@ import torch
 import numpy as np
 
 from huggingface_hub import login
+
+from src.config import DEFAULT_DATA_DIR
 
 # !pip install huggingface_hub &>> instal.log
 # !huggingface-cli login 
@@ -34,7 +36,7 @@ def gather(consts: torch.Tensor, t: torch.Tensor):
     c = consts.gather(-1, t)
     return c.reshape(-1, 1, 1, 1)
 
-def upload_data(dataset_name="WISDM", dataset_folder="/home/adriano/Escritorio/TFG/data/WISDM/", sampling="loso", generateKFOLD=True, FOLDS_N=3, huggingfaceToken=""):
+def upload_data(dataset_name="WISDM", dataset_folder=DEFAULT_DATA_DIR, sampling="loso", generateKFOLD=True, FOLDS_N=3, huggingfaceToken=""):
     DRIVE_RP_FOLDER = f"{dataset_folder}plots/recurrence_plot/sampling_{sampling}"
     HUGG_DATASET_NAME = f"Adrianoggm/{dataset_name}-mod-recurrence-plot-sampling-{sampling}"
     HUGG_DATASET_IS_PRIVATE = True
@@ -94,7 +96,7 @@ def main():
                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     p.add_argument('--sampling', type=str, default="loso", help='the sampling technique')
     p.add_argument('--data-name', type=str, default="WISDM", help='the database name')
-    p.add_argument('--data-folder', type=str, default="/home/adriano/Escritorio/TFG/data/WISDM/", help='the data folder path')
+    p.add_argument('--data-folder', type=str, default=DEFAULT_DATA_DIR, help='the data folder path')
     p.add_argument('--n-folds', type=int, default=3, help='the number of k-folds')
     p.add_argument('--huggingface-token', required=True, type=str, help='the token')
 

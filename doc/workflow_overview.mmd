@@ -1,0 +1,77 @@
+flowchart TD
+    %% ============ INPUT ============
+    A["<b>Input</b><br/>Time-series window<br/>x ∈ ℝ<sup>N×3</sup> (acc x,y,z)<br/>N = 128"]:::input
+
+    %% ============ PREPROCESS ============
+    A --> B["<b>Per-axis normalization</b><br/>x̃<sub>t</sub> = (x<sub>t</sub> − min)/(max − min)<br/>store (min, max) as metadata"]:::preprocess
+
+    %% ============ ENCODING SUBGRAPH ============
+    subgraph ENC ["<b>① ENCODING</b> &nbsp;&nbsp; 𝒯 : ℝ<sup>N</sup> → ℝ<sup>N×N</sup>"]
+        direction TB
+        C{"<b>Encoding method</b>"}:::router
+        C -->|Geometric| RP["<b>RP</b> · Recurrence Plot<br/>R<sub>i,j</sub> = σ·‖s<sub>i</sub>−s<sub>j</sub>‖<br/>Phase-space (m=2, τ=1)"]:::enc
+        C -->|Polar / sum| GASF["<b>GASF</b><br/>G<sup>sum</sup><sub>i,j</sub> = cos(φ<sub>i</sub>+φ<sub>j</sub>)<br/>Symmetric · diag = 2x̃²−1"]:::enc
+        C -->|Polar / diff| GADF["<b>GADF</b><br/>G<sup>diff</sup><sub>i,j</sub> = sin(φ<sub>i</sub>−φ<sub>j</sub>)<br/>Antisymmetric · scale [-0.7, 0.7]"]:::enc
+        C -->|Markovian| MTF["<b>MTF</b> · Markov Transition Field<br/>M<sub>i,j</sub> = W<sub>s<sub>i</sub>,s<sub>j</sub></sub><br/>Q-quantile discretization (Q=4)"]:::enc
+        RP --> IMG["<b>RGB image</b><br/>(M<sub>x</sub>, M<sub>y</sub>, M<sub>z</sub>) → N×N×3<br/>8-bit PNG"]:::img
+        GASF --> IMG
+        GADF --> IMG
+        MTF --> IMG
+    end
+
+    B --> C
+
+    %% ============ RECONSTRUCTION SUBGRAPH ============
+    subgraph REC ["<b>② RECONSTRUCTION</b> &nbsp;&nbsp; 𝒯⁻¹ : ℝ<sup>N×N</sup> → ℝ<sup>N</sup> &nbsp; (tailored to encoding)"]
+        direction TB
+        D{"<b>Inverse mapping</b>"}:::router
+        D -->|"RP path"| RecRP["<b>RP⁻¹</b><br/>Threshold ε → Jaccard graph<br/>Dijkstra → MDS → PCA<br/>Sign-flip disambiguation"]:::rec
+        D -->|"GASF path"| RecGASF["<b>GASF⁻¹</b> · closed-form<br/>φ<sub>i</sub> = ½ arccos(G<sup>sum</sup><sub>i,i</sub>)<br/>x̃<sub>i</sub> = cos(φ<sub>i</sub>)"]:::rec
+        D -->|"GADF path"| RecGADF["<b>GADF⁻¹</b> · closed-form<br/>pivot i* = argmin |G̅<sub>i</sub>|<br/>φ<sub>j</sub> = arcsin(G<sub>i*,j</sub>) + φ<sub>i*</sub>"]:::rec
+        D -->|"MTF path"| RecMTF["<b>MTF⁻¹</b><br/>Cosine sim. on rows<br/>Greedy clustering → Q states<br/>Pivot-based state ordering"]:::rec
+    end
+
+    IMG --> D
+
+    %% ============ DENORMALIZATION ============
+    RecRP --> E["<b>Denormalization</b><br/>x<sub>j</sub> = min + x̃<sub>j</sub>·(max − min)<br/>using stored (min, max)"]:::preprocess
+    RecGASF --> E
+    RecGADF --> E
+    RecMTF --> E
+
+    E --> F["<b>Reconstructed window</b><br/>x̂ ∈ ℝ<sup>N×3</sup>"]:::output
+
+    %% ============ EVALUATION SUBGRAPH ============
+    subgraph EVAL ["<b>③ EVALUATION</b>"]
+        direction LR
+        V1["<b>Visual comparison</b><br/>Side-by-side TS overlays<br/>Original vs reconstructed"]:::eval
+        V2["<b>Pointwise metrics</b><br/>MAE · MRE · RMSE<br/>per-axis & aggregated"]:::eval
+        V3["<b>Trend-level metrics</b><br/>Pearson correlation<br/>DTW distance"]:::eval
+        V4["<b>Activity classification</b><br/>CNN · GRU · LSTM<br/>KNN · SVC · RandomForest<br/>LOSO / LOTO CV"]:::eval
+    end
+
+    F --> V1
+    F --> V2
+    F --> V3
+    F --> V4
+    A -.->|"ground truth"| V1
+    A -.->|"ground truth"| V2
+    A -.->|"ground truth"| V3
+
+    %% ============ NODE STYLES ============
+    classDef input        fill:#312e81,stroke:#1e1b4b,color:#ffffff,stroke-width:2.5px,font-weight:bold
+    classDef preprocess   fill:#e0e7ff,stroke:#4f46e5,color:#1e1b4b,stroke-width:2px
+    classDef router       fill:#fef3c7,stroke:#d97706,color:#78350f,stroke-width:2.5px,font-weight:bold
+    classDef enc          fill:#d1fae5,stroke:#059669,color:#064e3b,stroke-width:2px
+    classDef img          fill:#fce7f3,stroke:#db2777,color:#831843,stroke-width:2.5px,font-weight:bold
+    classDef rec          fill:#dbeafe,stroke:#2563eb,color:#1e3a8a,stroke-width:2px
+    classDef output       fill:#7c3aed,stroke:#5b21b6,color:#ffffff,stroke-width:2.5px,font-weight:bold
+    classDef eval         fill:#ffe4e6,stroke:#e11d48,color:#881337,stroke-width:2px
+
+    %% ============ SUBGRAPH STYLES ============
+    style ENC  fill:#ecfdf5,stroke:#10b981,stroke-width:3px,color:#064e3b
+    style REC  fill:#eff6ff,stroke:#3b82f6,stroke-width:3px,color:#1e3a8a
+    style EVAL fill:#fff1f2,stroke:#f43f5e,stroke-width:3px,color:#881337
+
+    %% ============ LINK STYLES ============
+    linkStyle default stroke:#475569,stroke-width:1.8px

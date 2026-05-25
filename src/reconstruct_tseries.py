@@ -21,8 +21,11 @@ import seaborn as sns
 from sklearn.model_selection import StratifiedGroupKFold, GroupKFold
 import src.recurrence_plots as rpts
 import src.GAF as gaf
+import src.GADF as gadf
 #import tgen.GAF2 as gaf2
 import time
+
+from src.config import DEFAULT_DATA_DIR
 import src.MTF as mtf2
 import os    
 
@@ -30,7 +33,7 @@ import os
     track of the acuracy and the metrics from the original Time series
 """
 """""
-def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_data, sj_train,dictionary, TIME_STEPS=129, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
+def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_data, sj_train,dictionary, TIME_STEPS=128, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
     
     subject_samples = 0
     p_bar = tqdm(range(len(training_data)))
@@ -113,17 +116,16 @@ def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 def _process_sample(i, fold, dataset_folder, dictionary, training_data, y_data, sj_train, sampling, FOLDS_N, data_type):
+    """Reconstruct one window's RP image and persist it under tseries/.
+
+    Returns ``(i, rp, a)`` — the index is carried back explicitly so the
+    caller can re-sort the parallel results, since ``as_completed`` does NOT
+    preserve submission order.
     """
-    Procesa una sola muestra: lee la imagen de la RP, la reconstruye y guarda el resultado.
-    Retorna la RP reconstruida y el número de inversiones (a) devuelto por Reconstruct_RP.
-    """
-    # Obtener datos de la muestra
-    w = training_data[i]
     sj = sj_train[i][0]
     w_y = y_data[i]
     w_y_no_cat = np.argmax(w_y)
-    
-    # Construir la ruta de la imagen de RP
+
     path_img = (
         f"{dataset_folder}plots/recurrence_plot/sampling_{sampling}/"
         f"{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/"
@@ -133,63 +135,64 @@ def _process_sample(i, fold, dataset_folder, dictionary, training_data, y_data, 
     if imagen is None:
         raise FileNotFoundError(f"No se encontró la imagen: {path_img}")
     imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
-    
-    # Reconstruir la RP usando la función de rpts
+
     rp, a = rpts.Reconstruct_RP(imagen, dictionary, i)
-    
-    # Construir la ruta para guardar la serie reconstruida y guardarla
+
     path_npy = (
         f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/"
         f"{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/"
         f"{sj}x{i}.npy"
     )
     np.save(path_npy, np.array(rp))
-    
-    return rp, a
+
+    return i, rp, a
 
 def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_data, sj_train,
-                                           dictionary, TIME_STEPS=129, data_type="train",
+                                           dictionary, TIME_STEPS=128, data_type="train",
                                            single_axis=False, FOLDS_N=3, sampling="loso"):
     """
     Genera y guarda series temporales a partir de RP, calculando además métricas como el
     número total de inversiones. Se procesa cada muestra en paralelo.
     """
-    X_all_rec = []
     errores = []  # Se mantiene la variable para compatibilidad
     ninv = 0
     start_gl = time.time()
     n_samples = len(training_data)
-    
-    # Procesar las muestras en paralelo
+
+    # Process windows in parallel; collect (i, rp) so we can re-sort at the
+    # end (as_completed does NOT preserve submission order, and the aggregate
+    # X_all_rec.npy must align with y_validation_data row-by-row).
+    indexed_results: list[tuple[int, object]] = []
     with ProcessPoolExecutor() as executor:
         futures = [
             executor.submit(_process_sample, i, fold, dataset_folder, dictionary,
                             training_data, y_data, sj_train, sampling, FOLDS_N, data_type)
             for i in range(n_samples)
         ]
-        
-        # Usamos as_completed para ir recogiendo resultados a medida que se completan
         for future in tqdm(as_completed(futures), total=n_samples, desc="Procesando muestras"):
-            rp, a = future.result()
-            X_all_rec.append(rp)
+            i, rp, a = future.result()
+            indexed_results.append((i, rp))
             ninv += a
-    
+
+    # Restore submission order before stacking.
+    indexed_results.sort(key=lambda p: p[0])
+    X_all_rec = [rp for _i, rp in indexed_results]
+
     end_gl = time.time()
     ttotal = end_gl - start_gl
 
-    # Guardar la colección de series reconstruidas
     archivoX_all = (
         f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/"
         f"{FOLDS_N}-fold/fold-{fold}/{data_type}/X_all_rec.npy"
     )
     np.save(archivoX_all, np.array(X_all_rec))
-    
+
     print("Tiempo medio total por muestra:", ttotal / n_samples)
     print("Número total de inversiones:", ninv)
-    
+
     return X_all_rec, errores
 
-def generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y_data, sj_train,dictionary, TIME_STEPS=129, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
+def generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y_data, sj_train,dictionary, TIME_STEPS=128, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
 
     subject_samples = 0
     p_bar = tqdm(range(len(training_data)))
@@ -245,80 +248,108 @@ def generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y
     
     #print("Numero total desplazamientos",t)
     return X_all_rec
-def generate_and_save_time_series_fromMTF(fold, dataset_folder, training_data, y_data, sj_train,dictionary, TIME_STEPS=129, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
-
+def generate_and_save_time_series_fromGADF(fold, dataset_folder, training_data, y_data, sj_train, dictionary, TIME_STEPS=128, data_type="train", single_axis=False, FOLDS_N=3, sampling="loso"):
     subject_samples = 0
     p_bar = tqdm(range(len(training_data)))
-    X_all_rec=[]
-    tiempos=[]
-    start_gl=time.time()
-   
-    #Colocar timer
-    
-    
-    for i in p_bar:
-      #start=time.time()
-      w = training_data[i]
-      sj = sj_train[i][0]
-      w_y = y_data[i]
-      w_y_no_cat = np.argmax(w_y)
-      #print("w_y", w_y, "w_y_no_cat", w_y_no_cat)
-      #print("w", w.shape)
-      
-      # Update Progress Bar after a while
-      #time.sleep(0.01)
-      #p_bar.set_description(f'[{data_type} | FOLD {fold} | Class {w_y_no_cat}] Subject {sj}')
-      path=f"{dataset_folder}plots/MTF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/"
-      path=f"{path}{sj}x{subject_samples}mtf.png"  
-      imagen = cv2.imread(path)  
-      imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
-      ##We need to change path 
-      mtf=mtf2.Reconstruct_MTF(imagen,dictionary,subject_samples)
-      #end=time.time()
-      
-      #Si queremos guardar los datos
-      path=f"{dataset_folder}tseries/MTF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/{sj}x{subject_samples}.npy"
-      np.save(path, np.array(mtf))
-      
-      #print(rp)
-      X_all_rec.append(mtf)
-      #print("X_ALL",np.array(X_all_rec))
-      #tiempo=end-start
-      #tiempos.append(tiempo)
-      #Guardar la rp en el path indicado con un nombre adecuado
-      #print(tiempos)
-      #w=w.reshape(3,129)
-      #w=w[:, 0]
-      #w=w[1:]
-      #print("Forma del RP original y calculada",w.shape,rp.shape)
-      
-      #print("normal",w,"calculada",rp)
-      
-      error_abs,error_r,error_q,error_std,error_p,te=err.ts_error(w,mtf)
-      
-      
-      #print("errores",np.array(error))
-      #print("errores",np.array(errores))
-      
-      subject_samples += 1
+    X_all_rec = []
+    start_gl = time.time()
 
-    end_gl=time.time()
-    ttotal=end_gl-start_gl
+    for i in p_bar:
+        w_y = y_data[i]
+        w_y_no_cat = np.argmax(w_y)
+        sj = sj_train[i][0]
+
+        path = f"{dataset_folder}plots/GADF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/"
+        path = f"{path}{sj}x{subject_samples}gadf.png"
+        imagen = cv2.imread(path)
+        imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
+
+        gadf_ts = gadf.Reconstruct_GADF(imagen, dictionary, subject_samples)
+
+        out_path = f"{dataset_folder}tseries/GADF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/{sj}x{subject_samples}.npy"
+        np.save(out_path, np.array(gadf_ts))
+
+        X_all_rec.append(gadf_ts)
+        subject_samples += 1
+
+    ttotal = time.time() - start_gl
+    archivoX_all = f"{dataset_folder}tseries/GADF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/X_all_gadf.npy"
+    np.save(archivoX_all, np.array(X_all_rec))
+    print("Tiempo medio total", np.mean(ttotal / max(subject_samples, 1)))
+    return X_all_rec
+
+def _process_sample_mtf(i, fold, dataset_folder, dictionary, y_data, sj_train, sampling, FOLDS_N, data_type):
+    """Per-window MTF reconstruction worker (parallel-safe).
+
+    Returns ``(i, mtf)`` — the index is carried back so the caller can
+    re-sort the parallel results (``as_completed`` does NOT preserve order).
+    """
+    sj = sj_train[i][0]
+    w_y_no_cat = int(np.argmax(y_data[i]))
+
+    path_img = (
+        f"{dataset_folder}plots/MTF/sampling_{sampling}/"
+        f"{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/"
+        f"{sj}x{i}mtf.png"
+    )
+    imagen = cv2.imread(path_img)
+    if imagen is None:
+        raise FileNotFoundError(f"missing image: {path_img}")
+    imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
+
+    mtf = mtf2.Reconstruct_MTF(imagen, dictionary, i)
+
+    path_npy = (
+        f"{dataset_folder}tseries/MTF/sampling_{sampling}/"
+        f"{FOLDS_N}-fold/fold-{fold}/{data_type}/{w_y_no_cat}/"
+        f"{sj}x{i}.npy"
+    )
+    np.save(path_npy, np.array(mtf))
+    return i, mtf
+
+
+def generate_and_save_time_series_fromMTF(fold, dataset_folder, training_data, y_data, sj_train,
+                                          dictionary, TIME_STEPS=128, data_type="train",
+                                          single_axis=False, FOLDS_N=3, sampling="loso"):
+    """MTF reconstruction over all windows, parallelised across CPU cores.
+
+    Mirrors the RP refactor: each window is processed in a worker, results
+    keep their index so the aggregate `X_all_mtf.npy` stays aligned with
+    `y_validation_data.npy`.
+    """
+    start_gl = time.time()
+    n_samples = len(training_data)
+    indexed_results: list[tuple[int, object]] = []
+
+    with ProcessPoolExecutor() as executor:
+        futures = [
+            executor.submit(_process_sample_mtf, i, fold, dataset_folder, dictionary,
+                            y_data, sj_train, sampling, FOLDS_N, data_type)
+            for i in range(n_samples)
+        ]
+        for future in tqdm(as_completed(futures), total=n_samples, desc="MTF reconstruction"):
+            i, mtf = future.result()
+            indexed_results.append((i, mtf))
+
+    indexed_results.sort(key=lambda p: p[0])
+    X_all_rec = [mtf for _i, mtf in indexed_results]
+
+    ttotal = time.time() - start_gl
 
     #maybe we should calculate here the global of errors and the mean.
     #maybe we should calculate here the global of errors and the mean.
     archivoX_all=f"{dataset_folder}tseries/MTF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/X_all_mtf.npy"
     np.save(archivoX_all,np.array(X_all_rec))
-    
-    #archivotiempos=f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/{data_type}/tiempos_rec.npy"
-    #np.save(archivotiempos,np.array(ttotal/subject_samples))
-    #print("Tiempo medio",np.mean(tiempos))
-    print("Tiempo medio total",np.mean(ttotal/subject_samples))
-    
-    #print("Numero total desplazamientos",t)
+
+    if n_samples:
+        print("Tiempo medio por ventana:", ttotal / n_samples)
     return X_all_rec
 #Generates all time series
-def generate_all_time_series(X_train, y_train, sj_train, dataset_folder="/home/adriano/Escritorio/TFG/data/WISDM/", TIME_STEPS=129,  FOLDS_N=3, sampling="loso",reconstruction="all"):
+def generate_all_time_series(X_train, y_train, sj_train, dataset_folder=DEFAULT_DATA_DIR, TIME_STEPS=128,  FOLDS_N=3, sampling="loso",reconstruction="all", target_fold=None):
+  # When ``target_fold`` is set, every fold whose index does not match is
+  # skipped. The historical behaviour (run fold-0 only) is preserved by the
+  # ``break`` statements below; passing ``target_fold=1`` or ``2`` lets the
+  # orchestrator drive each remaining fold from outside.
   groups = sj_train 
   if sampling == "loto":
     #TODO change 100 for an automatic extracted number greater than the max subject ID: max(sj_train)*10
@@ -342,16 +373,18 @@ def generate_all_time_series(X_train, y_train, sj_train, dataset_folder="/home/a
         os.makedirs(f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/test/{y}/", exist_ok=True) 
         os.makedirs(f"{dataset_folder}tseries/MTF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/{y}/", exist_ok=True) 
         os.makedirs(f"{dataset_folder}tseries/MTF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/test/{y}/", exist_ok=True) 
-        os.makedirs(f"{dataset_folder}tseries/GAF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/{y}/", exist_ok=True) 
-        os.makedirs(f"{dataset_folder}tseries/GAF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/test/{y}/", exist_ok=True) 
+        os.makedirs(f"{dataset_folder}tseries/GAF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/{y}/", exist_ok=True)
+        os.makedirs(f"{dataset_folder}tseries/GAF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/test/{y}/", exist_ok=True)
+        os.makedirs(f"{dataset_folder}tseries/GADF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/{y}/", exist_ok=True)
+        os.makedirs(f"{dataset_folder}tseries/GADF/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/test/{y}/", exist_ok=True)
         os.makedirs(f"{dataset_folder}tseries/single_axis/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/train/{y}/", exist_ok=True)
         os.makedirs(f"{dataset_folder}tseries/single_axis/sampling_{sampling}/{FOLDS_N}-fold/fold-{fold}/test/{y}/", exist_ok=True)
   
   for fold, (train_index, val_index) in enumerate(sgkf.split(X_train, y_train_no_cat, groups=groups)):
 
-    # if fold != 2:
-    #   continue
-    
+    if target_fold is not None and fold != target_fold:
+      continue
+
     # print(f"{'*'*20}\nFold: {fold}\n{'*'*20}")
     # print("Train index", train_index)
     # print("Validation index", val_index)
@@ -407,15 +440,17 @@ def generate_all_time_series(X_train, y_train, sj_train, dataset_folder="/home/a
       print("se hace 1 vez")
       break
     if reconstruction=="GAF":
-      
+
       #generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       generate_and_save_time_series_fromGAF(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data,dictionary_val,TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       print("se hace 1 vez")
       break
+    if reconstruction=="GADF":
+      generate_and_save_time_series_fromGADF(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data, dictionary_val, TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+      print("se hace 1 vez")
+      break
     if reconstruction=="RP":
-      #generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
-      
-      #generate_and_save_time_series_fromRP(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data,dictionary_val,TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
+      generate_and_save_time_series_fromRP(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data, dictionary_val, TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       print("se hace 1 vez")
       break
     if reconstruction=="all":

@@ -1,4 +1,4 @@
-#!/home/adriano/Escritorio/TFG/venv/bin/python3
+#!/usr/bin/env python3
 import math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -121,7 +121,7 @@ def RGBfromGADFMatrix_of_XYZ(X,Y,Z):
     return newImage
 
 
-def SavevarGADF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=129):
+def SavevarGADF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=128):
     if not all([(x==0).all()]):
      _r = varGADF(x,'x', TIME_STEPS)
      _g = varGADF(x,'y', TIME_STEPS)

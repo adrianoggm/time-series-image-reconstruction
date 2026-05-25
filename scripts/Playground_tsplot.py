@@ -1,4 +1,4 @@
-#!/home/adriano/Escritorio/TFG/venv/bin/python3
+#!/usr/bin/env python3
 import numpy as np
 import src.activity_data as act
 import src.recurrence_plots as rec
@@ -8,6 +8,7 @@ import src.MTF as mtf
 import src.ts_plots as plots
 import cv2
 import argparse
+from src.config import DEFAULT_DATA_DIR
 
 """./Playground_tsplot.py --image-type RP --dim 1 --val 4170"""
 
@@ -45,7 +46,7 @@ def main():
      p.add_argument('--val',type=int, default="0", help='0-5442 valores') 
      args = p.parse_args()
      
-     data_folder="C:/Users/adria/OneDrive/Documentos/TFG-Tratamiento-de-Series-Temporales/data/WISDM/tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
+     data_folder=f"{DEFAULT_DATA_DIR}tseries/recurrence_plot/sampling_loto/3-fold/fold-0/train"
      X_train=np.load(f"{data_folder}/training_data.npy")#print(sj_train[:,0])
      #print(y_train[:,0])
      #print(X_train)
