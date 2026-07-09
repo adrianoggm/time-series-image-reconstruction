@@ -463,8 +463,8 @@ def weigthed_graphRP(rp):
                 
     return weighted_adjacency_matrix
 """
-def weigthed_graphRP(rp):
-    CostM = CreateCostMatrix(rp)
+def weigthed_graphRP(rp, percentile=75.0):
+    CostM = CreateCostMatrix(rp, percentile)
     # Sumas por fila: número de elementos "1" en cada fila
     row_sums = np.sum(CostM, axis=1, keepdims=True)  # forma (N, 1)
     # Intersección: producto punto entre CostM y su transpuesta
@@ -513,7 +513,7 @@ def reconstruct_time_series(shortest_path_matrix, ep=0.0, small_constant=1e-10):
     variances = np.var(embedded_coords, axis=0)
     max_eigenvalue_index = int(np.argmax(variances))
     return embedded_coords[:, max_eigenvalue_index][:, np.newaxis]
-def Reconstruct_RP(img,dictionary,valor):
+def Reconstruct_RP(img,dictionary,valor,percentile=75.0):
     _r= img[:,:,0].astype('float')
     _g= img[:,:,1].astype('float')
     _b= img[:,:,2].astype('float')
@@ -534,7 +534,7 @@ def Reconstruct_RP(img,dictionary,valor):
     N=[]
     ninversiones=0
     for i in range(0,n):
-        wg=weigthed_graphRP(R[i]) 
+        wg=weigthed_graphRP(R[i], percentile)
         spm=calculate_shortest_path_matrix(wg)  
         ##we multiply * -1 ya que se invierte al calcular los valores propios
         rp=reconstruct_time_series(spm, ep=0.0)
