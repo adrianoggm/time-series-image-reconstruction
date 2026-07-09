@@ -1,7 +1,7 @@
-% ====== LOSO 3-fold headline summary ======
+% ====== Grouped subject-out 3-fold headline summary ======
 \begin{table}[H]
 \centering
-\caption{Headline accuracies under the LOSO 3-fold protocol (leave-one-subject-out; mean $\pm$ std across folds 0, 1, 2; $\sim$2\,742 test windows per fold drawn from 16--18 held-out subjects). $\Delta$acc is the accuracy of the reconstructed signal minus the accuracy of the original signal under the same classifier, averaged over the same three folds.}
+\caption{Headline accuracies under the grouped subject-out 3-fold protocol (mean $\pm$ std across folds 0, 1, 2; $\sim$2\,742 test windows per fold drawn from 16--18 held-out subjects). $\Delta$acc is the accuracy of the reconstructed signal minus the accuracy of the original signal under the same classifier, averaged over the same three folds.}
 \label{tab:gadf_summary_loso}
 \setlength{\tabcolsep}{3pt}
 \footnotesize
@@ -19,10 +19,10 @@ LSTM & $0.741 \pm 0.042$ & $0.742 \pm 0.041$ (+0.001) & $0.676 \pm 0.051$ ($-$0.
 \end{tabular}
 \end{table}
 
-% ====== LOSO per-fold breakdown ======
+% ====== Grouped subject-out per-fold breakdown ======
 \begin{table}[H]
 \centering
-\caption{Per-fold accuracies on the LOSO 3-fold protocol. Folds split the 51 WISDM subjects into disjoint groups of 16, 18 and 17 test subjects respectively; the test set of one fold never shares a subject with either of its training folds.}
+\caption{Per-fold accuracies on the grouped subject-out 3-fold protocol. Folds split the 51 WISDM subjects into disjoint groups of 16, 18 and 17 test subjects respectively; the test set of one fold never shares a subject with either of its training folds.}
 \label{tab:gadf_summary_perfold_loso}
 \setlength{\tabcolsep}{3pt}
 \footnotesize
@@ -42,17 +42,17 @@ LSTM & 0.682 & 0.765 & 0.776 & 0.684 & 0.765 & 0.776 & 0.607 & 0.695 & 0.726 & 0
 \end{table}
 
 
-% ====== LOTO vs LOSO side-by-side ======
+% ====== LOTO vs grouped subject-out side-by-side ======
 \begin{table}[H]
 \centering
-\caption{LOTO vs LOSO accuracies (mean across 3 folds). LOSO holds out 16--18 subjects per fold with zero overlap, so it is the stricter subject-out generalisation test. The ranking $\text{GASF}\succ\text{GADF}\succ\text{RP}\succ\text{MTF}$ is preserved under both sampling schemes; absolute accuracies are lower under LOSO because the model has not seen any window from the test subjects.}
+\caption{LOTO vs grouped subject-out accuracies (mean across 3 folds). The grouped subject-out protocol holds out 16--18 subjects per fold with zero overlap, so it is the stricter subject-generalisation test. The top of the ranking, $\text{GASF}\succ\text{GADF}$, is preserved under both sampling schemes. The bottom two encodings invert by evaluation lens: on the classifier accuracies shown here MTF outranks RP on five of the six classifiers (all but KNN) under both schemes, whereas on the pointwise reconstruction lens the order is $\text{RP}\succ\text{MTF}$ --- the rank inversion discussed in the text. Absolute accuracies are lower under grouped subject-out validation because the model has not seen any window from the test subjects.}
 \label{tab:loto_vs_loso}
 \setlength{\tabcolsep}{3pt}
 \footnotesize
 \begin{tabular}{ll|cc|cc|cc|cc|cc}
 \toprule
  & & \multicolumn{2}{c|}{\textbf{Orig.}} & \multicolumn{2}{c|}{\textbf{GASF}} & \multicolumn{2}{c|}{\textbf{GADF}} & \multicolumn{2}{c|}{\textbf{RP}} & \multicolumn{2}{c}{\textbf{MTF}} \\
-\textbf{Classifier} & & LOTO & LOSO & LOTO & LOSO & LOTO & LOSO & LOTO & LOSO & LOTO & LOSO \\
+\textbf{Classifier} & & LOTO & Subject-out & LOTO & Subject-out & LOTO & Subject-out & LOTO & Subject-out & LOTO & Subject-out \\
 \midrule
 GRU &  & 0.916 & 0.773 & 0.916 & 0.774 & 0.834 & 0.727 & 0.736 & 0.656 & 0.745 & 0.670 \\
 KNN &  & 0.636 & 0.477 & 0.637 & 0.477 & 0.626 & 0.500 & 0.599 & 0.481 & 0.548 & 0.430 \\

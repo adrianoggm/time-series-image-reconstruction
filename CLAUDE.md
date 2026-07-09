@@ -63,11 +63,18 @@ Every validator (`scripts/knnvalidation.py`, `lstmvalidation.py`, etc.) is a thi
 
 `evaluate_run` is where the cross-cutting caching lives — adding a new classifier or a new encoding should never duplicate this logic:
 
-- **E1 (model cache)** — `models/<classifier>.<h5|joblib>` is fit **once on the originals** and reused across every encoding. Trained on the very first validator call; subsequent calls (any encoder) just predict.
+- **E1 (model cache)** — `models/<clf>__<sampling>-fold-<k>-<n>f.<h5|joblib>` is fit **once on the originals** and reused across every encoding *within that (sampling, fold)*. Trained on the very first validator call; subsequent calls (any encoder) just predict. The bare `models/<clf>.<ext>` form in [src/models.py](src/models.py) is a legacy fallback only — `evaluate_run` always passes `sampling`/`fold`/`n_folds`, so new runs write the qualified filename. The split was added because LOTO fold-0 and LOSO fold-0 would otherwise collide.
 - **E2 (original-report cache)** — `results/_originals/<classifier>/fold-<k>-<sampling>-<n>f.json` stores the classification report on the un-reconstructed validation set. Same logic: independent of the encoder, persisted and reused.
-- **E3 (skip-if-done)** — if `results/<stype>/<classifier>/fold-<k>.json` exists, the call is a no-op unless `--force` is passed.
+- **E3 (skip-if-done)** — if `results/<stype>/<classifier>/<sampling>/fold-<k>.json` exists, the call is a no-op unless `--force` is passed. (The bare `results/<stype>/<classifier>/fold-<k>.json` form is again a legacy fallback in `results_dir`; new callers always include the sampling segment.)
 
-Implication: when you change a classifier's hyperparameters or training code, delete its `models/<clf>.*` cache and the matching `results/_originals/<clf>/...` JSON or pass `--train-new` to `run_pipeline.py`; otherwise the evaluator silently reuses the stale model.
+Implication: when you change a classifier's hyperparameters or training code, either pass `--train-new --force` to `run_pipeline.py`, or delete by hand:
+- `models/<clf>__<sampling>-fold-<k>-<n>f.<ext>`
+- `results/_originals/<clf>/fold-<k>-<sampling>-<n>f.json`
+- `results/<stype>/<clf>/<sampling>/fold-<k>.json`
+
+Otherwise the evaluator silently reuses the stale model.
+
+**Reconstruction-array axis order is auto-normalised, not stype-specific.** [src/evaluator.py](src/evaluator.py)::`_load_reconstruction` inspects `arr.shape` and transposes `(N, C, T)` → `(N, T, C)` when the channel axis is in position 1. Every classifier downstream assumes `(N, T, C)` (or its flattened `(N, T*C)` form). Persist reconstructions however you like, but don't hardcode an axis convention in callers — let `_load_reconstruction` normalise.
 
 ## Reconstruction internals (parallel-order bug, fixed)
 
@@ -99,6 +106,18 @@ Walks `results/**/fold-*.json` (skipping `_originals/`) and emits a Markdown com
 ## CI
 
 `.github/workflows/smoke.yml` runs an import-only smoke test on (Ubuntu, Windows) × (3.10, 3.11) — it does not exercise the pipeline. It also asserts `get_time_setup('WISDM')` returns `(128, 128)` and that `DEFAULT_DATA_DIR` ends with a path separator. Both invariants are load-bearing across the codebase; if you change them, expect a cascade.
+
+## Linting
+
+Ruff is configured in [pyproject.toml](pyproject.toml) (line-length 120, target `py310`, rules `E,F,I,UP,B`, ignoring `E501,E402`). With the `dev` extras installed:
+
+```bash
+pip install -e ".[dev]"
+ruff check .
+ruff format .
+```
+
+There is no pytest suite — `src/test_unitarios.py` is a collection of utility helpers used inline by the reconstruction code, not actual tests. Don't add `pytest` to a workflow expecting tests to exist; the only automated check is the smoke import.
 
 ## Calling code in WSL from a Windows checkout
 
