@@ -136,6 +136,65 @@ from scipy import stats
 import shutil
 
 def create_dataset(savepath, data_type, X, y, sj_id, time_steps=1, step=1, verbose=False):
+    """Segment-aware sliding-window segmentation.
+
+    Windows never cross a (subject, activity) boundary. The concatenated stream is
+    split into maximal contiguous runs of constant (subject, activity), and
+    non-overlapping windows of ``time_steps`` samples are taken *within* each run;
+    the tail shorter than ``time_steps`` is dropped. This removes the boundary
+    windows produced by the previous global slide, which mixed two labels/subjects
+    per window and leaked across subjects in the subject-out (LOSO) protocol.
+    """
+    Xv = X.values
+    yv = np.asarray(y.values).reshape(-1)
+    sjv = np.asarray(sj_id.values).reshape(-1)
+    n = len(Xv)
+
+    Xs_all, ys_all, sjs_all = [], [], []
+    per_group: dict = {}
+
+    start = 0
+    while start < n:
+        end = start + 1
+        while end < n and sjv[end] == sjv[start] and yv[end] == yv[start]:
+            end += 1
+        label = yv[start]
+        subject = sjv[start]
+        if isinstance(label, str):
+            label = label.replace(" ", "-").replace("/", "-").replace("(", "").replace(")", "")
+        # non-overlapping windows fully inside the run; tail < time_steps dropped
+        for i in range(start, end - time_steps + 1, step):
+            v = Xv[i:i + time_steps]
+            if (v == 0).all():
+                continue
+            Xs_all.append(v)
+            ys_all.append(label)
+            sjs_all.append(subject)
+            per_group.setdefault((label, subject), []).append(v)
+        start = end
+
+    base = f"{savepath}{data_type}/windowed/"
+    shutil.rmtree(base, ignore_errors=True)
+    os.makedirs(base, exist_ok=True)
+    for (label, subject), wins in per_group.items():
+        os.makedirs(f"{base}{label}/{subject}/", exist_ok=True)
+        np.save(f"{base}{label}/{subject}/x.npy", np.array(wins))
+
+    X_out = np.array(Xs_all)
+    y_out = np.array(ys_all).reshape(-1, 1)
+    sj_out = np.array(sjs_all).reshape(-1, 1)
+    np.save(f"{base}X_{data_type}.npy", X_out)
+    np.save(f"{base}y_{data_type}.npy", y_out)
+    np.save(f"{base}sj_{data_type}.npy", sj_out)
+    print(f"[windowing] {data_type}: {len(X_out)} windows over {len(per_group)} "
+          f"(subject, activity) segments (segment-aware; no boundary crossing)")
+    return X_out, y_out, sj_out
+
+
+# Deprecated: global-slide windowing that allowed windows to cross (subject,
+# activity) boundaries (resolved by majority vote). Superseded by the
+# segment-aware create_dataset above; kept only for reference.
+def _create_dataset_global_deprecated(savepath, data_type, X, y, sj_id, time_steps=1, step=1, verbose=False):
     Xs_all, ys_all, sjs_all = [], [], []
     Xs, ys, sjs = [], [], []
     
