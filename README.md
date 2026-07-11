@@ -62,7 +62,7 @@ Practical recommendation:
 
 Scope note: these numbers do not prove unconstrained generative augmentation. The decoders assume controlled encoder-side metadata such as min/max scale, sign convention, quantisation branch, or equivalent calibration. That is exactly why the benchmark is useful: it separates "can this image representation be inverted under known conditions?" from "can a generator synthesize physically calibrated signals without extra metadata?"
 
-Detailed result tables live in [doc/_3fold_tables.tex](doc/_3fold_tables.tex), [doc/_loso_tables.tex](doc/_loso_tables.tex), and the Results/Discussion sections of [doc/main.tex](doc/main.tex).
+Detailed result tables live inline in the Results/Discussion sections of [doc/main.tex](doc/main.tex).
 
 ---
 
@@ -219,11 +219,7 @@ Path conventions are centralized in [src/paths.py](src/paths.py):
 
 ## Paper Utilities
 
-The paper tables are stored as LaTeX fragments:
-
-- LOTO tables: [doc/_3fold_tables.tex](doc/_3fold_tables.tex)
-- LOSO tables: [doc/_loso_tables.tex](doc/_loso_tables.tex)
-- Main paper: [doc/main.tex](doc/main.tex)
+All paper tables (LOTO and LOSO) are inline in the single self-contained source [doc/main.tex](doc/main.tex).
 
 Useful checks:
 
@@ -260,9 +256,7 @@ No command here compiles the paper; these scripts only check consistency between
     *validation.py            classifier validators
     _*.py / _*.sh             paper, audit, smoke, and batch helper scripts
   doc/
-    main.tex                  paper draft
-    _3fold_tables.tex         LOTO paper tables
-    _loso_tables.tex          LOSO paper tables
+    main.tex                  paper draft (all tables inline)
     workflow_overview.md      pipeline diagram source
   docs/
     experiments/              supporting experiment notes
