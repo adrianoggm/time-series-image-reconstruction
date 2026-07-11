@@ -201,9 +201,14 @@ def Reconstruct_GADF(img,dictionary,a):
 def GADF_to_TS(gaf, i, dictionary, method='difference', n_pivots=5):
     """Restricted-branch GADF inverse for one axis.
 
-    Recovers the absolute angular trajectory from the off-diagonal entries
-    ``gaf[p][j] = sin(phi_p - phi_j)`` and the alpha=0.7 boundary anchor, then
-    maps it back to physical units with the stored (max, min) calibration.
+    Recovers the absolute angular trajectory from the off-diagonal entries and
+    the alpha=0.7 boundary anchor, then maps it back to physical units with the
+    stored (max, min) calibration.
+
+    Convention: tabulate()/meshgrid store the transposed GADF,
+    ``gaf[r][j] = sin(phi_j - phi_r)`` (not ``sin(phi_r - phi_j)``), so every
+    arcsin step below ADDS rather than subtracts. Encoder and decoder must stay
+    in this same convention.
 
     The reconstruction is the exact inverse of ``gramian_angular_diff_field``
     under the restricted alpha=0.7 protocol; up to 8-bit PNG quantisation the
@@ -216,24 +221,24 @@ def GADF_to_TS(gaf, i, dictionary, method='difference', n_pivots=5):
     row_means = np.mean(gaf, axis=1)
 
     # --- Absolute anchor: the extreme row (|mean| largest) sits on a known
-    # angular boundary. Its sign tells us which boundary; this fixes the
-    # otherwise-free global angular offset.
+    # angular boundary, fixing the otherwise-free global angular offset. With
+    # gaf[r][j]=sin(phi_j-phi_r), mean>0 => phi_r is the small-angle boundary.
     e = int(np.argmax(np.abs(row_means)))
-    phi_e = PHI_HI if row_means[e] > 0 else PHI_LO
+    phi_e = PHI_LO if row_means[e] > 0 else PHI_HI
 
     # --- Pivot rows: those with mean closest to zero (near the angular centre).
     # Averaging several reconstructions reduces the noise of relying on a single
     # row. Every pivot is anchored back to the boundary row e:
-    #   gaf[e][p] = sin(phi_e - phi_p)  ->  phi_p = phi_e - arcsin(gaf[e][p])
-    #   gaf[p][j] = sin(phi_p - phi_j)  ->  phi_j = phi_p - arcsin(gaf[p][j])
+    #   gaf[e][p] = sin(phi_p - phi_e)  ->  phi_p = phi_e + arcsin(gaf[e][p])
+    #   gaf[p][j] = sin(phi_j - phi_p)  ->  phi_j = phi_p + arcsin(gaf[p][j])
     order = np.argsort(np.abs(row_means))
     n_pivots = max(1, min(n_pivots, gaf.shape[0]))
     pivots = order[:n_pivots]
 
     phi_estimates = []
     for p in pivots:
-        phi_p = phi_e - np.arcsin(np.clip(gaf[e][p], -1.0, 1.0))
-        phi_j = phi_p - np.arcsin(np.clip(gaf[p], -1.0, 1.0))
+        phi_p = phi_e + np.arcsin(np.clip(gaf[e][p], -1.0, 1.0))
+        phi_j = phi_p + np.arcsin(np.clip(gaf[p], -1.0, 1.0))
         phi_estimates.append(phi_j)
     phi = np.mean(phi_estimates, axis=0)
 
