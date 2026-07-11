@@ -543,48 +543,44 @@ def Reconstruct_RP(img,dictionary,valor,percentile=75.0):
         N.append(rp)
     N=np.array(N)
     return N,ninversiones
-def fix_rotationscale(rporiginal,seriereconstruida,i,dictionary,TIME_STEPS=128):
-     #print(dictionary)
+def fix_rotationscale(rporiginal,seriereconstruida,i,dictionary,TIME_STEPS=128,
+                      use_orientation=True, append_value="mean"):
+     # ``use_orientation`` / ``append_value`` expose the two RP post-processing
+     # choices for ablation (Section sec:rp_ablation); the defaults reproduce the
+     # reported decoder exactly (signed orientation check on, per-window mean).
      MAX=dictionary[0]
      MIN=dictionary[1]
-     
-     #escalo la serie para que tenga los valores 
-     
-     
-     #n=(seriereconstruida-min_val)/(max_val-min_val)
-     #print(seriereconstruida.shape)
-     #Scaling part
-     #n=seriereconstruida
-     n=np.append(seriereconstruida,np.mean(seriereconstruida))
-     
-     #posi= MIN[i]+n*(MAX[i]-1)
-     min_a, max_a = np.min(n), np.max(n)  
-     
 
-    # Transformar los puntos
-     #posi =min_b + n * (max_b - min_b)
-     posi=np.interp(n,(min_a,max_a),(MIN[i], MAX[i]))
-     rposi=varRP2(posi, TIME_STEPS)    
-     
-     n=n*-1+1  
-     min_a, max_a = np.min(n), np.max(n)  
-     
-     #nega = min_b + n * (max_b - min_b)
-     nega=np.interp(n,(min_a,max_a),(MIN[i], MAX[i]))
-     rnega=varRP2(nega, TIME_STEPS)
-     #print(n)
-     #print(nega)
-
-     # Pick the orientation (positive or negated) whose RP image is closer to
-     # the encoded one in Euclidean distance.
-     distancia_euclidianaa = np.linalg.norm(rporiginal - rposi)
-     distancia_euclidianab = np.linalg.norm(rporiginal - rnega)
-     inverted = 0
-     if distancia_euclidianab < distancia_euclidianaa:
-         rp = nega[:TIME_STEPS]
-         inverted += 1
+     # Re-augment the N-1 adjacent-state series back to N samples.
+     if append_value == "mean":
+         n = np.append(seriereconstruida, np.mean(seriereconstruida))
+     elif append_value == "endpoint":
+         n = np.append(seriereconstruida, seriereconstruida[-1])
      else:
+         n = np.asarray(seriereconstruida)
+
+     min_a, max_a = np.min(n), np.max(n)
+     posi=np.interp(n,(min_a,max_a),(MIN[i], MAX[i]))
+     rposi=varRP2(posi, TIME_STEPS)
+
+     inverted = 0
+     if not use_orientation:
+         # Ablation: keep the direct MDS orientation, no signed-RP disambiguation.
          rp = posi[:TIME_STEPS]
+     else:
+         n = n*-1+1
+         min_a, max_a = np.min(n), np.max(n)
+         nega=np.interp(n,(min_a,max_a),(MIN[i], MAX[i]))
+         rnega=varRP2(nega, TIME_STEPS)
+         # Pick the orientation (positive or negated) whose RP image is closer to
+         # the encoded one in Euclidean distance.
+         distancia_euclidianaa = np.linalg.norm(rporiginal - rposi)
+         distancia_euclidianab = np.linalg.norm(rporiginal - rnega)
+         if distancia_euclidianab < distancia_euclidianaa:
+             rp = nega[:TIME_STEPS]
+             inverted += 1
+         else:
+             rp = posi[:TIME_STEPS]
 
      # `posi` already has length TIME_STEPS (= seriereconstruida + 1 appended mean),
      # so the slice here is a no-op — it stays defensive against future changes
