@@ -132,7 +132,6 @@ def preprocess_activity_data_sets(DATASET_NAME="WISDM", dataset_folder=DEFAULT_D
     return df
 
 
-from scipy import stats
 import shutil
 
 def create_dataset(savepath, data_type, X, y, sj_id, time_steps=1, step=1, verbose=False):
@@ -189,86 +188,6 @@ def create_dataset(savepath, data_type, X, y, sj_id, time_steps=1, step=1, verbo
     print(f"[windowing] {data_type}: {len(X_out)} windows over {len(per_group)} "
           f"(subject, activity) segments (segment-aware; no boundary crossing)")
     return X_out, y_out, sj_out
-
-
-# Deprecated: global-slide windowing that allowed windows to cross (subject,
-# activity) boundaries (resolved by majority vote). Superseded by the
-# segment-aware create_dataset above; kept only for reference.
-def _create_dataset_global_deprecated(savepath, data_type, X, y, sj_id, time_steps=1, step=1, verbose=False):
-    Xs_all, ys_all, sjs_all = [], [], []
-    Xs, ys, sjs = [], [], []
-    
-    # Obtenemos la moda de los primeros time_steps
-    l_mode = stats.mode(y.iloc[:time_steps])
-    l_prev = l_mode.mode
-    if isinstance(l_prev, np.ndarray):
-        l_prev = l_prev[0]
-    if isinstance(l_prev, str):
-        l_prev = l_prev.replace(" ", "-").replace("/", "-").replace("(", "").replace(")", "")
-    
-    sj_mode = stats.mode(sj_id.iloc[:time_steps])
-    sj_prev = sj_mode.mode
-    if isinstance(sj_prev, np.ndarray):
-        sj_prev = sj_prev[0]
-
-    shutil.rmtree(f"{savepath}{data_type}/windowed/", ignore_errors=True)
-
-    for i in range(0, len(X) - time_steps, step):
-        v = X.iloc[i:(i + time_steps)].values  # a window
-        if not all([(v == 0).all()]):
-            labels = y.iloc[i: i + time_steps]
-            sj_ids = sj_id.iloc[i: i + time_steps]
-            l = stats.mode(labels).mode
-            if isinstance(l, np.ndarray):
-                l = l[0]
-            if isinstance(l, str):
-                l = l.replace(" ", "-").replace("/", "-").replace("(", "").replace(")", "")
-            sj = stats.mode(sj_ids).mode
-            if isinstance(sj, np.ndarray):
-                sj = sj[0]
-            
-            if verbose:
-                print(f"Ploting window raw --- LABEL [{l}] . SUBJECT [{sj}] | Window id [{i}] | win shape: {v.shape}")
-                df_original_plot = pd.DataFrame(v, columns=["x_axis", "y_axis", "z_axis"])
-                df_original_plot["signal"] = "Original"
-                df_original_plot = df_original_plot.iloc[:-1, :]
-                print(df_original_plot)
-            
-            if l != l_prev:
-                print(f"Saving x data [subject {sj_prev}], label: {l_prev}, size: {np.array(Xs).shape}")
-                if os.path.exists(f"{savepath}{data_type}/windowed/{l_prev}/{sj_prev}/x.npy"):
-                    print("Exists:", f"{savepath}{data_type}/windowed/{l_prev}/{sj_prev}/x.npy. Loading existing file and appending new data")
-                    aux = np.load(f"{savepath}{data_type}/windowed/{l_prev}/{sj_prev}/x.npy")
-                    for a in aux:
-                        Xs.append(a)
-                os.makedirs(f"{savepath}{data_type}/windowed/{l_prev}/{sj_prev}/", exist_ok=True)
-                np.save(f"{savepath}{data_type}/windowed/{l_prev}/{sj_prev}/x.npy", np.array(Xs))
-                Xs, ys, sjs = [], [], []
-                l_prev = l
-            if sj != sj_prev:
-                sj_prev = sj
-
-            Xs.append(v)        
-            ys.append(l)
-            sjs.append(sj)
-            Xs_all.append(v)
-            ys_all.append(l)
-            sjs_all.append(sj)
-    
-    print(f"LAST -- >Saving x data [subject {sj_prev}], label: {l_prev}, size: {np.array(Xs).shape}")
-    os.makedirs(f"{savepath}{data_type}/windowed/{l_prev}/{sj_prev}/", exist_ok=True)
-    if os.path.exists(f"{savepath}{data_type}/windowed/{l_prev}/{sj_prev}/x.npy"):
-        print("Exists:", f"{savepath}{data_type}/windowed/{l_prev}/{sj_prev}/x.npy")
-        aux = np.load(f"{savepath}{data_type}/windowed/{l_prev}/{sj_prev}/x.npy")
-        for a in aux:
-            Xs.append(a)
-    np.save(f"{savepath}{data_type}/windowed/{l_prev}/{sj_prev}/x.npy", np.array(Xs))
-    np.save(f"{savepath}{data_type}/windowed/X_{data_type}.npy", np.array(Xs_all))
-    np.save(f"{savepath}{data_type}/windowed/y_{data_type}.npy", np.array(ys_all).reshape(-1, 1))
-    np.save(f"{savepath}{data_type}/windowed/sj_{data_type}.npy", np.array(sjs_all).reshape(-1, 1))
-
-    return np.array(Xs_all), np.array(ys_all).reshape(-1, 1), np.array(sjs_all).reshape(-1, 1)
-
 
 
 def create_all_numpy_datasets(DATASET_NAME="WISDM", dataset_folder=DEFAULT_DATA_DIR,
