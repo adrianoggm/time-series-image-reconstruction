@@ -47,16 +47,16 @@ def normalize_series(series):
     scaled_serie = np.where(scaled_serie >= 1., 1., scaled_serie)
     scaled_serie = np.where(scaled_serie <= -1., -1., scaled_serie)
     return scaled_serie
-def normalize_series07(series):
+def normalize_series07(series, alpha=0.7):
     min_val = np.min(series)
     max_val = np.max(series)
-    # Escalar entre -0.7 y 0.7
-    scaled_serie = 1.4 * (series - min_val) / (max_val - min_val) - 0.7
-    scaled_serie = np.where(scaled_serie >= 0.7, 0.7, scaled_serie)
-    scaled_serie = np.where(scaled_serie <= -0.7, -0.7, scaled_serie)
+    # Escalar entre -alpha y +alpha
+    scaled_serie = 2 * alpha * (series - min_val) / (max_val - min_val) - alpha
+    scaled_serie = np.where(scaled_serie >= alpha, alpha, scaled_serie)
+    scaled_serie = np.where(scaled_serie <= -alpha, -alpha, scaled_serie)
     return scaled_serie
 
-def gramian_angular_diff_field(series, method='difference'):
+def gramian_angular_diff_field(series, method='difference', alpha=0.7):
     # Construcción del GADF. Cada variante usa su propio escalado/ángulo:
     if method == 'summation':
         # GASF: amplitud completa [0,1] -> phi in [0, pi/2].
@@ -65,12 +65,12 @@ def gramian_angular_diff_field(series, method='difference'):
         gaf = tabulate(phi, phi, cos_sum)
 
     elif method == 'difference':
-        # GADF restringido: escalado a [-alpha, alpha] con alpha=0.7 ANTES de
+        # GADF restringido: escalado a [-alpha, alpha] (alpha<1/sqrt(2)) ANTES de
         # calcular phi, de modo que todo |phi_i - phi_j| < pi/2 quede dentro de
         # la rama principal de arcsin y el inverso sea cerrado y exacto.
         # (Antes phi se calculaba sobre la normalización [0,1] y el escalado a
         # 0.7 quedaba sin efecto, dejando la imagen justo en el borde pi/2.)
-        scaled_series = normalize_series07(series)
+        scaled_series = normalize_series07(series, alpha)
         phi = np.arccos(scaled_series)
         gaf = tabulate(phi, phi, sin_diff)
     else:
@@ -198,12 +198,26 @@ def Reconstruct_GADF(img,dictionary,a):
     N.append(g)
     N.append(b)
     return N
-def GADF_to_TS(gaf, i, dictionary, method='difference', n_pivots=5):
+def gadf_anchor(gaf, alpha=0.7):
+    """Locate the absolute angular anchor of a (transposed) GADF matrix.
+
+    Returns ``(e, phi_e)``: the extreme row index and the boundary angle assigned
+    to it. With ``gaf[r][j]=sin(phi_j-phi_r)`` the row with the largest |mean|
+    sits on an amplitude boundary; a positive mean means ``phi_r`` is the
+    small-angle boundary ``arccos(alpha)`` (x=+alpha), negative the large one.
+    """
+    row_means = np.mean(gaf, axis=1)
+    e = int(np.argmax(np.abs(row_means)))
+    phi_e = np.arccos(alpha) if row_means[e] > 0 else np.arccos(-alpha)
+    return e, phi_e
+
+
+def GADF_to_TS(gaf, i, dictionary, method='difference', n_pivots=5, alpha=0.7):
     """Restricted-branch GADF inverse for one axis.
 
     Recovers the absolute angular trajectory from the off-diagonal entries and
-    the alpha=0.7 boundary anchor, then maps it back to physical units with the
-    stored (max, min) calibration.
+    the boundary anchor, then maps it back to physical units with the stored
+    (max, min) calibration.
 
     Convention: tabulate()/meshgrid store the transposed GADF,
     ``gaf[r][j] = sin(phi_j - phi_r)`` (not ``sin(phi_r - phi_j)``), so every
@@ -211,20 +225,13 @@ def GADF_to_TS(gaf, i, dictionary, method='difference', n_pivots=5):
     in this same convention.
 
     The reconstruction is the exact inverse of ``gramian_angular_diff_field``
-    under the restricted alpha=0.7 protocol; up to 8-bit PNG quantisation the
-    round-trip error is at the resolution of the stored image.
+    under the restricted ``alpha<1/sqrt(2)`` protocol; up to 8-bit PNG
+    quantisation the round-trip error is at the resolution of the stored image.
     """
-    ALPHA = 0.7
-    PHI_LO = np.arccos(ALPHA)    # small-angle boundary, corresponds to x = +alpha
-    PHI_HI = np.arccos(-ALPHA)   # large-angle boundary, corresponds to x = -alpha
-
     row_means = np.mean(gaf, axis=1)
 
-    # --- Absolute anchor: the extreme row (|mean| largest) sits on a known
-    # angular boundary, fixing the otherwise-free global angular offset. With
-    # gaf[r][j]=sin(phi_j-phi_r), mean>0 => phi_r is the small-angle boundary.
-    e = int(np.argmax(np.abs(row_means)))
-    phi_e = PHI_LO if row_means[e] > 0 else PHI_HI
+    # --- Absolute anchor: the extreme row fixes the free global angular offset.
+    e, phi_e = gadf_anchor(gaf, alpha)
 
     # --- Pivot rows: those with mean closest to zero (near the angular centre).
     # Averaging several reconstructions reduces the noise of relying on a single
@@ -250,6 +257,6 @@ def GADF_to_TS(gaf, i, dictionary, method='difference', n_pivots=5):
     # reconstruction (which would re-anchor on the recovered extremes).
     MAX = dictionary[0]
     MIN = dictionary[1]
-    x = MIN[i] + (scaled + ALPHA) / (2.0 * ALPHA) * (MAX[i] - MIN[i])
+    x = MIN[i] + (scaled + alpha) / (2.0 * alpha) * (MAX[i] - MIN[i])
 
     return x
