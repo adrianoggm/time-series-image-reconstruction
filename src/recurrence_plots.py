@@ -513,7 +513,70 @@ def reconstruct_time_series(shortest_path_matrix, ep=0.0, small_constant=1e-10):
     variances = np.var(embedded_coords, axis=0)
     max_eigenvalue_index = int(np.argmax(variances))
     return embedded_coords[:, max_eigenvalue_index][:, np.newaxis]
-def Reconstruct_RP(img,dictionary,valor,percentile=75.0):
+
+
+def reconstruct_state_embedding(shortest_path_matrix, ep=0.0, small_constant=1e-10):
+    """Same front-end as ``reconstruct_time_series`` but keep BOTH MDS axes.
+
+    Returns the (N-1, 2) embedding of the recovered adjacent-states instead of
+    collapsing each state onto its largest-eigenvalue axis. This is the 2-D
+    decoder of Section~sec:rp_reconstruction_method (the principled variant that
+    exploits the state overlap); the 1-D projection above stays the default.
+    """
+    symmetric = 0.5 * (shortest_path_matrix + shortest_path_matrix.T)
+    finite = np.where(np.isfinite(symmetric), symmetric, ep) + small_constant
+    return _classical_mds(finite, n_components=2)
+
+
+def reconstruct_from_embedding_2d(embedding, n_theta=720):
+    """Recover an N-sample signal from the (N-1, 2) state embedding.
+
+    Aligns axis-2 of state i with axis-1 of state i+1 (the RP overlap condition
+    s_i=(x_i,x_{i+1})) over the orthogonal group O(2), then averages the two
+    estimates of each shared sample. Returns a length-N series *before* amplitude
+    rescaling and *before* the global-sign choice; both are handled downstream by
+    ``fix_rotationscale(..., append_value="none")``, exactly as for the 1-D path.
+    """
+    P = np.asarray(embedding, dtype=float)  # (M, 2), M = N-1 states
+    M = P.shape[0]
+
+    # Best R in O(2) minimising sum_i ((R p_i)_2 - (R p_{i+1})_1)^2. The true
+    # configuration satisfies the overlap exactly, so its aligning transform is
+    # the global minimum (up to a sign flip, resolved downstream by signed RP).
+    # ponytail: theta grid scan (O(n_theta)); J(theta) is a 2-theta sinusoid so a
+    # closed form exists — swap it in only if this ever shows up in a profile.
+    thetas = np.linspace(0.0, 2.0 * np.pi, n_theta, endpoint=False)
+    best_J, best_R = None, None
+    for reflect in (1.0, -1.0):
+        for th in thetas:
+            c, s = np.cos(th), np.sin(th)
+            R = np.array([[c, -s * reflect], [s, c * reflect]])  # rot(th)·diag(1,reflect) spans O(2)
+            S = P @ R.T
+            J = float(np.sum((S[:-1, 1] - S[1:, 0]) ** 2))
+            if best_J is None or J < best_J:
+                best_J, best_R = J, R
+    S = P @ best_R.T
+
+    # Overlap reconstruction: x1 = s[0,0]; x_{i+1} = mean(s[i,1], s[i+1,0]); xN = s[M-1,1].
+    x = np.empty(M + 1)
+    x[0] = S[0, 0]
+    x[1:M] = 0.5 * (S[:-1, 1] + S[1:, 0])
+    x[M] = S[M - 1, 1]
+    return x
+
+
+def Reconstruct_RP(img,dictionary,valor,percentile=75.0,method="1d",rp_range=None):
+    if method == "direct2ds":
+        # Validated DIRECT-2D-S decoder (see src/rp_decoders.py): decodes the RP
+        # input with its OWN matrix range (rp_range) instead of the signal
+        # amplitude range, avoiding the affine distortion the legacy path below
+        # applies to the distances handed to MDS.
+        from src.rp_decoders import decode_window
+        rr = rp_range[valor] if rp_range is not None else None
+        rec_tc, _ = decode_window(img, dictionary[valor], source="direct", dims=2,
+                                  recover="overlap", signed=True, rho=percentile / 100.0,
+                                  rp_range=rr)
+        return rec_tc.T, 0   # (C, T) to match the stacking convention; 0 = inversions n/a
     _r= img[:,:,0].astype('float')
     _g= img[:,:,1].astype('float')
     _b= img[:,:,2].astype('float')
@@ -535,10 +598,17 @@ def Reconstruct_RP(img,dictionary,valor,percentile=75.0):
     ninversiones=0
     for i in range(0,n):
         wg=weigthed_graphRP(R[i], percentile)
-        spm=calculate_shortest_path_matrix(wg)  
+        spm=calculate_shortest_path_matrix(wg)
         ##we multiply * -1 ya que se invierte al calcular los valores propios
-        rp=reconstruct_time_series(spm, ep=0.0)
-        rp,a=fix_rotationscale(R[i],rp,i,dictionary[valor])
+        if method == "2d":
+            # Principled 2-D decoder: keep both MDS axes, align on the state
+            # overlap, average the shared samples (already length N, so no append).
+            emb = reconstruct_state_embedding(spm, ep=0.0)
+            rp = reconstruct_from_embedding_2d(emb)
+            rp, a = fix_rotationscale(R[i], rp, i, dictionary[valor], append_value="none")
+        else:
+            rp=reconstruct_time_series(spm, ep=0.0)
+            rp,a=fix_rotationscale(R[i],rp,i,dictionary[valor])
         ninversiones=ninversiones+a
         N.append(rp)
     N=np.array(N)
