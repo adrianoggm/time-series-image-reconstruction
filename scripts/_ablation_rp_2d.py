@@ -17,7 +17,14 @@ import cv2
 import numpy as np
 
 from src.config import DEFAULT_DATA_DIR
-from src.rp_decoders import decode_window, distance_matrix, embed_2d, align_states, orientation_candidates
+from src.rp_decoders import (
+    align_states,
+    decode_window,
+    distance_matrix,
+    embed_2d,
+    orientation_candidates,
+    overlap_error_abs,
+)
 
 VARIANTS = {
     "RP-Jaccard-1D": dict(source="jaccard", dims=1, recover="append", signed=True),
@@ -42,7 +49,12 @@ def _pearson(a, b):
 
 
 def _overlap_for_window(img, minmax, cfg):
-    """E_overlap (L1) for a 2-D variant; N/A (nan) for 1-D variants."""
+    """E_overlap (L1) for a 2-D variant; N/A (nan) for 1-D variants.
+
+    # E_overlap here is the MIN-overlap-orientation residual — a source-level, sign-agnostic
+    # diagnostic (identical within a (source, rho) pair); it is NOT the overlap of the
+    # signed-selected reconstruction.
+    """
     if cfg["dims"] != 2:
         return np.nan
     maxs, mins = minmax
@@ -52,7 +64,7 @@ def _overlap_for_window(img, minmax, cfg):
         Y, _ = embed_2d(distance_matrix(R_obs, source=cfg["source"], rho=PERCENTILE_RHO))
         cands = [align_states(Y, Q) for Q in orientation_candidates()]
         a, b, _ = min(cands, key=lambda ab: ab[2])
-        vals.append(float(np.mean(np.abs(b[:-1] - a[1:]))))
+        vals.append(overlap_error_abs(a, b))
     return float(np.mean(vals))
 
 
@@ -79,6 +91,9 @@ def main():
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         mm = _minmax(orig[i])
         for name, cfg in VARIANTS.items():
+            # Time_ms below measures only the decode_window call; it EXCLUDES the
+            # diagnostic-only _overlap_for_window recomputation done later in this loop,
+            # so cross-row Time_ms is not strictly apples-to-apples.
             t0 = time.perf_counter()
             rec, metrics = decode_window(img, mm, source=cfg["source"], dims=cfg["dims"],
                                          recover=cfg["recover"], signed=cfg["signed"],
@@ -118,6 +133,10 @@ def main():
     for name, r in rows.items():
         cells = [name] + [("N/A" if np.isnan(r[c]) else f"{r[c]:.4f}") for c in cols]
         lines.append("| " + " | ".join(cells) + " |")
+    lines.append("")
+    lines.append("> E_overlap is the min-overlap-orientation residual (source-level, "
+                 "sign-agnostic — identical within a source); Time_ms excludes this "
+                 "diagnostic recomputation.")
     md = "\n".join(lines) + "\n"
     (out_dir / "rp_2d_ablation.md").write_text(md)
     print(md)
