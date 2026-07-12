@@ -13,10 +13,14 @@ import numpy as np
 
 from src.recurrence_plots import (
     calculate_shortest_path_matrix,
+    fix_rotationscale,
+    reconstruct_time_series,
+    varRP2,
     weigthed_graphRP,
 )
 
 EPS = 1e-10
+TIME_STEPS = 128
 
 
 def symmetrized_magnitude(R_obs):
@@ -132,3 +136,69 @@ def reconstruct_signal_from_states(a, b):
     x[1:M] = 0.5 * (b[:-1] + a[1:])
     x[M] = b[M - 1]
     return x
+
+
+def signed_rp_error(R_obs, x_scaled):
+    """Normalised Frobenius distance between the observed signed RP and the
+    signed RP regenerated from a candidate (physical-unit) reconstruction."""
+    Rhat = varRP2(np.asarray(x_scaled, dtype=float), TIME_STEPS=len(x_scaled))
+    num = float(np.linalg.norm(R_obs - Rhat))
+    den = float(np.linalg.norm(R_obs)) + EPS
+    return num / den
+
+
+def _rescale(x, minmax_c):
+    """Map a unit-free reconstruction onto the channel's physical [min,max]."""
+    mx, mn = minmax_c
+    lo, hi = float(np.min(x)), float(np.max(x))
+    if hi - lo < EPS:
+        return np.full_like(x, 0.5 * (mn + mx))
+    return np.interp(x, (lo, hi), (mn, mx))
+
+
+def decode_channel(R_obs, minmax_c, source, dims=2, recover="overlap",
+                   signed=True, rho=0.60, n_theta=720, top_k=8):
+    """Unified single-channel RP decoder. Returns a length-TIME_STEPS channel in
+    physical units, axis-compatible with recurrence_plots.Reconstruct_RP output.
+
+    dims=1, recover="append": legacy 1-D projection + fix_rotationscale (baseline
+      and RP-GEO-1D). dims=2, recover="overlap": 2-D O(2) alignment + overlap
+      reconstruction; signed=True adds the signed-RP orientation selection.
+    """
+    dmat = distance_matrix(R_obs, source=source, rho=rho)
+
+    if dims == 1:
+        # Reuse the legacy 1-D machinery: project to the max-variance MDS axis,
+        # then mean-append + (optional) signed flip. reconstruct_time_series does
+        # its own double-centring on the passed matrix, so hand it `dmat`.
+        proj = reconstruct_time_series(dmat, ep=0.0)          # (M,1)
+        rec, _ = fix_rotationscale(R_obs, proj, 0, [ [minmax_c[0]], [minmax_c[1]] ],
+                                   TIME_STEPS=TIME_STEPS,
+                                   use_orientation=signed, append_value="mean")
+        return np.asarray(rec)[:TIME_STEPS]
+
+    # 2-D path.
+    Y, _ = embed_2d(dmat)
+    cands = []
+    for Q in orientation_candidates(n_theta=n_theta):
+        a, b, e_ov = align_states(Y, Q)
+        cands.append((e_ov, a, b))
+    cands.sort(key=lambda c: c[0])
+
+    if not signed:
+        _, a, b = cands[0]
+        x = reconstruct_signal_from_states(a, b)
+        return _rescale(x, minmax_c)[:TIME_STEPS]
+
+    # Signed selection (lambda-free lexicographic): among the top_k lowest
+    # overlap-error orientations, pick the one whose regenerated signed RP is
+    # closest to the observed one.
+    # ponytail: top_k prefilter caps the O(n_theta) signed-RP regenerations at
+    # top_k per channel; widen top_k only if the winner is unstable across folds.
+    best = None
+    for e_ov, a, b in cands[:top_k]:
+        x = _rescale(reconstruct_signal_from_states(a, b), minmax_c)[:TIME_STEPS]
+        e_sig = signed_rp_error(R_obs, x)
+        if best is None or e_sig < best[0]:
+            best = (e_sig, x)
+    return best[1]

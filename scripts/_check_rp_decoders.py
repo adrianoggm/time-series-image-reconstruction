@@ -68,3 +68,30 @@ for src in ("direct", "geo"):
     assert r > 0.99, f"[{src}] geometric-core corr too low: {r:.4f}"
     assert e_ov < 1e-3, f"[{src}] overlap error should be ~0 on clean input: {e_ov:.2e}"
 print("[ok] Task 2: overlap alignment + reconstruction")
+
+# --- Task 3: signed selection + unified single-channel decoder ---
+from src.rp_decoders import decode_channel, signed_rp_error
+
+# Build a clean signed RP (physical units) for one channel from a known signal.
+from src.recurrence_plots import varRP2
+xc = 2.0 * np.sin(t) - 0.5 * np.cos(2.0 * t)      # length 128
+R_signed = varRP2(xc, TIME_STEPS=128)              # (127,127) signed, physical units
+minmax_c = (float(xc.max()), float(xc.min()))
+
+for src in ("direct", "geo"):
+    rec = decode_channel(R_signed, minmax_c, source=src, dims=2,
+                         recover="overlap", signed=True)
+    assert rec.shape == (128,), (src, rec.shape)
+    r = _abs_corr(rec, xc)
+    assert r > 0.95, f"[{src}] signed 2-D decode corr too low: {r:.4f}"
+
+# signed error must be small for the true signal, large for a shuffled one.
+e_true = signed_rp_error(R_signed, np.interp(xc, (xc.min(), xc.max()), (xc.min(), xc.max())))
+e_bad = signed_rp_error(R_signed, np.random.default_rng(0).permutation(xc))
+assert e_true < e_bad, f"signed error not discriminative: {e_true:.3f} !< {e_bad:.3f}"
+
+# 1-D legacy path still reachable through the unified entry.
+rec1 = decode_channel(R_signed, minmax_c, source="jaccard", dims=1,
+                      recover="append", signed=True)
+assert rec1.shape == (128,)
+print("[ok] Task 3: signed selection + unified decoder")
