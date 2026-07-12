@@ -124,4 +124,27 @@ assert 0.0 <= metrics["evr2"] <= 1.0
 ab = np.array([1.0, 2.0, 3.0]), np.array([2.0, 3.0, 9.0])  # last b intentionally off
 assert abs(overlap_error_abs(*ab) - (abs(2-2)+abs(3-3))/2) < 1e-12
 print("[ok] Task 4: metrics + 3-channel window decode")
+
+# --- Scale fix: rp_range decode recovers the 2-D geometry that signal-range distorts ---
+# The distortion only appears when the signal range is asymmetric relative to the
+# (roughly symmetric) signed-RP distance range, i.e. when the signal has a DC offset
+# (real accelerometer data has a gravity offset). A zero-mean sine would give b~=0 and
+# show no effect, so this fixture adds an offset to reproduce the real-data mechanism.
+sig_off = {0: x + 5.0, 1: np.cos(t) + 3.0, 2: 0.5 * np.sin(2.0 * t) + 8.0}
+chans_o, maxs_o, mins_o, rp_rng = [], [], [], []
+for c in range(3):
+    xs = sig_off[c]
+    Rc = varRP2(xs, TIME_STEPS=128)
+    chans_o.append(np.round(NormalizeMatrix(Rc) * 255).astype(np.uint8))
+    maxs_o.append(float(xs.max())); mins_o.append(float(xs.min()))
+    nz = Rc[Rc != 0]
+    rp_rng.append((float(nz.min()), float(Rc.max())))
+img_o = np.stack(chans_o, axis=2)
+minmax_o = [maxs_o, mins_o]
+_, m_sig = decode_window(img_o, minmax_o, source="direct", dims=2, recover="overlap", signed=False)
+_, m_rp = decode_window(img_o, minmax_o, source="direct", dims=2, recover="overlap", signed=False, rp_range=rp_rng)
+assert m_rp["evr2"] > m_sig["evr2"] + 0.2, f"rp_range must recover 2-D geometry lost by signal-range decode: {m_rp['evr2']:.3f} vs {m_sig['evr2']:.3f}"
+assert m_rp["evr2"] > 0.9, f"rp_range EVR2 should be near 1: {m_rp['evr2']:.3f}"
+print("[ok] Scale fix: rp_range decode recovers 2-D geometry (signal-range EVR2 "
+      f"{m_sig['evr2']:.2f} -> rp-range {m_rp['evr2']:.2f})")
 print("all checks passed")
