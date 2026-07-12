@@ -214,16 +214,24 @@ def overlap_error_abs(a, b):
 
 
 def decode_window(img_rgb, minmax, source, dims=2, recover="overlap",
-                  signed=True, rho=0.60):
+                  signed=True, rho=0.60, rp_range=None):
     """Decode a 3-channel RP image to (TIME_STEPS,3) plus geometry metrics.
 
     Metrics (averaged over channels): e_rp (signed-RP reproduction error),
     evr2 (fraction of geometry in 2 dims), stress (MDS stress-1).
+
+    ``rp_range``: optional list of per-channel ``(R_min, R_max)`` used to invert
+    the PNG back to the RP's OWN distance range (the metadata a corrected encoder
+    would persist). When ``None`` the input is inverted with the signal amplitude
+    range ``(mins, maxs)`` — the legacy convention, which affinely distorts the
+    distances handed to MDS (see ``scripts/_check_rp_scale.py``). The OUTPUT is
+    always rescaled to the signal range, since the reconstruction is an amplitude.
     """
     maxs, mins = minmax
     chans, e_rp, evrs, stresses = [], [], [], []
     for c in range(3):
-        R_obs = np.interp(img_rgb[:, :, c].astype(float), (0, 255), (mins[c], maxs[c]))
+        lo, hi = (mins[c], maxs[c]) if rp_range is None else (rp_range[c][0], rp_range[c][1])
+        R_obs = np.interp(img_rgb[:, :, c].astype(float), (0, 255), (lo, hi))
         rec = decode_channel(R_obs, (maxs[c], mins[c]), source=source, dims=dims,
                              recover=recover, signed=signed, rho=rho)
         chans.append(rec)
