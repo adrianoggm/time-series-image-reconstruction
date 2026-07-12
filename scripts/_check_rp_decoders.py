@@ -99,3 +99,29 @@ rec1 = decode_channel(R_signed, minmax_c, source="jaccard", dims=1,
                       recover="append", signed=True)
 assert rec1.shape == (128,)
 print("[ok] Task 3: signed selection + unified decoder")
+
+# --- Task 4: metrics + 3-channel window decode ---
+from src.rp_decoders import decode_window, overlap_error_abs
+from src.recurrence_plots import NormalizeMatrix
+
+sig = {0: x, 1: np.cos(t), 2: 0.5 * np.sin(2.0 * t)}
+chans, maxs, mins = [], [], []
+for c in range(3):
+    xs = sig[c]
+    Rn = NormalizeMatrix(varRP2(xs, TIME_STEPS=128))
+    chans.append(np.round(Rn * 255).astype(np.uint8))
+    maxs.append(float(xs.max())); mins.append(float(xs.min()))
+img = np.stack(chans, axis=2)                     # (127,127,3)
+minmax = [maxs, mins]
+
+rec, metrics = decode_window(img, minmax, source="direct", dims=2,
+                             recover="overlap", signed=True)
+assert rec.shape == (128, 3), rec.shape
+assert np.all(np.isfinite(rec))
+assert set(metrics) == {"e_rp", "evr2", "stress"}
+assert 0.0 <= metrics["evr2"] <= 1.0
+
+ab = np.array([1.0, 2.0, 3.0]), np.array([2.0, 3.0, 9.0])  # last b intentionally off
+assert abs(overlap_error_abs(*ab) - (abs(2-2)+abs(3-3))/2) < 1e-12
+print("[ok] Task 4: metrics + 3-channel window decode")
+print("all checks passed")
