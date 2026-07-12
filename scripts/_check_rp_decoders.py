@@ -46,3 +46,25 @@ assert Y.shape == (127, 2)
 assert evr2(ev) > 0.99, f"EVR2 for a true 2-D config should be ~1, got {evr2(ev):.4f}"
 assert mds_stress(distance_matrix(R_obs, source="direct"), Y) < 1e-6, "direct MDS stress must be ~0"
 print("[ok] Task 1: distance sources + embedding + geometry metrics")
+
+# --- Task 2: overlap alignment + reconstruction (geometric core, all sources) ---
+from src.rp_decoders import (
+    align_states,
+    orientation_candidates,
+    reconstruct_signal_from_states,
+)
+
+Qs = orientation_candidates(n_theta=720)
+assert len(Qs) == 1440
+assert all(np.allclose(Q.T @ Q, np.eye(2), atol=1e-9) for Q in Qs), "all Q must be orthogonal"
+
+for src in ("direct", "geo"):
+    Y, _ = embed_2d(distance_matrix(R_obs, source=src))
+    best = min((align_states(Y, Q) for Q in Qs), key=lambda ab: ab[2])
+    a, b, e_ov = best
+    xhat = reconstruct_signal_from_states(a, b)
+    assert xhat.shape == (128,), (src, xhat.shape)
+    r = _abs_corr(xhat, x)
+    assert r > 0.99, f"[{src}] geometric-core corr too low: {r:.4f}"
+    assert e_ov < 1e-3, f"[{src}] overlap error should be ~0 on clean input: {e_ov:.2e}"
+print("[ok] Task 2: overlap alignment + reconstruction")
