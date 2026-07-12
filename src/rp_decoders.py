@@ -12,8 +12,6 @@ State convention: s_i = (x_i, x_{i+1}); RP is (N-1)x(N-1); reconstruction -> N.
 import numpy as np
 
 from src.recurrence_plots import (
-    CreateCostMatrix,
-    _classical_mds,
     calculate_shortest_path_matrix,
     weigthed_graphRP,
 )
@@ -52,11 +50,10 @@ def distance_matrix(R_obs, source, rho=0.60):
     source="geo"    : continuous-weighted graph geodesic distances
     source="jaccard": legacy Jaccard-dissimilarity graph geodesic (baseline)
     """
-    D = symmetrized_magnitude(R_obs)
     if source == "direct":
-        return D
+        return symmetrized_magnitude(R_obs)
     if source == "geo":
-        return _continuous_geodesic(D, rho)
+        return _continuous_geodesic(symmetrized_magnitude(R_obs), rho)
     if source == "jaccard":
         # weigthed_graphRP expects the signed RP and applies its own |.| + threshold.
         return calculate_shortest_path_matrix(weigthed_graphRP(R_obs, 100.0 * rho))
@@ -66,6 +63,7 @@ def distance_matrix(R_obs, source, rho=0.60):
 def embed_2d(dmat):
     """Classical MDS to 2-D. Returns (Y (M,2), positive eigenvalues descending)."""
     n = dmat.shape[0]
+    dmat = np.where(np.isfinite(dmat), dmat, 0.0)  # ponytail: disconnected geo graphs yield inf geodesics; replace with 0 (matches reconstruct_time_series) to avoid NaN propagation
     D2 = np.square(dmat)
     J = np.eye(n) - np.full((n, n), 1.0 / n)
     B = -0.5 * J @ D2 @ J

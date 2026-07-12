@@ -33,6 +33,10 @@ D = symmetrized_magnitude(R_obs)
 assert D.shape == (127, 127) and np.allclose(np.diag(D), 0.0)
 assert np.allclose(D, D.T), "symmetrised magnitude must be symmetric"
 
+asym = np.array([[0.0, 1.0, 4.0], [3.0, 0.0, 2.0], [6.0, 2.0, 0.0]])
+Ds = symmetrized_magnitude(asym)
+assert np.isclose(Ds[0, 1], 2.0) and np.isclose(Ds[0, 2], 5.0), "symmetrized_magnitude must average |R_ij| and |R_ji|"
+
 for src in ("direct", "geo", "jaccard"):
     dm = distance_matrix(R_obs, source=src, rho=0.60)
     assert dm.shape == (127, 127), (src, dm.shape)
