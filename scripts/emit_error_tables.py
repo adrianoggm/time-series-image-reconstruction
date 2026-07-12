@@ -17,7 +17,7 @@ ORIGP = f"{DEFAULT_DATA_DIR}tseries/recurrence_plot/{FOLD}/validation_data.npy"
 
 # label -> (tseries subdir, X_all file, decimals for MAE/MRE/MSE)
 ENCS = {
-    "tab:recurrence_plot": ("recurrence_plot", "X_all_rec.npy", 2),
+    "tab:recurrence_plot": ("recurrence_plot", "X_all_rec.npy", 4),
     "tab:markov_fields":   ("MTF",             "X_all_mtf.npy", 2),
     "tab:grammian_fields": ("GAF",             "X_all_gaf.npy", 4),
     "tab:gadf_fields":     ("GADF",            "X_all_gadf.npy", 4),
