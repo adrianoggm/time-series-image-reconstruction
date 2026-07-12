@@ -94,3 +94,41 @@ def mds_stress(dmat, Y):
     if denom <= 0:
         return 0.0
     return float(np.sqrt(np.sum((d - dh) ** 2) / denom))
+
+
+def orientation_candidates(n_theta=720):
+    """The 2*n_theta matrices Q_{θ,η} = rot(θ)·diag(1,η), η∈{+1,-1}, spanning O(2)."""
+    thetas = np.linspace(0.0, 2.0 * np.pi, n_theta, endpoint=False)
+    Qs = []
+    for eta in (1.0, -1.0):
+        for th in thetas:
+            c, s = np.cos(th), np.sin(th)
+            Qs.append(np.array([[c, -s * eta], [s, c * eta]]))
+    return Qs
+
+
+def align_states(Y, Q):
+    """Apply Q, correct the MDS translation offset along the overlap, and return
+    aligned state coordinates (a, b) plus the normalised overlap error.
+
+    a_i approximates x_i, b_i approximates x_{i+1}; the overlap constraint is
+    b_i ≈ a_{i+1}. δ is the mean offset between the two, split symmetrically.
+    """
+    Z = Y @ Q                                   # (M, 2)
+    d = Z[:-1, 1] - Z[1:, 0]                     # b_i - a_{i+1}, i=0..M-2
+    delta = -float(np.mean(d)) if d.size else 0.0
+    a = Z[:, 0] - 0.5 * delta
+    b = Z[:, 1] + 0.5 * delta
+    num = float(np.sum((b[:-1] - a[1:]) ** 2))
+    den = float(np.sum(a ** 2 + b ** 2)) + EPS
+    return a, b, num / den
+
+
+def reconstruct_signal_from_states(a, b):
+    """Overlap reconstruction: x1=a1; x_i=(b_{i-1}+a_i)/2; xN=b_{M}. Length M+1."""
+    M = a.shape[0]
+    x = np.empty(M + 1)
+    x[0] = a[0]
+    x[1:M] = 0.5 * (b[:-1] + a[1:])
+    x[M] = b[M - 1]
+    return x
