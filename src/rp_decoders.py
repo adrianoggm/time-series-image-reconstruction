@@ -204,3 +204,36 @@ def decode_channel(R_obs, minmax_c, source, dims=2, recover="overlap",
         if best is None or e_sig < best[0]:
             best = (e_sig, x)
     return best[1]
+
+
+def overlap_error_abs(a, b):
+    """L1 overlap diagnostic: mean|b_i - a_{i+1}| over shared samples."""
+    if a.shape[0] < 2:
+        return 0.0
+    return float(np.mean(np.abs(b[:-1] - a[1:])))
+
+
+def decode_window(img_rgb, minmax, source, dims=2, recover="overlap",
+                  signed=True, rho=0.60):
+    """Decode a 3-channel RP image to (TIME_STEPS,3) plus geometry metrics.
+
+    Metrics (averaged over channels): e_rp (signed-RP reproduction error),
+    evr2 (fraction of geometry in 2 dims), stress (MDS stress-1).
+    """
+    maxs, mins = minmax
+    chans, e_rp, evrs, stresses = [], [], [], []
+    for c in range(3):
+        R_obs = np.interp(img_rgb[:, :, c].astype(float), (0, 255), (mins[c], maxs[c]))
+        rec = decode_channel(R_obs, (maxs[c], mins[c]), source=source, dims=dims,
+                             recover=recover, signed=signed, rho=rho)
+        chans.append(rec)
+        e_rp.append(signed_rp_error(R_obs, rec))
+        dmat = distance_matrix(R_obs, source=source, rho=rho)
+        Y, pos = embed_2d(dmat)
+        evrs.append(evr2(pos))
+        stresses.append(mds_stress(dmat, Y))
+    rec = np.stack(chans, axis=1)                       # (TIME_STEPS, 3)
+    metrics = dict(e_rp=float(np.mean(e_rp)),
+                   evr2=float(np.mean(evrs)),
+                   stress=float(np.mean(stresses)))
+    return rec, metrics
