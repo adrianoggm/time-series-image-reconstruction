@@ -85,6 +85,10 @@ for src in ("direct", "geo"):
     r = _abs_corr(rec, xc)
     assert r > 0.95, f"[{src}] signed 2-D decode corr too low: {r:.4f}"
 
+rec_unsigned = decode_channel(R_signed, minmax_c, source="direct", dims=2,
+                              recover="overlap", signed=False)
+assert rec_unsigned.shape == (128,) and np.all(np.isfinite(rec_unsigned))
+
 # signed error must be small for the true signal, large for a shuffled one.
 e_true = signed_rp_error(R_signed, np.interp(xc, (xc.min(), xc.max()), (xc.min(), xc.max())))
 e_bad = signed_rp_error(R_signed, np.random.default_rng(0).permutation(xc))

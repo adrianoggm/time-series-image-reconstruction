@@ -165,6 +165,8 @@ def decode_channel(R_obs, minmax_c, source, dims=2, recover="overlap",
       and RP-GEO-1D). dims=2, recover="overlap": 2-D O(2) alignment + overlap
       reconstruction; signed=True adds the signed-RP orientation selection.
     """
+    if (dims, recover) not in {(1, "append"), (2, "overlap")}:
+        raise ValueError(f"unsupported (dims, recover) combo: ({dims}, {recover!r})")
     dmat = distance_matrix(R_obs, source=source, rho=rho)
 
     if dims == 1:
