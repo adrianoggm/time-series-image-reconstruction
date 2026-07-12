@@ -1,0 +1,266 @@
+\relax 
+\providecommand*\new@tpo@label[2]{}
+\citation{wang2015encoding,wang2015encoding2}
+\citation{hirata2008reproduction}
+\citation{huamin2020reconstruction}
+\providecommand \oddpage@label [2]{}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{}\protected@file@percent }
+\newlabel{sec:introduction}{{1}{1}{Introduction}{}{}}
+\citation{misc_wisdm_smartphone_and_smartwatch_activity_and_biometrics_dataset__507}
+\citation{hirata2008reproduction}
+\citation{wang2015encoding}
+\citation{huamin2020reconstruction}
+\citation{hirata2008reproduction}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Controlled image-based time-series reconstruction workflow. Solid arrows show the signal/image path from the triaxial window $x\!\in \!\mathbb  {R}^{N\times 3}$ through per-axis encoding ($\mathcal  {E}_m\!:\!\mathcal  {X}_m\!\to \!\mathbb  {R}^{N_m\times N_m}$, with $N_m\!=\!N$ for GASF/GADF/MTF and $N_m\!=\!N\!-\!1$ for RP) and method-tailored inversion ($\mathcal  {D}_m$), which returns a normalised reconstruction $\hat  {\tilde  {x}}^{(m)}\!\in \!\mathcal  {X}_m$. The final block is dual: the decoder output can be consumed directly in the normalised domain, or passed through the \emph  {optional} physical-scale recovery $\mathcal  {N}_m^{-1}$ to obtain $\hat  {x}$ in accelerometer units. Dashed arrows show auxiliary information recorded during encoding: the per-axis $(\min ,\max )$ calibration, used \emph  {only} when physical-scale recovery is requested, and the original window used as ground truth for visual, pointwise, and trend metrics. The RP decoder additionally consumes its own per-axis RP-matrix range $(R_{\min },R_{\max })$ --- needed even for the normalised reconstruction and distinct from the physical-scale $(\min ,\max )$ --- omitted from the arrows to keep the diagram legible.}}{3}{}\protected@file@percent }
+\newlabel{fig:workflow_overview}{{1}{3}{Introduction}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work and Encodings}{3}{}\protected@file@percent }
+\newlabel{sec:related_encodings}{{2}{3}{Related Work and Encodings}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Operator-level view of the four image encodings.}}{3}{}\protected@file@percent }
+\newlabel{tab:operator_summary}{{1}{3}{Related Work and Encodings}{}{}}
+\citation{hirata2008reproduction}
+\citation{THIEL2004343}
+\citation{TANIO20092031}
+\citation{huamin2020reconstruction}
+\citation{wang2015encoding}
+\citation{kopec1994document,kliewer2006iterative}
+\citation{eckmann1995recurrence}
+\citation{takens1981detecting,marwan2007recurrence}
+\citation{lu2019robust}
+\citation{lu2019robust}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Closest prior reconstruction work per encoding and the gap this paper closes. ``Prior inverse to the time series?'' asks whether earlier work recovered the signal itself, not merely restored or classified the image.}}{4}{}\protected@file@percent }
+\newlabel{tab:novelty}{{2}{4}{Related Work and Encodings}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Recurrence Plot}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.1}Image Construction}{4}{}\protected@file@percent }
+\citation{THIEL2004343}
+\citation{TANIO20092031}
+\citation{hirata2008reproduction}
+\newlabel{eq:FormulaRP}{{4}{5}{Image Construction}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Example of a Recurrence Plot.}}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.2}Time Series Reconstruction}{5}{}\protected@file@percent }
+\citation{cherkassky1996shortest}
+\citation{hirata2008reproduction}
+\citation{wang2015encoding}
+\citation{wang2015encoding}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Gramian Angular Field}{6}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.1}Image Construction}{6}{}\protected@file@percent }
+\newlabel{ConstruccionGAF}{{2.2.1}{6}{Image Construction}{}{}}
+\citation{wang2015encoding}
+\citation{wang2015encoding2}
+\citation{wang2015encoding}
+\citation{huamin2020reconstruction}
+\citation{wang2015encoding}
+\newlabel{eq:gasf_indexed}{{7}{7}{Image Construction}{}{}}
+\newlabel{eq:gadf_indexed}{{8}{7}{Image Construction}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Example of a Gramian Angular Field.}}{7}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.2}Time Series Reconstruction}{7}{}\protected@file@percent }
+\newlabel{ReconstruccionGAF}{{2.2.2}{7}{Time Series Reconstruction}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline GASF reconstruction.}{7}{}\protected@file@percent }
+\citation{wang2015encoding}
+\citation{kopec1994document,kliewer2006iterative}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Markov Transition Field}{8}{}\protected@file@percent }
+\newlabel{sec:mtf_definition}{{2.3}{8}{Markov Transition Field}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.3.1}Image Construction}{8}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Example of a Markov Transition Field.}}{8}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.3.2}Time Series Reconstruction}{8}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Problem Formulation}{9}{}\protected@file@percent }
+\newlabel{sec:problem_formulation}{{3}{9}{Problem Formulation}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Proposed Reconstruction Methods}{9}{}\protected@file@percent }
+\newlabel{sec:proposed_methods}{{4}{9}{Proposed Reconstruction Methods}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Shared normalisation, storage, and calibration protocol}{9}{}\protected@file@percent }
+\newlabel{sec:shared_protocol}{{4.1}{9}{Shared normalisation, storage, and calibration protocol}{}{}}
+\citation{hirata2008reproduction}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Recurrence Plot}{10}{}\protected@file@percent }
+\newlabel{sec:rp_reconstruction_method}{{4.2}{10}{Recurrence Plot}{}{}}
+\citation{huamin2020reconstruction}
+\citation{wang2015encoding}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Gramian Angular Summation Field Reconstruction}{11}{}\protected@file@percent }
+\newlabel{sec:gasf_reconstruction_method}{{4.3}{11}{Gramian Angular Summation Field Reconstruction}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Restricted-Branch Gramian Angular Difference Field Reconstruction}{12}{}\protected@file@percent }
+\newlabel{sec:gadf_reconstruction_proposal}{{4.4}{12}{Restricted-Branch Gramian Angular Difference Field Reconstruction}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.1}Restricted scaling for branch uniqueness}{12}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.2}Relative angular reconstruction from a pivot row}{13}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.3}Absolute angular anchor}{13}{}\protected@file@percent }
+\citation{Atkins1998}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.4}Normalised output and limitations}{14}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Markov Transition Field Reconstruction}{14}{}\protected@file@percent }
+\newlabel{sec:mtf_reconstruction_method}{{4.5}{14}{Markov Transition Field Reconstruction}{}{}}
+\citation{misc_wisdm_smartphone_and_smartwatch_activity_and_biometrics_dataset__507}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Experimental Protocol}{15}{}\protected@file@percent }
+\newlabel{sec:experimental_protocol}{{5}{15}{Experimental Protocol}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Dataset and Segmentation}{15}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Distribution of activities in the dataset.}}{16}{}\protected@file@percent }
+\newlabel{tab:activity_distribution}{{3}{16}{Dataset and Segmentation}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Windowing and grouping details.}{16}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Encoding Sensitivity to Signal Inversion}{16}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Recurrence Plot (RP) images: original vs.\ inverted.}}{16}{}\protected@file@percent }
+\newlabel{fig:INVRP}{{5}{16}{Encoding Sensitivity to Signal Inversion}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Gramian Angular Summation Field (GASF) images: original vs.\ inverted.}}{17}{}\protected@file@percent }
+\newlabel{fig:INVGASF}{{6}{17}{Encoding Sensitivity to Signal Inversion}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Gramian Angular Difference Field (GADF) images: original vs.\ inverted.}}{17}{}\protected@file@percent }
+\newlabel{fig:INVGADF}{{7}{17}{Encoding Sensitivity to Signal Inversion}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Markov Transition Field (MTF) images: original vs.\ inverted.}}{17}{}\protected@file@percent }
+\newlabel{fig:INVMTF}{{8}{17}{Encoding Sensitivity to Signal Inversion}{}{}}
+\citation{Botchkarev_2019,Ding2008}
+\citation{Shirkhorshidi2015}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Evaluation Design}{18}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Classification train/test regimes and the claim each one supports. The reported classifier tables use scenario B; scenarios C and D are listed for completeness and are \emph  {not} evaluated in this work, so no data-augmentation benefit is claimed.}}{18}{}\protected@file@percent }
+\newlabel{tab:classification_scenarios}{{4}{18}{Evaluation Design}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.1}Statistical Significance Protocol}{18}{}\protected@file@percent }
+\newlabel{sec:statistical_protocol}{{5.3.1}{18}{Statistical Significance Protocol}{}{}}
+\citation{Dietterich1998}
+\citation{Wilcoxon1945}
+\citation{Rosenthal1991}
+\citation{Holm1979}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.2}Pointwise Error Metrics}{19}{}\protected@file@percent }
+\citation{IGNATOV2018915}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.3}Polynomial Trend Metrics}{20}{}\protected@file@percent }
+\newlabel{sec:polynomial_trend_metrics}{{5.3.3}{20}{Polynomial Trend Metrics}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.4}Classifier Evaluation}{20}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Classifier configurations. Each model is trained once per fold on the original (un-reconstructed) windows and reused across all four encodings. Input is $(128,3)$ for the neural models and the flattened $384$-vector for the scikit-learn models; all neural models use the sparse categorical cross-entropy loss.}}{21}{}\protected@file@percent }
+\newlabel{tab:classifier_hyperparams}{{5}{21}{Classifier Evaluation}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Results}{21}{}\protected@file@percent }
+\newlabel{sec:results}{{6}{21}{Results}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Qualitative Reconstruction Analysis}{21}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.1}Artificial Time Series}{21}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Image encodings of the same artificial three-channel signal (cosine, sine, sine$-$cosine) under each technique.}}{22}{}\protected@file@percent }
+\newlabel{fig:artificial_encodings}{{9}{22}{Artificial Time Series}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces RP reconstruction on the artificial triaxial time series.}}{22}{}\protected@file@percent }
+\newlabel{fig:rp_comparison_artificial}{{10}{22}{Artificial Time Series}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces GASF reconstruction on the artificial triaxial time series.}}{22}{}\protected@file@percent }
+\newlabel{fig:gaf_comparison_artificial}{{11}{22}{Artificial Time Series}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces GADF reconstruction on the artificial triaxial time series.}}{23}{}\protected@file@percent }
+\newlabel{fig:gadf_comparison_artificial}{{12}{23}{Artificial Time Series}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces MTF reconstruction on the artificial triaxial time series.}}{23}{}\protected@file@percent }
+\newlabel{fig:mtf_comparison_artificial}{{13}{23}{Artificial Time Series}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.2}WISDM Sample \texttt  {1600×0}}{23}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {14}{\ignorespaces The four image encodings of the same WISDM window \texttt  {1600$\times $0} (fold-0 train, Walking). Per-axis (x,y,z) intensities are stacked as the (R,G,B) channels of each image.}}{24}{}\protected@file@percent }
+\newlabel{fig:train0_encodings}{{14}{24}{WISDM Sample \texttt  {1600×0}}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {15}{\ignorespaces Original vs.\ RP reconstruction for sample \texttt  {1600×0}.}}{24}{}\protected@file@percent }
+\newlabel{fig:rp_comparison_wisdm}{{15}{24}{WISDM Sample \texttt  {1600×0}}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {16}{\ignorespaces Original vs.\ GASF reconstruction for sample \texttt  {1600×0}.}}{24}{}\protected@file@percent }
+\newlabel{fig:gaf_comparison_wisdm}{{16}{24}{WISDM Sample \texttt  {1600×0}}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {17}{\ignorespaces Original vs.\ GADF reconstruction for sample \texttt  {1600×0}.}}{25}{}\protected@file@percent }
+\newlabel{fig:gadf_comparison_wisdm}{{17}{25}{WISDM Sample \texttt  {1600×0}}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {18}{\ignorespaces Original vs.\ MTF reconstruction for sample \texttt  {1600×0}.}}{25}{}\protected@file@percent }
+\newlabel{fig:mtf_comparison_global}{{18}{25}{WISDM Sample \texttt  {1600×0}}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {19}{\ignorespaces Original vs.\ MTF reconstruction for sample \texttt  {1600×0}, axis \emph  {x}.}}{26}{}\protected@file@percent }
+\newlabel{fig:mtf_x}{{19}{26}{WISDM Sample \texttt  {1600×0}}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {20}{\ignorespaces Original vs.\ MTF reconstruction for sample \texttt  {1600×0}, axis \emph  {y}.}}{26}{}\protected@file@percent }
+\newlabel{fig:mtf_y}{{20}{26}{WISDM Sample \texttt  {1600×0}}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {21}{\ignorespaces Original vs.\ MTF reconstruction for sample \texttt  {1600×0}, axis \emph  {z}.}}{26}{}\protected@file@percent }
+\newlabel{fig:mtf_z}{{21}{26}{WISDM Sample \texttt  {1600×0}}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Quantitative Reconstruction Results}{26}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.2.1}Pointwise Error Metrics}{26}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Per-fold reconstruction error for both 3-fold protocols (physical units, m/s$^2$). Each cell is the per-window global metric (averaged over the three axes) averaged over that fold's test windows. Because the decoders are deterministic and untrained, a window reconstructs identically in any fold; the two protocols only repartition the same $8172$ windows, so the Pooled column is identical for both and equals the full-dataset value of Table~\ref {tab:pointwise_pooled}. The window-level folds are near-identical stratified partitions (negligible fold-to-fold spread), whereas the subject-out folds vary more because different subjects are held out.}}{27}{}\protected@file@percent }
+\newlabel{tab:pointwise_perfold}{{6}{27}{Pointwise Error Metrics}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Pooled pointwise reconstruction errors over all $N=8172$ windows --- the full dataset (the three test folds of either protocol pooled; identical, since both repartition the same windows; physical units, m/s$^2$). This aggregates the per-fold values of Table~\ref {tab:pointwise_perfold}. Because the decoders are deterministic and untrained, the pooled set is the full dataset with each window scored once. Each metric is computed per window (averaged over the three accelerometer axes); columns report the across-window mean$\pm $std and median[IQR], and the subject-cluster bootstrap 95\% CI of the grand per-subject mean ($51$ subjects, $10^4$ resamples). Per-axis breakdowns are in Appendix~\ref {app:per_axis_errors}.}}{28}{}\protected@file@percent }
+\newlabel{tab:pointwise_pooled}{{7}{28}{Pointwise Error Metrics}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.2.2}Polynomial Trend Comparison}{28}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Normalized polynomial-trend coefficient metrics over all $N=8172$ pooled windows.}}{28}{}\protected@file@percent }
+\newlabel{tab:normalized_metrics}{{8}{28}{Polynomial Trend Comparison}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Downstream Classification Results}{28}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Grouped Subject-Out Robustness}{28}{}\protected@file@percent }
+\newlabel{sec:subject_out_results}{{6.4}{28}{Grouped Subject-Out Robustness}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces Headline accuracies under the grouped subject-out 3-fold protocol (mean $\pm $ std across folds 0, 1, 2; $\sim $2\,724 test windows per fold drawn from 16--18 held-out subjects). $\Delta $acc is the accuracy of the reconstructed signal minus the accuracy of the original signal under the same classifier, averaged over the same three folds.}}{29}{}\protected@file@percent }
+\newlabel{tab:gadf_summary_subject_out}{{9}{29}{Grouped Subject-Out Robustness}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces Per-fold accuracies on the grouped subject-out 3-fold protocol. Folds split the 51 WISDM subjects into disjoint groups of 16, 18 and 17 test subjects respectively; the test set of one fold never shares a subject with either of its training folds.}}{29}{}\protected@file@percent }
+\newlabel{tab:gadf_summary_perfold_subject_out}{{10}{29}{Grouped Subject-Out Robustness}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}GADF Decoder Reliability: Exactness, Anchor, and Pivot Ensemble}{29}{}\protected@file@percent }
+\newlabel{sec:gadf_ablation}{{6.5}{29}{GADF Decoder Reliability: Exactness, Anchor, and Pivot Ensemble}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {11}{\ignorespaces GADF pivot-ensemble sweep on the same $1\,500$ WISDM windows ($4\,500$ axis-series) at $\alpha =0.7$. $n_p$ is the number of averaged central pivot rows; MAE is the 8-bit PNG round-trip error in physical units; time is per axis-series. The default used everywhere else in the paper is $n_p=5$.}}{30}{}\protected@file@percent }
+\newlabel{tab:gadf_npivots}{{11}{30}{GADF Decoder Reliability: Exactness, Anchor, and Pivot Ensemble}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.6}RP Decoder Ablation: Inverse Normalisation and Signed Orientation Selection}{30}{}\protected@file@percent }
+\newlabel{sec:rp_ablation}{{6.6}{30}{RP Decoder Ablation: Inverse Normalisation and Signed Orientation Selection}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {12}{\ignorespaces RP decoder ablation on $100$ stratified window-level fold-0 test windows; MAE (raw) and Pearson are averaged over the three axes, and $\mathrm  {EVR}_2$ is the fraction of the MDS spectrum in the two leading positive dimensions. All rows use the RP-range inverse normalisation except where noted.}}{30}{}\protected@file@percent }
+\newlabel{tab:rp_ablation}{{12}{30}{RP Decoder Ablation: Inverse Normalisation and Signed Orientation Selection}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.7}MTF Decoder Ablation: Ordering and Metadata}{30}{}\protected@file@percent }
+\newlabel{sec:mtf_ablation}{{6.7}{30}{MTF Decoder Ablation: Ordering and Metadata}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {13}{\ignorespaces MTF decoder ablation at $Q=4$, 100 stratified window-level fold-0 test windows ($T=128$); pointwise MAE and Pearson averaged across the three accelerometer axes.}}{31}{}\protected@file@percent }
+\newlabel{tab:mtf_ablation}{{13}{31}{MTF Decoder Ablation: Ordering and Metadata}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {14}{\ignorespaces MTF bin-count ablation on the stratified window-level 3-fold protocol ($N=8\,172$ pooled test windows). Pointwise MAE and Pearson are averaged across the three accelerometer axes; classifier accuracies are 3-fold means. The minimum MAE, maximum Pearson, and per-classifier optimum are highlighted in bold. The Fiedler-vector decoder is used uniformly; only $Q$ varies.}}{31}{}\protected@file@percent }
+\newlabel{tab:mtf_ablation_q}{{14}{31}{MTF Decoder Ablation: Ordering and Metadata}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Discussion}{33}{}\protected@file@percent }
+\newlabel{sec:discussion}{{7}{33}{Discussion}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {15}{\ignorespaces Interpretation of each encoding after the unified $N=128$ evaluation.}}{33}{}\protected@file@percent }
+\newlabel{tab:discussion_method_roles}{{15}{33}{Discussion}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {16}{\ignorespaces Stratified window-level vs grouped subject-out accuracies (mean across 3 folds) --- the compact summary that the rest of this section unpacks. The grouped subject-out protocol holds out 16--18 subjects per fold with zero overlap, so it is the stricter subject-generalisation test. The near-original tier --- RP, GASF and GADF --- is preserved under both sampling schemes: all three match the original-signal accuracy on every classifier. MTF is the single decoder that degrades, and it is significantly outranked by RP, GASF and GADF on all six classifiers under both protocols. Absolute accuracies are lower under grouped subject-out validation because the model has not seen any window from the test subjects.}}{33}{}\protected@file@percent }
+\newlabel{tab:window_vs_subject_out}{{16}{33}{Discussion}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Visual Reconstruction Trade-offs}{33}{}\protected@file@percent }
+\newlabel{sec:disc_visual}{{7.1}{33}{Visual Reconstruction Trade-offs}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Null-Corrected RP/GADF Regional Overlap}{34}{}\protected@file@percent }
+\newlabel{sec:disc_rp_gadf_overlap}{{7.2}{34}{Null-Corrected RP/GADF Regional Overlap}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {22}{\ignorespaces Null-corrected RP/GADF structural-overlap diagnostic. The top panel shows one 5-bin visual comparison: quantised RP, aligned quantised GADF, and pixels landing in the same bin. The middle histograms compare matched RP/GADF pairs against same-activity random pairings. The bottom row shows that matched regional overlap remains above the null baseline across independent visual quantisation levels \(B\in \{3,5,7,9,12,15\}\), while the distribution-only factor stays close to one.}}{34}{}\protected@file@percent }
+\newlabel{fig:rp_gadf_structure_overlap}{{22}{34}{Null-Corrected RP/GADF Regional Overlap}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {17}{\ignorespaces Null-corrected RP/GADF weighted regional overlap across visual intensity bins. Values are averaged over grayscale and the three axis channels. The null baseline pairs each RP image with a GADF image from a different window of the same activity class. Jaccard values are percentages; the Matched/null factor is the mean over the four channels of the per-channel matched/null ratio, so it is not the ratio of the two displayed column means.}}{35}{}\protected@file@percent }
+\newlabel{tab:rp_gadf_region_overlap}{{17}{35}{Null-Corrected RP/GADF Regional Overlap}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Reconstruction Error Analysis}{35}{}\protected@file@percent }
+\newlabel{sec:disc_pointwise}{{7.3}{35}{Reconstruction Error Analysis}{}{}}
+\citation{Dietterich1998}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.4}Polynomial Trend Comparison}{36}{}\protected@file@percent }
+\newlabel{sec:disc_trend}{{7.4}{36}{Polynomial Trend Comparison}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.5}Classification Performance}{36}{}\protected@file@percent }
+\newlabel{sec:disc_classification}{{7.5}{36}{Classification Performance}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.6}Four-lens Convergence}{37}{}\protected@file@percent }
+\newlabel{sec:disc_convergence}{{7.6}{37}{Four-lens Convergence}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.7}Structural relationship between signed RP and GADF}{37}{}\protected@file@percent }
+\newlabel{sec:disc_structural}{{7.7}{37}{Structural relationship between signed RP and GADF}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.8}Scope of Claims}{38}{}\protected@file@percent }
+\newlabel{sec:disc_scope}{{7.8}{38}{Scope of Claims}{}{}}
+\citation{misc_wisdm_smartphone_and_smartwatch_activity_and_biometrics_dataset__507}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.9}Threats to Validity}{39}{}\protected@file@percent }
+\newlabel{sec:threats}{{7.9}{39}{Threats to Validity}{}{}}
+\citation{hirata2008reproduction}
+\citation{huamin2020reconstruction}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.10}Reproducibility}{40}{}\protected@file@percent }
+\newlabel{sec:reproducibility}{{7.10}{40}{Reproducibility}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {8}Conclusion}{40}{}\protected@file@percent }
+\newlabel{sec:conclusion}{{8}{40}{Conclusion}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Per-Axis Reconstruction Errors}{41}{}\protected@file@percent }
+\newlabel{app:per_axis_errors}{{A}{41}{Per-Axis Reconstruction Errors}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {18}{\ignorespaces RP per-axis reconstruction errors over all $N=8172$ pooled windows (physical units, m/s$^2$); mean$\pm $std across windows. The Global column averages the three axes per window.}}{41}{}\protected@file@percent }
+\newlabel{tab:recurrence_plot}{{18}{41}{Per-Axis Reconstruction Errors}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {19}{\ignorespaces MTF per-axis reconstruction errors over all $N=8172$ pooled windows (physical units, m/s$^2$); mean$\pm $std across windows. The Global column averages the three axes per window.}}{41}{}\protected@file@percent }
+\newlabel{tab:markov_fields}{{19}{41}{Per-Axis Reconstruction Errors}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {20}{\ignorespaces GASF per-axis reconstruction errors over all $N=8172$ pooled windows (physical units, m/s$^2$); mean$\pm $std across windows. The Global column averages the three axes per window.}}{42}{}\protected@file@percent }
+\newlabel{tab:grammian_fields}{{20}{42}{Per-Axis Reconstruction Errors}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {21}{\ignorespaces GADF per-axis reconstruction errors over all $N=8172$ pooled windows (physical units, m/s$^2$); mean$\pm $std across windows. The Global column averages the three axes per window.}}{42}{}\protected@file@percent }
+\newlabel{tab:gadf_fields}{{21}{42}{Per-Axis Reconstruction Errors}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B}Per-Class Classification Results}{42}{}\protected@file@percent }
+\newlabel{app:per_class_results}{{B}{42}{Per-Class Classification Results}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {22}{\ignorespaces Classification Results for GRU on the stratified window-level 3-fold protocol (mean $\pm $ std across folds 0, 1, 2). Per-class precision/recall/F1 and support averaged over the same three folds; footer accuracies averaged likewise.}}{43}{}\protected@file@percent }
+\newlabel{tab:gru_classifiers}{{22}{43}{Per-Class Classification Results}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {23}{\ignorespaces Classification Results for KNN on the stratified window-level 3-fold protocol (mean $\pm $ std across folds 0, 1, 2). Per-class precision/recall/F1 and support averaged over the same three folds; footer accuracies averaged likewise.}}{43}{}\protected@file@percent }
+\newlabel{tab:knn_classifiers}{{23}{43}{Per-Class Classification Results}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {24}{\ignorespaces Classification Results for CNN on the stratified window-level 3-fold protocol (mean $\pm $ std across folds 0, 1, 2). Per-class precision/recall/F1 and support averaged over the same three folds; footer accuracies averaged likewise.}}{43}{}\protected@file@percent }
+\newlabel{tab:cnn_classifiers}{{24}{43}{Per-Class Classification Results}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {25}{\ignorespaces Classification Results for Random Forest on the stratified window-level 3-fold protocol (mean $\pm $ std across folds 0, 1, 2). Per-class precision/recall/F1 and support averaged over the same three folds; footer accuracies averaged likewise.}}{44}{}\protected@file@percent }
+\newlabel{tab:rf_classifiers}{{25}{44}{Per-Class Classification Results}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {26}{\ignorespaces Classification Results for Support Vector Machine on the stratified window-level 3-fold protocol (mean $\pm $ std across folds 0, 1, 2). Per-class precision/recall/F1 and support averaged over the same three folds; footer accuracies averaged likewise.}}{44}{}\protected@file@percent }
+\newlabel{tab:svm_classifiers}{{26}{44}{Per-Class Classification Results}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {27}{\ignorespaces Classification Results for LSTM on the stratified window-level 3-fold protocol (mean $\pm $ std across folds 0, 1, 2). Per-class precision/recall/F1 and support averaged over the same three folds; footer accuracies averaged likewise.}}{44}{}\protected@file@percent }
+\newlabel{tab:lstm_classifiers}{{27}{44}{Per-Class Classification Results}{}{}}
+\bibcite{eckmann1995recurrence}{1}
+\bibcite{takens1981detecting}{2}
+\bibcite{marwan2007recurrence}{3}
+\bibcite{lu2019robust}{4}
+\bibcite{THIEL2004343}{5}
+\bibcite{TANIO20092031}{6}
+\bibcite{hirata2008reproduction}{7}
+\bibcite{cherkassky1996shortest}{8}
+\bibcite{wang2015encoding}{9}
+\bibcite{wang2015encoding2}{10}
+\bibcite{huamin2020reconstruction}{11}
+\bibcite{kopec1994document}{12}
+\bibcite{kliewer2006iterative}{13}
+\bibcite{misc_wisdm_smartphone_and_smartwatch_activity_and_biometrics_dataset__507}{14}
+\bibcite{Ding2008}{15}
+\bibcite{Atkins1998}{16}
+\bibcite{Botchkarev_2019}{17}
+\bibcite{Shirkhorshidi2015}{18}
+\bibcite{IGNATOV2018915}{19}
+\bibcite{Dietterich1998}{20}
+\bibcite{Wilcoxon1945}{21}
+\bibcite{Rosenthal1991}{22}
+\bibcite{Holm1979}{23}
+\global\csname @altsecnumformattrue\endcsname
+\gdef \@abspage@last{46}
