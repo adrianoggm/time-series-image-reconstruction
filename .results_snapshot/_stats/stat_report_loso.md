@@ -1,10 +1,11 @@
 # Statistical significance report (LOSO 3-fold pooled)
 
-All paired tests run on the pooled $N=8172$ test windows from
-folds [0, 1, 2] (per-fold sizes [2645, 2788, 2739]); each window is one
-paired (Original, Reconstruction) observation so pooling preserves
-the McNemar/Wilcoxon validity. Raw p-values are corrected with
-Holm--Bonferroni inside each family at $\alpha=0.05$.
+Window-level diagnostics use the pooled $N=8172$ test windows from
+folds [0, 1, 2] (per-fold sizes [2645, 2788, 2739]). Pairing is preserved,
+but windows from one subject are dependent; these tests are therefore
+secondary. Section 5 aggregates by subject and provides the primary
+equivalence inference. Raw p-values are corrected with Holm--Bonferroni
+inside each stated family at $\alpha=0.05$.
 
 ## 1. Per-fold accuracy summary (mean +/- std across 3 folds)
 
@@ -94,3 +95,171 @@ Holm--Bonferroni inside each family at $\alpha=0.05$.
 | MAE/GAF-vs-GADF | +0.457 | <1e-300 | <1e-300 | yes |
 | MAE/GAF-vs-MTF | -0.866 | <1e-300 | <1e-300 | yes |
 | MAE/GADF-vs-MTF | -0.866 | <1e-300 | <1e-300 | yes |
+
+## 5. Subject-clustered classification (51 subjects as units)
+
+### 5a. Subject-clustered Wilcoxon on per-subject accuracy, Original vs reconstruction
+| Comparison | effect r | p (raw) | p (Holm) | Reject H0 (difference)? |
+|---|---|---|---|---|
+| knn/Original-vs-RP | +0.428 | 2.932e-01 | 1.000e+00 | no |
+| knn/Original-vs-GAF | +0.000 | 1.000e+00 | 1.000e+00 | no |
+| knn/Original-vs-GADF | -0.447 | 2.282e-01 | 1.000e+00 | no |
+| knn/Original-vs-MTF | +0.600 | 3.258e-05 | 6.190e-04 | yes |
+| svc/Original-vs-RP | -0.097 | 7.508e-01 | 1.000e+00 | no |
+| svc/Original-vs-GAF | +0.091 | 8.501e-01 | 1.000e+00 | no |
+| svc/Original-vs-GADF | +0.339 | 1.575e-01 | 1.000e+00 | no |
+| svc/Original-vs-MTF | +0.645 | 9.677e-06 | 1.935e-04 | yes |
+| randomforest/Original-vs-RP | +0.413 | 8.451e-02 | 1.000e+00 | no |
+| randomforest/Original-vs-GAF | -0.072 | 7.116e-01 | 1.000e+00 | no |
+| randomforest/Original-vs-GADF | +0.085 | 6.771e-01 | 1.000e+00 | no |
+| randomforest/Original-vs-MTF | +0.835 | 3.563e-09 | 7.838e-08 | yes |
+| lstm/Original-vs-RP | +0.161 | 6.056e-01 | 1.000e+00 | no |
+| lstm/Original-vs-GAF | -0.128 | 7.498e-01 | 1.000e+00 | no |
+| lstm/Original-vs-GADF | +0.000 | 1.000e+00 | 1.000e+00 | no |
+| lstm/Original-vs-MTF | +0.707 | 4.450e-07 | 9.346e-06 | yes |
+| gru/Original-vs-RP | -0.181 | 6.845e-01 | 1.000e+00 | no |
+| gru/Original-vs-GAF | -0.463 | 4.227e-01 | 1.000e+00 | no |
+| gru/Original-vs-GADF | -0.217 | 5.102e-01 | 1.000e+00 | no |
+| gru/Original-vs-MTF | +0.853 | 1.106e-09 | 2.654e-08 | yes |
+| cnn/Original-vs-RP | +0.297 | 3.979e-01 | 1.000e+00 | no |
+| cnn/Original-vs-GAF | -0.210 | 5.037e-01 | 1.000e+00 | no |
+| cnn/Original-vs-GADF | -0.228 | 4.450e-01 | 1.000e+00 | no |
+| cnn/Original-vs-MTF | +0.838 | 2.157e-09 | 4.961e-08 | yes |
+
+### 5b. TOST equivalence on per-subject $\Delta$accuracy (margin $\pm0.01$)
+Equivalence within the margin is declared when the Holm-adjusted TOST p < 0.05.
+| Comparison | mean $\Delta$acc | p TOST (raw) | p TOST (Holm) | Equivalent? |
+|---|---|---|---|---|
+| knn/Original-vs-RP | +0.0003 | 1.630e-32 | 3.423e-31 | yes |
+| knn/Original-vs-GAF | -0.0001 | 1.897e-32 | 3.795e-31 | yes |
+| knn/Original-vs-GADF | -0.0005 | 6.982e-28 | 1.047e-26 | yes |
+| knn/Original-vs-MTF | +0.0474 | 9.999e-01 | 1.000e+00 | no |
+| svc/Original-vs-RP | -0.0001 | 5.610e-29 | 9.537e-28 | yes |
+| svc/Original-vs-GAF | +0.0000 | 2.439e-37 | 5.367e-36 | yes |
+| svc/Original-vs-GADF | +0.0008 | 1.624e-23 | 1.787e-22 | yes |
+| svc/Original-vs-MTF | +0.0651 | 1.000e+00 | 1.000e+00 | no |
+| randomforest/Original-vs-RP | +0.0012 | 7.686e-18 | 6.917e-17 | yes |
+| randomforest/Original-vs-GAF | -0.0006 | 2.545e-13 | 1.782e-12 | yes |
+| randomforest/Original-vs-GADF | -0.0002 | 1.480e-14 | 1.184e-13 | yes |
+| randomforest/Original-vs-MTF | +0.0910 | 1.000e+00 | 1.000e+00 | no |
+| lstm/Original-vs-RP | +0.0004 | 6.574e-25 | 8.546e-24 | yes |
+| lstm/Original-vs-GAF | -0.0000 | 3.740e-32 | 7.106e-31 | yes |
+| lstm/Original-vs-GADF | +0.0001 | 2.831e-27 | 3.963e-26 | yes |
+| lstm/Original-vs-MTF | +0.0697 | 1.000e+00 | 1.000e+00 | no |
+| gru/Original-vs-RP | -0.0002 | 1.073e-37 | 2.467e-36 | yes |
+| gru/Original-vs-GAF | -0.0002 | 1.036e-40 | 2.486e-39 | yes |
+| gru/Original-vs-GADF | -0.0003 | 6.813e-30 | 1.226e-28 | yes |
+| gru/Original-vs-MTF | +0.1124 | 1.000e+00 | 1.000e+00 | no |
+| cnn/Original-vs-RP | +0.0004 | 4.293e-28 | 6.869e-27 | yes |
+| cnn/Original-vs-GAF | -0.0002 | 4.323e-22 | 4.323e-21 | yes |
+| cnn/Original-vs-GADF | -0.0001 | 8.381e-25 | 1.006e-23 | yes |
+| cnn/Original-vs-MTF | +0.1102 | 1.000e+00 | 1.000e+00 | no |
+
+### 5c. Pairwise subject-clustered Wilcoxon on per-subject accuracy (between encoders)
+| Comparison | effect r | p (raw) | p (Holm) | Reject H0 (difference)? |
+|---|---|---|---|---|
+| knn/RP-vs-GAF | -0.214 | 4.758e-01 | 1.000e+00 | no |
+| knn/RP-vs-GADF | -0.612 | 5.125e-02 | 9.225e-01 | no |
+| knn/RP-vs-MTF | +0.603 | 2.983e-05 | 6.263e-04 | yes |
+| knn/GAF-vs-GADF | -0.276 | 4.028e-01 | 1.000e+00 | no |
+| knn/GAF-vs-MTF | +0.597 | 3.562e-05 | 6.768e-04 | yes |
+| knn/GADF-vs-MTF | +0.603 | 2.983e-05 | 6.263e-04 | yes |
+| svc/RP-vs-GAF | +0.109 | 6.703e-01 | 1.000e+00 | no |
+| svc/RP-vs-GADF | +0.239 | 2.556e-01 | 1.000e+00 | no |
+| svc/RP-vs-MTF | +0.647 | 9.199e-06 | 2.208e-04 | yes |
+| svc/GAF-vs-GADF | +0.381 | 1.352e-01 | 1.000e+00 | no |
+| svc/GAF-vs-MTF | +0.646 | 9.434e-06 | 2.208e-04 | yes |
+| svc/GADF-vs-MTF | +0.637 | 1.027e-05 | 2.260e-04 | yes |
+| randomforest/RP-vs-GAF | -0.339 | 8.299e-02 | 1.000e+00 | no |
+| randomforest/RP-vs-GADF | -0.153 | 4.396e-01 | 1.000e+00 | no |
+| randomforest/RP-vs-MTF | +0.838 | 4.505e-09 | 1.261e-07 | yes |
+| randomforest/GAF-vs-GADF | +0.128 | 5.260e-01 | 1.000e+00 | no |
+| randomforest/GAF-vs-MTF | +0.849 | 1.910e-09 | 6.302e-08 | yes |
+| randomforest/GADF-vs-MTF | +0.837 | 3.252e-09 | 9.430e-08 | yes |
+| lstm/RP-vs-GAF | -0.121 | 6.855e-01 | 1.000e+00 | no |
+| lstm/RP-vs-GADF | -0.145 | 5.957e-01 | 1.000e+00 | no |
+| lstm/RP-vs-MTF | +0.713 | 4.659e-07 | 1.165e-05 | yes |
+| lstm/GAF-vs-GADF | +0.079 | 7.817e-01 | 1.000e+00 | no |
+| lstm/GAF-vs-MTF | +0.709 | 4.034e-07 | 1.089e-05 | yes |
+| lstm/GADF-vs-MTF | +0.707 | 4.344e-07 | 1.130e-05 | yes |
+| gru/RP-vs-GAF | -0.124 | 7.250e-01 | 1.000e+00 | no |
+| gru/RP-vs-GADF | -0.020 | 9.523e-01 | 1.000e+00 | no |
+| gru/RP-vs-MTF | +0.854 | 1.075e-09 | 3.869e-08 | yes |
+| gru/GAF-vs-GADF | -0.074 | 8.326e-01 | 1.000e+00 | no |
+| gru/GAF-vs-MTF | +0.853 | 1.105e-09 | 3.869e-08 | yes |
+| gru/GADF-vs-MTF | +0.850 | 1.279e-09 | 4.349e-08 | yes |
+| cnn/RP-vs-GAF | -0.308 | 2.240e-01 | 1.000e+00 | no |
+| cnn/RP-vs-GADF | -0.436 | 1.115e-01 | 1.000e+00 | no |
+| cnn/RP-vs-MTF | +0.839 | 2.035e-09 | 6.513e-08 | yes |
+| cnn/GAF-vs-GADF | -0.025 | 9.434e-01 | 1.000e+00 | no |
+| cnn/GAF-vs-MTF | +0.837 | 2.283e-09 | 7.076e-08 | yes |
+| cnn/GADF-vs-MTF | +0.837 | 2.284e-09 | 7.076e-08 | yes |
+
+### 5d. Pairwise TOST equivalence between encoders (margin $\pm0.01$)
+| Comparison | mean $\Delta$acc | p TOST (raw) | p TOST (Holm) | Equivalent? |
+|---|---|---|---|---|
+| knn/RP-vs-GAF | -0.0003 | 7.640e-24 | 2.063e-22 | yes |
+| knn/RP-vs-GADF | -0.0008 | 3.378e-23 | 8.445e-22 | yes |
+| knn/RP-vs-MTF | +0.0471 | 9.999e-01 | 1.000e+00 | no |
+| knn/GAF-vs-GADF | -0.0005 | 2.434e-25 | 7.546e-24 | yes |
+| knn/GAF-vs-MTF | +0.0475 | 9.999e-01 | 1.000e+00 | no |
+| knn/GADF-vs-MTF | +0.0479 | 9.999e-01 | 1.000e+00 | no |
+| svc/RP-vs-GAF | +0.0001 | 2.479e-25 | 7.546e-24 | yes |
+| svc/RP-vs-GADF | +0.0009 | 7.132e-18 | 1.569e-16 | yes |
+| svc/RP-vs-MTF | +0.0652 | 1.000e+00 | 1.000e+00 | no |
+| svc/GAF-vs-GADF | +0.0008 | 4.684e-25 | 1.358e-23 | yes |
+| svc/GAF-vs-MTF | +0.0651 | 1.000e+00 | 1.000e+00 | no |
+| svc/GADF-vs-MTF | +0.0642 | 1.000e+00 | 1.000e+00 | no |
+| randomforest/RP-vs-GAF | -0.0017 | 3.263e-11 | 6.526e-10 | yes |
+| randomforest/RP-vs-GADF | -0.0014 | 1.793e-09 | 3.406e-08 | yes |
+| randomforest/RP-vs-MTF | +0.0899 | 1.000e+00 | 1.000e+00 | no |
+| randomforest/GAF-vs-GADF | +0.0004 | 1.538e-12 | 3.229e-11 | yes |
+| randomforest/GAF-vs-MTF | +0.0916 | 1.000e+00 | 1.000e+00 | no |
+| randomforest/GADF-vs-MTF | +0.0913 | 1.000e+00 | 1.000e+00 | no |
+| lstm/RP-vs-GAF | -0.0004 | 5.821e-21 | 1.339e-19 | yes |
+| lstm/RP-vs-GADF | -0.0003 | 5.803e-22 | 1.393e-20 | yes |
+| lstm/RP-vs-MTF | +0.0693 | 1.000e+00 | 1.000e+00 | no |
+| lstm/GAF-vs-GADF | +0.0001 | 1.056e-26 | 3.378e-25 | yes |
+| lstm/GAF-vs-MTF | +0.0698 | 1.000e+00 | 1.000e+00 | no |
+| lstm/GADF-vs-MTF | +0.0696 | 1.000e+00 | 1.000e+00 | no |
+| gru/RP-vs-GAF | +0.0000 | 4.263e-32 | 1.492e-30 | yes |
+| gru/RP-vs-GADF | -0.0001 | 7.356e-28 | 2.427e-26 | yes |
+| gru/RP-vs-MTF | +0.1126 | 1.000e+00 | 1.000e+00 | no |
+| gru/GAF-vs-GADF | -0.0001 | 9.593e-32 | 3.262e-30 | yes |
+| gru/GAF-vs-MTF | +0.1125 | 1.000e+00 | 1.000e+00 | no |
+| gru/GADF-vs-MTF | +0.1126 | 1.000e+00 | 1.000e+00 | no |
+| cnn/RP-vs-GAF | -0.0006 | 2.742e-23 | 7.129e-22 | yes |
+| cnn/RP-vs-GADF | -0.0005 | 5.467e-25 | 1.531e-23 | yes |
+| cnn/RP-vs-MTF | +0.1098 | 1.000e+00 | 1.000e+00 | no |
+| cnn/GAF-vs-GADF | +0.0001 | 9.629e-33 | 3.467e-31 | yes |
+| cnn/GAF-vs-MTF | +0.1105 | 1.000e+00 | 1.000e+00 | no |
+| cnn/GADF-vs-MTF | +0.1104 | 1.000e+00 | 1.000e+00 | no |
+
+### 5e. Simultaneous subject-cluster bootstrap 95% intervals on per-subject $\Delta$accuracy (Original - reconstruction)
+The primary family contains 18 comparisons (six classifiers by RP/GASF/GADF); the six MTF negative-control comparisons form a separate family. Within each family the same subject resamples are used jointly and a max-deviation critical value controls family-wise coverage. Equivalence is declared when the whole simultaneous interval lies inside the margin. Primary margin $\pm0.01$; the less stringent $\pm0.02$ margin is a sensitivity analysis.
+| Comparison | mean $\Delta$acc | simultaneous 95% interval | Equiv. $\pm$0.01 | Equiv. $\pm$0.02 |
+|---|---|---|---|---|
+| knn/Original-vs-RP | +0.0003 | [-0.0019, +0.0024] | yes | yes |
+| knn/Original-vs-GAF | -0.0001 | [-0.0022, +0.0021] | yes | yes |
+| knn/Original-vs-GADF | -0.0005 | [-0.0027, +0.0016] | yes | yes |
+| svc/Original-vs-RP | -0.0001 | [-0.0022, +0.0020] | yes | yes |
+| svc/Original-vs-GAF | +0.0000 | [-0.0021, +0.0021] | yes | yes |
+| svc/Original-vs-GADF | +0.0008 | [-0.0013, +0.0030] | yes | yes |
+| randomforest/Original-vs-RP | +0.0012 | [-0.0009, +0.0033] | yes | yes |
+| randomforest/Original-vs-GAF | -0.0006 | [-0.0027, +0.0016] | yes | yes |
+| randomforest/Original-vs-GADF | -0.0002 | [-0.0023, +0.0019] | yes | yes |
+| lstm/Original-vs-RP | +0.0004 | [-0.0017, +0.0025] | yes | yes |
+| lstm/Original-vs-GAF | -0.0000 | [-0.0022, +0.0021] | yes | yes |
+| lstm/Original-vs-GADF | +0.0001 | [-0.0020, +0.0022] | yes | yes |
+| gru/Original-vs-RP | -0.0002 | [-0.0023, +0.0019] | yes | yes |
+| gru/Original-vs-GAF | -0.0002 | [-0.0023, +0.0020] | yes | yes |
+| gru/Original-vs-GADF | -0.0003 | [-0.0024, +0.0019] | yes | yes |
+| cnn/Original-vs-RP | +0.0004 | [-0.0017, +0.0025] | yes | yes |
+| cnn/Original-vs-GAF | -0.0002 | [-0.0024, +0.0019] | yes | yes |
+| cnn/Original-vs-GADF | -0.0001 | [-0.0023, +0.0020] | yes | yes |
+| knn/Original-vs-MTF | +0.0474 | [+0.0209, +0.0739] | no | no |
+| svc/Original-vs-MTF | +0.0651 | [+0.0385, +0.0916] | no | no |
+| randomforest/Original-vs-MTF | +0.0910 | [+0.0645, +0.1176] | no | no |
+| lstm/Original-vs-MTF | +0.0697 | [+0.0432, +0.0963] | no | no |
+| gru/Original-vs-MTF | +0.1124 | [+0.0858, +0.1389] | no | no |
+| cnn/Original-vs-MTF | +0.1102 | [+0.0837, +0.1368] | no | no |
