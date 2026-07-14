@@ -13,17 +13,19 @@
 \citation{huamin2020reconstruction}
 \citation{huang2023tsdigan}
 \citation{hellermann2026imagegan}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Controlled reconstruction workflow. Each axis is normalised, encoded, and stored as an 8-bit image channel, then decoded in its method-specific normalised domain and optionally returned to physical units with per-axis calibration. The lower box expands the method-specific decoder $\mathcal  D_m$.}}{2}{}\protected@file@percent }
+\newlabel{fig:workflow_overview}{{1}{2}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work and Encodings}{2}{}\protected@file@percent }
+\newlabel{sec:related_encodings}{{2}{2}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Time-series imaging}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Prior reconstruction methods}{2}{}\protected@file@percent }
+\newlabel{sec:prior_reconstruction}{{2.2}{2}{}{}{}}
 \citation{wang2015encoding}
 \citation{wang2015encoding}
 \citation{huamin2020reconstruction}
 \citation{hirata2008reproduction}
 \citation{sipers2011unique}
 \citation{sipers2017robust}
-\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work and Encodings}{2}{}\protected@file@percent }
-\newlabel{sec:related_encodings}{{2}{2}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Time-series imaging}{2}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Prior reconstruction methods}{2}{}\protected@file@percent }
-\newlabel{sec:prior_reconstruction}{{2.2}{2}{}{}{}}
 \citation{wang2015encoding}
 \citation{kopec1994document,kliewer2006iterative}
 \citation{eckmann1995recurrence,marwan2007recurrence}
@@ -32,13 +34,11 @@
 \citation{takens1981detecting}
 \citation{eckmann1995recurrence,marwan2007recurrence}
 \citation{lu2019robust}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Controlled reconstruction workflow. Each axis is normalised, encoded, and stored as an 8-bit image channel, then decoded in its method-specific normalised domain and optionally returned to physical units with per-axis calibration. The lower box expands the method-specific decoder $\mathcal  D_m$.}}{3}{}\protected@file@percent }
-\newlabel{fig:workflow_overview}{{1}{3}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Encodings and operators}{3}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Recurrence plots}{3}{}\protected@file@percent }
-\newlabel{eq:FormulaRP}{{1}{3}{}{}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Encodings and their reconstruction character.}}{3}{}\protected@file@percent }
 \newlabel{tab:operator_summary}{{1}{3}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Recurrence plots}{3}{}\protected@file@percent }
+\newlabel{eq:FormulaRP}{{1}{3}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.5}Gramian angular fields}{3}{}\protected@file@percent }
 \newlabel{eq:gasf_indexed}{{3}{3}{}{}{}}
 \newlabel{eq:gadf_indexed}{{4}{3}{}{}{}}
@@ -54,71 +54,69 @@
 \newlabel{sec:proposed_methods}{{4}{4}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Shared normalisation and storage protocol}{4}{}\protected@file@percent }
 \newlabel{sec:shared_protocol}{{4.1}{4}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Signed recurrence-plot decoder}{4}{}\protected@file@percent }
-\newlabel{sec:rp_reconstruction_method}{{4.2}{4}{}{}{}}
 \citation{wang2015encoding}
-\citation{Atkins1998}
 \@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Decoder outputs and the method-specific per-window information required under the current storage protocol. Fixed encoder conventions are assumed known.}}{5}{}\protected@file@percent }
 \newlabel{tab:decoder_contract}{{2}{5}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Signed recurrence-plot decoder}{5}{}\protected@file@percent }
+\newlabel{sec:rp_reconstruction_method}{{4.2}{5}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.3}GASF diagonal inverse}{5}{}\protected@file@percent }
 \newlabel{sec:gasf_reconstruction_method}{{4.3}{5}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Restricted-branch GADF decoder}{5}{}\protected@file@percent }
 \newlabel{sec:gadf_reconstruction_proposal}{{4.4}{5}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Best-effort Fiedler-vector MTF representative}{5}{}\protected@file@percent }
-\newlabel{sec:mtf_reconstruction_method}{{4.5}{5}{}{}{}}
+\citation{Atkins1998}
 \citation{misc_wisdm_smartphone_and_smartwatch_activity_and_biometrics_dataset__507}
-\citation{Welch1967}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Best-effort Fiedler-vector MTF representative}{6}{}\protected@file@percent }
+\newlabel{sec:mtf_reconstruction_method}{{4.5}{6}{}{}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {5}Experimental Protocol}{6}{}\protected@file@percent }
 \newlabel{sec:experimental_protocol}{{5}{6}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Dataset and segmentation}{6}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Evaluation design}{6}{}\protected@file@percent }
 \newlabel{sec:fidelity_metrics}{{5.2}{6}{}{}{}}
 \@writefile{toc}{\contentsline {paragraph}{Fidelity: signal and spectrum.}{6}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Robustness: controlled local stability.}{6}{}\protected@file@percent }
+\citation{Welch1967}
 \citation{Wilcoxon1945}
 \citation{McNemar1947}
 \citation{DavisonHinkley1997}
 \citation{Lakens2017}
 \citation{Schuirmann1987}
 \citation{Holm1979}
-\@writefile{toc}{\contentsline {paragraph}{Utility: downstream classification.}{7}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Robustness: controlled local stability.}{7}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Utility}{7}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Statistical protocol}{7}{}\protected@file@percent }
 \newlabel{sec:statistical_protocol}{{5.3}{7}{}{}{}}
 \@writefile{toc}{\contentsline {paragraph}{Configuration and internal validity.}{7}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6}Results}{7}{}\protected@file@percent }
-\newlabel{sec:results}{{6}{7}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Qualitative reconstruction}{7}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Reconstruction fidelity}{7}{}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Original and reconstructed triaxial signals for one WISDM walking window.}}{8}{}\protected@file@percent }
 \newlabel{fig:qualitative_main}{{3}{8}{}{}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Pooled pointwise fidelity over 8,172 windows, physical units (m/s\(^2\)).}}{8}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Results}{8}{}\protected@file@percent }
+\newlabel{sec:results}{{6}{8}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Qualitative reconstruction}{8}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Reconstruction fidelity}{8}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Pooled pointwise fidelity over 8,172 windows, each the per-window global metric averaged over the three axes. MAE is reported as mean$\pm $standard deviation across windows (m/s\(^2\)); MSE (m\(^2\)/s\(^4\)) and Pearson (dimensionless) are pooled means.}}{8}{}\protected@file@percent }
 \newlabel{tab:pointwise_pooled}{{3}{8}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Robustness to image perturbation}{8}{}\protected@file@percent }
-\newlabel{sec:results_robustness}{{6.3}{8}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Downstream classification}{8}{}\protected@file@percent }
-\newlabel{sec:subject_out_results}{{6.4}{8}{}{}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Range-normalised and spectral fidelity over 8,172 windows (mean\(\pm \)std across windows, averaged over the three axes). PSD-shape distance compares Welch spectra after each is normalised to unit mass; energy and band-mass errors are reported separately in the Supplementary Material.}}{9}{}\protected@file@percent }
 \newlabel{tab:fidelity_spectral}{{4}{9}{}{}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Controlled local-stability test: NMAE under zero-mean Gaussian pixel noise (standard deviation \(\sigma \), out of 255). Values are mean$\pm $standard deviation across 150 activity-balanced, subject-spread windows after averaging two independent draws per nonzero level. Subject-cluster 95\% intervals are in the Supplementary Material.}}{9}{}\protected@file@percent }
 \newlabel{tab:robustness}{{5}{9}{}{}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Grouped subject-out three-fold accuracy (primary protocol) for three representative classifiers spanning the families (convolutional, recurrent, classical). All six classifiers and the window-level comparison are in the Supplementary Material.}}{9}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Robustness to image perturbation}{9}{}\protected@file@percent }
+\newlabel{sec:results_robustness}{{6.3}{9}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Downstream classification}{9}{}\protected@file@percent }
+\newlabel{sec:subject_out_results}{{6.4}{9}{}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Grouped subject-out three-fold accuracy (primary protocol) for three representative classifiers spanning the families (convolutional, recurrent, classical). Accuracies are rounded to three decimals; the sub-$0.001$ per-method differences are quantified per subject in Table~\ref {tab:equivalence_ci}. All six classifiers and the window-level comparison are in the Supplementary Material.}}{9}{}\protected@file@percent }
 \newlabel{tab:subject_out_acc}{{6}{9}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}Decoder ablations}{9}{}\protected@file@percent }
-\newlabel{sec:decoder_ablation}{{6.5}{9}{}{}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7}Discussion}{9}{}\protected@file@percent }
-\newlabel{sec:discussion}{{7}{9}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Interpretation of the comparison}{9}{}\protected@file@percent }
-\newlabel{sec:disc_pointwise}{{7.1}{9}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Relationship between signed RP and GADF}{9}{}\protected@file@percent }
-\newlabel{sec:disc_structural}{{7.2}{9}{}{}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Subject-level classification equivalence under grouped subject-out validation. The primary family comprises 18 simultaneous subject-cluster bootstrap intervals (six classifiers by RP/GASF/GADF); the six MTF negative-control comparisons form a separate family (51 subjects, \(10^4\) joint resamples per family). ``Interval span'' is descriptive; individual intervals are in the Supplementary Material.}}{10}{}\protected@file@percent }
 \newlabel{tab:equivalence_ci}{{7}{10}{}{}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Compact decoder-ablation summary. MAE is in physical units (m/s\(^2\)); datasets differ by method as detailed in the Supplementary Material.}}{10}{}\protected@file@percent }
 \newlabel{tab:ablation_summary}{{8}{10}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}Decoder ablations}{10}{}\protected@file@percent }
+\newlabel{sec:decoder_ablation}{{6.5}{10}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Discussion}{10}{}\protected@file@percent }
+\newlabel{sec:discussion}{{7}{10}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Interpretation of the comparison}{10}{}\protected@file@percent }
+\newlabel{sec:disc_pointwise}{{7.1}{10}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Relationship between signed RP and GADF}{10}{}\protected@file@percent }
+\newlabel{sec:disc_structural}{{7.2}{10}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Limitations and scope}{10}{}\protected@file@percent }
 \newlabel{sec:disc_scope}{{7.3}{10}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.4}Reproducibility}{10}{}\protected@file@percent }
-\newlabel{sec:reproducibility}{{7.4}{10}{}{}{}}
 \bibcite{eckmann1995recurrence}{{1}{}{{}}{{}}}
 \bibcite{takens1981detecting}{{2}{}{{}}{{}}}
 \bibcite{marwan2007recurrence}{{3}{}{{}}{{}}}
@@ -126,6 +124,10 @@
 \bibcite{hirata2008reproduction}{{5}{}{{}}{{}}}
 \bibcite{sipers2011unique}{{6}{}{{}}{{}}}
 \bibcite{sipers2017robust}{{7}{}{{}}{{}}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.4}Reproducibility}{11}{}\protected@file@percent }
+\newlabel{sec:reproducibility}{{7.4}{11}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {8}Conclusion}{11}{}\protected@file@percent }
+\newlabel{sec:conclusion}{{8}{11}{}{}{}}
 \bibcite{wang2015encoding}{{8}{}{{}}{{}}}
 \bibcite{wang2015encoding2}{{9}{}{{}}{{}}}
 \bibcite{huamin2020reconstruction}{{10}{}{{}}{{}}}
@@ -142,8 +144,6 @@
 \bibcite{McNemar1947}{{21}{}{{}}{{}}}
 \bibcite{DavisonHinkley1997}{{22}{}{{}}{{}}}
 \bibcite{Schuirmann1987}{{23}{}{{}}{{}}}
-\@writefile{toc}{\contentsline {section}{\numberline {8}Conclusion}{11}{}\protected@file@percent }
-\newlabel{sec:conclusion}{{8}{11}{}{}{}}
 \bibcite{Lakens2017}{{24}{}{{}}{{}}}
 \bibcite{Holm1979}{{25}{}{{}}{{}}}
 \providecommand\NAT@force@numbers{}\NAT@force@numbers

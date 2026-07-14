@@ -138,10 +138,19 @@ def reconstruct_signal_from_states(a, b):
     return x
 
 
-def signed_rp_error(R_obs, x_scaled):
+def signed_rp_error(R_obs, x_scaled, scale_invariant=False):
     """Normalised Frobenius distance between the observed signed RP and the
-    signed RP regenerated from a candidate (physical-unit) reconstruction."""
+    signed RP regenerated from a candidate (physical-unit) reconstruction.
+
+    ``scale_invariant`` normalises both matrices to unit Frobenius norm before
+    comparing, so the orientation choice does not depend on the absolute scale
+    of ``R_obs``. The metadata-free (diagonal-centred) mode needs this because
+    there ``R_obs`` is known only up to a positive multiplicative constant.
+    """
     Rhat = varRP2(np.asarray(x_scaled, dtype=float), TIME_STEPS=len(x_scaled))
+    if scale_invariant:
+        R_obs = R_obs / (float(np.linalg.norm(R_obs)) + EPS)
+        Rhat = Rhat / (float(np.linalg.norm(Rhat)) + EPS)
     num = float(np.linalg.norm(R_obs - Rhat))
     den = float(np.linalg.norm(R_obs)) + EPS
     return num / den
@@ -157,7 +166,8 @@ def _rescale(x, minmax_c):
 
 
 def decode_channel(R_obs, minmax_c, source, dims=2, recover="overlap",
-                   signed=True, rho=0.60, n_theta=720, top_k=8):
+                   signed=True, rho=0.60, n_theta=720, top_k=8,
+                   scale_invariant=False):
     """Unified single-channel RP decoder. Returns a length-TIME_STEPS channel in
     physical units, axis-compatible with recurrence_plots.Reconstruct_RP output.
 
@@ -200,7 +210,7 @@ def decode_channel(R_obs, minmax_c, source, dims=2, recover="overlap",
     best = None
     for e_ov, a, b in cands[:top_k]:
         x = _rescale(reconstruct_signal_from_states(a, b), minmax_c)[:TIME_STEPS]
-        e_sig = signed_rp_error(R_obs, x)
+        e_sig = signed_rp_error(R_obs, x, scale_invariant=scale_invariant)
         if best is None or e_sig < best[0]:
             best = (e_sig, x)
     return best[1]
@@ -220,22 +230,36 @@ def decode_window(img_rgb, minmax, source, dims=2, recover="overlap",
     Metrics (averaged over channels): e_rp (signed-RP reproduction error),
     evr2 (fraction of geometry in 2 dims), stress (MDS stress-1).
 
-    ``rp_range``: optional list of per-channel ``(R_min, R_max)`` used to invert
-    the PNG back to the RP's OWN distance range (the metadata a corrected encoder
-    would persist). When ``None`` the input is inverted with the signal amplitude
-    range ``(mins, maxs)`` — the legacy convention, which affinely distorts the
-    distances handed to MDS (see ``scripts/_check_rp_scale.py``). The OUTPUT is
-    always rescaled to the signal range, since the reconstruction is an amplitude.
+    ``rp_range``: per-channel PNG inversion mode.
+      * list of ``(R_min, R_max)``: invert the PNG back to the RP's OWN distance
+        range (persisted metadata).
+      * ``"diagonal"``: metadata-free. The RP diagonal is identically zero, so
+        the constant diagonal pixel level marks where ``R=0`` sits in ``[0,255]``;
+        centring on it (``R = png - median(diag(png))``) recovers the signed
+        matrix up to a positive scale, which classical MDS and the final range
+        rescale absorb. No per-window ``(R_min,R_max)`` is used. Orientation
+        selection switches to the scale-invariant signed error.
+      * ``None``: inverted with the signal amplitude range ``(mins, maxs)`` — the
+        legacy convention, which affinely distorts the distances handed to MDS
+        (see ``scripts/_check_rp_scale.py``).
+    The OUTPUT is always rescaled to the signal range, since the reconstruction
+    is an amplitude.
     """
     maxs, mins = minmax
+    diagonal = isinstance(rp_range, str) and rp_range == "diagonal"
     chans, e_rp, evrs, stresses = [], [], [], []
     for c in range(3):
-        lo, hi = (mins[c], maxs[c]) if rp_range is None else (rp_range[c][0], rp_range[c][1])
-        R_obs = np.interp(img_rgb[:, :, c].astype(float), (0, 255), (lo, hi))
+        png_c = img_rgb[:, :, c].astype(float)
+        if diagonal:
+            R_obs = png_c - float(np.median(np.diag(png_c)))
+        else:
+            lo, hi = (mins[c], maxs[c]) if rp_range is None else (rp_range[c][0], rp_range[c][1])
+            R_obs = np.interp(png_c, (0, 255), (lo, hi))
         rec = decode_channel(R_obs, (maxs[c], mins[c]), source=source, dims=dims,
-                             recover=recover, signed=signed, rho=rho)
+                             recover=recover, signed=signed, rho=rho,
+                             scale_invariant=diagonal)
         chans.append(rec)
-        e_rp.append(signed_rp_error(R_obs, rec))
+        e_rp.append(signed_rp_error(R_obs, rec, scale_invariant=diagonal))
         dmat = distance_matrix(R_obs, source=source, rho=rho)
         Y, pos = embed_2d(dmat)
         evrs.append(evr2(pos))
@@ -245,3 +269,29 @@ def decode_window(img_rgb, minmax, source, dims=2, recover="overlap",
                    evr2=float(np.mean(evrs)),
                    stress=float(np.mean(stresses)))
     return rec, metrics
+
+
+def _demo():
+    """Self-check: metadata-free diagonal centring reproduces the metadata
+    decoder to within the 8-bit quantisation floor on a synthetic window."""
+    from src.GAF import normalize_to_zero_one
+    t = np.linspace(0, 4 * np.pi, TIME_STEPS)
+    win = np.stack([np.sin(t), np.cos(0.7 * t), np.sin(t) - np.cos(t)], axis=1)
+    imgs, ranges = [], []
+    for c in range(3):
+        M = varRP2(win[:, c].astype(float), TIME_STEPS=TIME_STEPS)
+        imgs.append(np.rint(np.clip(normalize_to_zero_one(M) * 255, 0, 255)))
+        ranges.append((float(M.min()), float(M.max())))
+    img = np.stack(imgs, axis=-1)
+    mm = ([float(win[:, c].max()) for c in range(3)],
+          [float(win[:, c].min()) for c in range(3)])
+    rec_meta, _ = decode_window(img, mm, source="direct", rp_range=ranges)
+    rec_free, _ = decode_window(img, mm, source="direct", rp_range="diagonal")
+    rng = win.max(0) - win.min(0)
+    nmae = float((np.abs(rec_meta - rec_free).mean(0) / rng).mean())
+    assert nmae < 0.02, f"diagonal vs metadata NMAE too large: {nmae}"
+    print(f"[rp_decoders] diagonal vs metadata agreement NMAE={nmae:.4f} (ok)")
+
+
+if __name__ == "__main__":
+    _demo()

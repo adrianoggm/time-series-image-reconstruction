@@ -346,7 +346,7 @@ The main article separates spectral shape from total energy. Table~\ref{tab:supp
 \toprule
 Method & Relative total-energy error & Band-shape error \\
 \midrule
-RP   & $0.0029\pm0.0026$ & $0.00020\pm0.00022$ \\
+RP   & $0.0034\pm0.0028$ & $0.00083\pm0.00043$ \\
 GASF & $0.0054\pm0.0055$ & $0.00085\pm0.00085$ \\
 GADF & $0.0011\pm0.0009$ & $0.00029\pm0.00021$ \\
 MTF  & $2.199\pm8.844$   & $0.05624\pm0.03692$ \\
@@ -369,7 +369,7 @@ The local-stability sample is selected deterministically from window-level fold~
 \toprule
 Method & $\sigma=0$ & $\sigma=2$ & $\sigma=4$ & $\sigma=8$ & $\sigma=16$ \\
 \midrule
-RP   & $[0.0010,0.0012]$ & $[0.0040,0.0050]$ & $[0.0076,0.0092]$ & $[0.0155,0.0187]$ & $[0.0317,0.0364]$ \\
+RP   & $[0.0011,0.0013]$ & $[0.0041,0.0051]$ & $[0.0077,0.0095]$ & $[0.0156,0.0187]$ & $[0.0314,0.0363]$ \\
 GASF & $[0.0014,0.0015]$ & $[0.0124,0.0137]$ & $[0.0207,0.0222]$ & $[0.0349,0.0368]$ & $[0.0621,0.0647]$ \\
 GADF & $[0.0011,0.0013]$ & $[0.0071,0.0077]$ & $[0.0142,0.0153]$ & $[0.0304,0.0327]$ & $[0.0644,0.0696]$ \\
 MTF  & $[0.2686,0.2950]$ & $[0.2733,0.2963]$ & $[0.2752,0.2991]$ & $[0.2726,0.2956]$ & $[0.2694,0.2903]$ \\
@@ -388,7 +388,7 @@ The cycle residual is the relative Frobenius error defined in the main article a
 \toprule
 Method & Maximum gate NMAE & Cycle residual & Cycle 95\% interval \\
 \midrule
-RP   & $<10^{-8}$ & $0.0502\pm0.0294$ & $[0.0465,0.0539]$ \\
+RP   & $<10^{-8}$ & $0.0486\pm0.0264$ & $[0.0444,0.0528]$ \\
 GASF & $<10^{-8}$ & $0.0046\pm0.0012$ & $[0.0045,0.0048]$ \\
 GADF & $<10^{-8}$ & $0.0044\pm0.0016$ & $[0.0042,0.0046]$ \\
 MTF  & $<10^{-8}$ & $0.1242\pm0.1955$ & $[0.0946,0.1556]$ \\
@@ -406,7 +406,7 @@ Table~\ref{tab:error_sources} uses each method's native float operator matrix be
 \toprule
 Method & Native float operator & 8-bit PNG & Perturbed ($\sigma=8$) \\
 \midrule
-RP   & $0.00036\pm0.00029$ & $0.0011\pm0.0007$ & $0.0170\pm0.0090$ \\
+RP   & $0.00035\pm0.00027$ & $0.0012\pm0.0007$ & $0.0171\pm0.0090$ \\
 GASF & $<10^{-12}$          & $0.0015\pm0.0003$ & $0.0358\pm0.0061$ \\
 GADF & $<10^{-12}$          & $0.0012\pm0.0004$ & $0.0315\pm0.0079$ \\
 MTF  & $0.2819\pm0.0830$   & $0.2812\pm0.0836$ & $0.2838\pm0.0787$ \\
@@ -426,8 +426,8 @@ MTF  & $0.2819\pm0.0830$   & $0.2812\pm0.0836$ & $0.2838\pm0.0787$ \\
 \cmidrule(lr){3-5}\cmidrule(lr){6-8}
 \textbf{Encoder} & \textbf{Metric} & F0 & F1 & F2 & F0 & F1 & F2 & \textbf{Pooled} \\
 \midrule
-\textbf{RP} & MAE & $0.0148$ & $0.0149$ & $0.0149$ & $0.0142$ & $0.0155$ & $0.0147$ & $0.0148$ \\
- & MSE & $0.0009$ & $0.0011$ & $0.0011$ & $0.0009$ & $0.0011$ & $0.0010$ & $0.0010$ \\
+\textbf{RP} & MAE & $0.0170$ & $0.0171$ & $0.0172$ & $0.0164$ & $0.0180$ & $0.0170$ & $0.0171$ \\
+ & MSE & $0.0011$ & $0.0013$ & $0.0013$ & $0.0011$ & $0.0014$ & $0.0012$ & $0.0012$ \\
  & Pearson & $0.99998$ & $0.99998$ & $0.99998$ & $0.99998$ & $0.99998$ & $0.99998$ & $0.99998$ \\
 \midrule
 \textbf{GASF} & MAE & $0.0202$ & $0.0205$ & $0.0207$ & $0.0189$ & $0.0211$ & $0.0214$ & $0.0205$ \\
@@ -550,7 +550,7 @@ MTF  & $[+0.0819,+0.1542]$ & $[+0.0550,+0.1812]$ & 0/6 & $[+0.0474,+0.1124]$ & $
 
 \section{Extended RP ablation}
 
-Table~\ref{tab:supp_rp_ablation} separates the RP operator-range round trip from the geometric choices. Correct inverse normalisation restores a predominantly two-dimensional Euclidean spectrum; both the full state geometry and signed orientation are necessary for near-lossless reconstruction.
+Table~\ref{tab:supp_rp_ablation} isolates the RP decoder's geometric choices, all under the adopted metadata-free diagonal-centred inversion. Diagonal centring restores a predominantly two-dimensional Euclidean spectrum ($\mathrm{EVR}_2\approx0.94$, confirmed on an independent balanced sample); both the full state geometry and signed orientation are necessary for near-lossless reconstruction, whereas inverting the PNG with the signal range instead of centring on the zero diagonal applies an affine shift that destroys the Euclidean structure.
 
 \begin{table}[H]
 \centering
@@ -560,10 +560,31 @@ Table~\ref{tab:supp_rp_ablation} separates the RP operator-range round trip from
 \toprule
 Variant & MAE & Pearson & $\mathrm{EVR}_2$ \\
 \midrule
-2-D MDS + signed orientation & \textbf{0.010} & \textbf{1.000} & 0.947 \\
-Signal-range decode (incorrect) & 1.047 & 0.959 & 0.218 \\
+Diagonal-centred + signed orientation & \textbf{0.010} & \textbf{1.000} & 0.947 \\
+Signal-range inversion (no diagonal centring) & 1.047 & 0.959 & 0.218 \\
 Without signed orientation & 2.033 & 0.794 & 0.947 \\
 Prior one-dimensional graph decoder & 2.177 & 0.918 & 0.730 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Metadata-free RP decoding}
+\label{sec:supp_rp_metadata_free}
+The RP diagonal is identically zero, so under min--max storage the constant diagonal pixel level marks where $R=0$; centring on it ($R=\mathrm{PNG}-\operatorname{median}_i\mathrm{PNG}_{ii}$) recovers the signed matrix up to a positive scale that classical MDS and the final range rescale absorb (Section~\ref{sec:rp_reconstruction_method}). Table~\ref{tab:supp_rp_metadatafree} confirms, on 150 activity-balanced fold-0 windows at the reported $n_\theta=720$ setting, that this metadata-free decoder matches the decoder that inverts the PNG with the true per-window $(R_{\min},R_{\max})$: range-normalised error and correlation are indistinguishable, clean and under $\sigma=8$ pixel noise. The only residual gap is a marginally higher clean physical MAE ($0.0169$ vs $0.0146$\,m/s$^2$), consistent with the pooled RP MAE of $0.0171$\,m/s$^2$ reported for the adopted metadata-free decoder.
+
+\begin{table}[H]
+\centering
+\caption{RP reconstruction with the metadata inverse (true per-window $(R_{\min},R_{\max})$) versus the adopted metadata-free diagonal-centred inverse, on 150 activity-balanced fold-0 windows at $n_\theta=720$.}
+\label{tab:supp_rp_metadatafree}
+\small
+\begin{tabular}{llccc}
+\toprule
+Noise & Decoder & NMAE & MAE (m/s$^2$) & Pearson \\
+\midrule
+$\sigma=0$ & metadata $(R_{\min},R_{\max})$ & $0.0011$ & $0.0146$ & $0.99998$ \\
+           & metadata-free (diagonal)      & $0.0012$ & $0.0169$ & $0.99998$ \\
+$\sigma=8$ & metadata $(R_{\min},R_{\max})$ & $0.0191$ & $0.246$  & $0.99523$ \\
+           & metadata-free (diagonal)      & $0.0189$ & $0.245$  & $0.99528$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -723,8 +744,8 @@ Table~\ref{tab:pointwise_pooled} in the main text reports the per-window global 
 \toprule
 \textbf{Metric} & \textbf{Dim 0} & \textbf{Dim 1} & \textbf{Dim 2} & \textbf{Global} \\
 \midrule
-Mean Absolute Error & $0.0148 \pm 0.0214$ & $0.0183 \pm 0.0264$ & $0.0114 \pm 0.0153$ & $0.0148 \pm 0.0170$ \\
-Mean Squared Error & $0.0010 \pm 0.0076$ & $0.0015 \pm 0.0090$ & $0.0005 \pm 0.0027$ & $0.0010 \pm 0.0046$ \\
+Mean Absolute Error & $0.0174 \pm 0.0233$ & $0.0204 \pm 0.0283$ & $0.0135 \pm 0.0172$ & $0.0171 \pm 0.0191$ \\
+Mean Squared Error & $0.0013 \pm 0.0076$ & $0.0017 \pm 0.0092$ & $0.0007 \pm 0.0029$ & $0.0012 \pm 0.0047$ \\
 Pearson Correlation Coefficient & $0.99998 \pm 0.00009$ & $0.99998 \pm 0.00005$ & $0.99998 \pm 0.00006$ & $0.99998 \pm 0.00005$ \\
 \bottomrule
 \end{tabular}
