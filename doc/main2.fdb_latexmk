@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1783982899.61655 "main2.tex" "main2.pdf" "main2" 1783982903.72356 0
+["pdflatex"] 1784046404.3055 "main2.tex" "main2.pdf" "main2" 1784046408.71658 0
   "/etc/texmf/web2c/texmf.cnf" 1779395303.61325 475 c0e671620eb5563b2130f56340a5fde8 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/ecrm1000.tfm" 1136768653 3584 adb004a0c8e7c46ee66cad73671f37b4 ""
@@ -88,6 +88,7 @@
   "/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty" 1686341992 4474 b811654f4bf125f11506d13d13647efb ""
   "/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty" 1686341992 2444 0d0c1ee65478277e8015d65b86983da2 ""
   "/usr/share/texlive/texmf-dist/tex/latex/base/article.cls" 1705352648 20144 147463a6a579f4597269ef9565205cfe ""
+  "/usr/share/texlive/texmf-dist/tex/latex/base/flafter.sty" 1705352648 9829 cf0405789543bc93e6e44244310f07a4 ""
   "/usr/share/texlive/texmf-dist/tex/latex/base/fleqn.clo" 1705352648 4807 4a9ac821b9dc64f850693df4c0259635 ""
   "/usr/share/texlive/texmf-dist/tex/latex/base/fontenc.sty" 1705352648 5119 a04a8b68ab4f6ce800a41f7f8012a10e ""
   "/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty" 1705352648 5048 425739d70251273bf93e3d51f3c40048 ""
@@ -133,6 +134,7 @@
   "/usr/share/texlive/texmf-dist/tex/latex/pgf/utilities/pgfkeys.sty" 1601326656 274 5ae372b7df79135d240456a1c6f2cf9a ""
   "/usr/share/texlive/texmf-dist/tex/latex/pgf/utilities/pgfrcs.sty" 1601326656 325 f9f16d12354225b7dd52a3321f085955 ""
   "/usr/share/texlive/texmf-dist/tex/latex/placeins/placeins.sty" 1137110565 4087 636308456f60d2b31cbf97867db5708d ""
+  "/usr/share/texlive/texmf-dist/tex/latex/sttools/stfloats.sty" 1633983922 24057 ff20efb65b128d27c08eac20ec07f540 ""
   "/usr/share/texlive/texmf-dist/tex/latex/tools/array.sty" 1698869629 12667 e4b5eb11e4b7239e6c8a52bbe074a6c6 ""
   "/usr/share/texlive/texmf-dist/tex/latex/url/url.sty" 1388531844 12796 8edb7d69a20b857904dd0ea757c14ec9 ""
   "/usr/share/texlive/texmf-dist/tex/latex/varwidth/varwidth.sty" 1238697683 10894 d359a13923460b2a73d4312d613554c8 ""
@@ -233,9 +235,9 @@
   "images/gaf_sample_0_global.png" 1783868900.6545 274450 26bba1f16834d7bf0072adb817778d06 ""
   "images/mtf_sample_0_global.png" 1783868901.14721 353722 9852cf3b75f9594b148c2dbe966903db ""
   "images/rp_sample_0_global.png" 1783868900.44519 272372 83b73141f12d377aff02178e31281a3e ""
-  "main2.aux" 1783982903.43567 12002 ee9b334420c09e0fbe760c7a1b2addc3 "pdflatex"
-  "main2.spl" 1783982900.04039 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "main2.tex" 1783982874.40804 65085 4d675c9728869de28c198243ba79d9cf ""
+  "main2.aux" 1784046408.3535 12306 821ca5fd9fac5d774b319890540d500f "pdflatex"
+  "main2.spl" 1784046404.52473 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "main2.tex" 1784046363.2892 68437 759deb956918611d0cf4175f02e89e7b ""
   (generated)
   "main2.aux"
   "main2.log"
