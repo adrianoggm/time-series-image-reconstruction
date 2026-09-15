@@ -49,8 +49,14 @@ def _minmax(window):
     ]
 
 
-def _recon_window(i, img_path, minmax, percentile):
-    """Reconstruct a single window from its PNG under one rho. Worker (picklable)."""
+def _recon_window(i, img_path, minmax, percentile, method="1d"):
+    """Reconstruct a single window from its PNG under one rho. Worker (picklable).
+
+    ``method`` selects the decoder: "1d" is the legacy graph-geodesic path this
+    rho search was written for; "direct2ds" is the current production decoder
+    (metadata-free, closed-form orientation), for which rho is inert because
+    ``distance_matrix(source="direct")`` needs no graph threshold.
+    """
     import cv2  # imported in-worker so the pool doesn't pickle the module handle
 
     img = cv2.imread(img_path)
@@ -58,7 +64,7 @@ def _recon_window(i, img_path, minmax, percentile):
         raise FileNotFoundError(f"missing RP image: {img_path}")
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     # Single-entry dict keyed by i — Reconstruct_RP indexes dictionary[valor].
-    rp, _ = rpts.Reconstruct_RP(img, {i: minmax}, i, percentile=percentile)
+    rp, _ = rpts.Reconstruct_RP(img, {i: minmax}, i, percentile=percentile, method=method)
     return i, np.asarray(rp)
 
 

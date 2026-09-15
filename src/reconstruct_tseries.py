@@ -430,18 +430,9 @@ def generate_all_time_series(X_train, y_train, sj_train, dataset_folder=DEFAULT_
         minimos = [np.min(serie[:,0]), np.min(serie[:,1]), np.min(serie[:,2])]
         dictionary_val[k] = [maximos, minimos]
 
-    # DIRECT-2D-S needs the RP-matrix's own (Rmin,Rmax) per window/channel to
-    # invert the PNG correctly (Reconstruct_RP method="direct2ds"); build it
-    # from the SAME split as the dictionary the RP branch below will use, and
-    # only for reconstruction modes that actually exercise the RP branch
-    # (computing it is as expensive as computing the RP itself, so skip it
-    # for GAF/GADF/MTF-only runs).
-    rp_range = None
-    rp_range_val = None
-    if reconstruction == "RP":
-        rp_range_val = _build_rp_range(validation_data, TIME_STEPS)
-    elif reconstruction == "all":
-        rp_range = _build_rp_range(training_data, TIME_STEPS)
+    # Production DIRECT-2D-S is metadata-free: the PNG diagonal locates R=0, so no
+    # per-window (Rmin,Rmax) is built here. _build_rp_range stays available for the
+    # operator-range oracle ablation (scripts/_check_rp_production.py).
 
     print("training_data.shape", training_data.shape, "y_training_data.shape", y_training_data.shape, "sj_training_data.shape", sj_training_data.shape)
     print("validation_data.shape", validation_data.shape, "y_validation_data.shape", y_validation_data.shape, "sj_validation_data.shape", sj_validation_data.shape)
@@ -483,11 +474,11 @@ def generate_all_time_series(X_train, y_train, sj_train, dataset_folder=DEFAULT_
       print("se hace 1 vez")
       break
     if reconstruction=="RP":
-      generate_and_save_time_series_fromRP(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data, dictionary_val, TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling, rp_range=rp_range_val)
+      generate_and_save_time_series_fromRP(fold, dataset_folder, validation_data, y_validation_data, sj_validation_data, dictionary_val, TIME_STEPS=TIME_STEPS, data_type="test", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       print("se hace 1 vez")
       break
     if reconstruction=="all":
-      generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling, rp_range=rp_range)
+      generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       generate_and_save_time_series_fromGAF(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
       generate_and_save_time_series_fromMTF(fold, dataset_folder, training_data, y_training_data, sj_training_data,dictionary,TIME_STEPS=TIME_STEPS, data_type="train", single_axis=False, FOLDS_N=FOLDS_N, sampling=sampling)
   
