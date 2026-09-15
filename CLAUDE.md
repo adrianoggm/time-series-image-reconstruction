@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-Reference implementation of a TFG on reconstructing triaxial accelerometer time series (WISDM) from four image-based encodings — **RP, GASF, GADF, MTF** — and benchmarking the reconstructions against the original signals with six classifiers (KNN, SVM, RandomForest, LSTM, GRU, CNN). The paper draft (`doc/main.tex`) is part of the deliverable and is updated alongside the code.
+Reference implementation of a TFG on reconstructing triaxial accelerometer time series (WISDM) from four image-based encodings — **RP, GASF, GADF, MTF** — and benchmarking the reconstructions against the original signals with six classifiers (KNN, SVM, RandomForest, LSTM, GRU, CNN). The paper draft (`doc/main2.tex`, Elsevier build) plus `doc/supplementary.tex` are part of the deliverable and are updated alongside the code. Build `main2.tex` first: the supplement resolves cross-references through `\externaldocument{main2}`.
 
 ## Setup
 
@@ -80,20 +80,32 @@ Otherwise the evaluator silently reuses the stale model.
 
 `src/reconstruct_tseries.py` reconstructs each window in parallel via `ProcessPoolExecutor`. **The aggregation must preserve sample order** — earlier versions used `as_completed`, which produced label/sample misalignment and showed up downstream as nonsense classifier accuracies (the historical RP-KNN 0.51 in baselines was this bug, not the algorithm). The current code carries `(index, recon, axis)` tuples through the pool and sorts by index before stacking. If you touch the parallel loop, preserve that invariant.
 
+### RP production decoder contract
+
+Production RP reconstruction is `Reconstruct_RP(..., method="direct2ds")` with **two defaults that the paper depends on**:
+
+- **`rp_range=None` → metadata-free.** `src/rp_decoders.py::decode_window` inverts the PNG by centring on the diagonal median (`R = png - median(diag(png))`), since the RP diagonal is identically zero. Passing per-window `(R_min, R_max)` instead is the *operator-range oracle*, an ablation-only variant. `reconstruct_tseries._build_rp_range` is kept solely for that variant — production never calls it (it costs as much as computing the RP).
+- **`orientation_method="closed_form"`.** The O(2) orientation comes from the smaller-eigenvalue eigenvector of a symmetric 2×2 matrix per reflection parity, giving four exact candidates; `"grid"` (n_theta=720) is the historical baseline kept for the ablation. Closed form is exact on the native float operator (NMAE ~9e-17 vs the grid's 3.5e-4) and ~2.2× faster.
+
+Changing either default changes published numbers. Guard both with `python -m scripts._check_rp_decoders` and `python -m scripts._check_rp_production`.
+
+**Parallel reconstruction needs `OMP_NUM_THREADS=1`.** The pool is per-window, so multi-threaded BLAS inside each worker oversubscribes the cores: measured 2.3 it/s at default threading vs 16–17 it/s pinned to one thread each (24-core host). `scripts/_regen_rp_6folds.sh` exports it.
+
 RP-specific: `src/recurrence_plots.py::fix_rotationscale` returns `posi[:TIME_STEPS]` (not `[:128]`). The adjacent-state embedding `(x_j, x_{j+1})` produces `N-1` recovered samples; the function augments back to `N=TIME_STEPS` by appending the per-window mean. Don't hardcode 128.
 
 MTF-specific: when `T % numstates == 0` (e.g. `T=128, Q=4`) there are no leftover indices, so `MTF.py` iterates `estadosfaltantes` instead of indexing `[0]` — guard that pattern if you generalise the bin count.
 
 ## Statistical analysis
 
-Significance tests for paper claims live in [scripts/_stat_tests.py](scripts/_stat_tests.py): bootstrap 95% CIs for accuracy, paired McNemar (continuity-corrected via `chi2.sf` for tail precision), Wilcoxon signed-rank on per-window MAE with effect size `r = Z/√N`, Steiger's z for dependent correlations, and Holm-Bonferroni inside each family. Writes `results/_stats/stat_report.{md,json}`.
+Significance tests for paper claims live in [scripts/_stat_tests.py](scripts/_stat_tests.py): bootstrap 95% CIs for accuracy, paired McNemar (continuity-corrected via `chi2.sf` for tail precision), Wilcoxon signed-rank on per-window MAE with effect size `r = Z/√N`, Steiger's z for dependent correlations, and Holm-Bonferroni inside each family. Writes `results/_stats/stat_report_<sampling>.{md,json}` — pass `TFG_STAT_SAMPLING=loso` for the subject-out family (default `loto`).
 
 Verification scripts (run them before committing paper changes):
 ```bash
-python scripts/_check_refs.py            # broken/unused \label/\ref in doc/main.tex
-python scripts/_verify_paper_tables.py   # tab:*_classifiers accuracies vs JSON snapshot
+python scripts/_check_refs.py            # broken/unused \label/\ref in doc/main2.tex + supplementary.tex
 python scripts/_verify_error_tables.py   # pointwise tables vs .npy reconstructions (runs in WSL)
 ```
+
+`scripts/_verify_paper_tables.py` is **obsolete**: it reads the deleted `doc/main.tex` and the stale `.results_snapshot/`. Use [scripts/_emit_main2_numbers.py](scripts/_emit_main2_numbers.py) instead — it emits the classification and equivalence table rows straight from the live `results/` tree and the regenerated stat reports. `scripts/_make_accuracy_tables.py` and `_make_loso_tables.py` also read `.results_snapshot/`, not `results/`.
 
 ## Aggregating results
 
