@@ -624,7 +624,7 @@ Table~\ref{tab:mtf_ablation_q} sweeps $Q$ over all $8{,}172$ pooled windows. The
 
 \begin{table}[!htbp]
 \centering
-\caption{MTF bin-count sensitivity over all pooled windows ($N=8\,172$). Pointwise MAE (m/s$^2$) and Pearson are decoder-only (each window reconstructs identically regardless of fold); the KNN--CNN columns are mean downstream accuracy on the MTF reconstructions at each $Q$ under the window-level 3-fold protocol, using the fixed original-trained models. Highlighting marks the headline $Q=4$ and is descriptive, not nested model selection.}
+\caption{MTF bin-count sensitivity over all pooled windows ($N=8\,172$). Pointwise MAE (m/s$^2$) and Pearson are decoder-only (each window reconstructs identically regardless of fold); the KNN--CNN columns are mean downstream accuracy on the MTF reconstructions at each $Q$ under the window-level 3-fold protocol, using the fixed original-trained models. Highlighting marks the headline $Q=4$ and is descriptive, not nested model selection. Each row re-encodes and re-decodes every window at that $Q$, so the $Q=4$ row is an independent recomputation and reproduces Table~\ref{tab:pointwise_pooled} to within $0.01$\,m/s$^2$ rather than exactly.}
 \label{tab:mtf_ablation_q}
 \setlength{\tabcolsep}{6pt}
 \small
@@ -636,7 +636,7 @@ $Q$ & MAE & Pearson & KNN & SVM & RF & LSTM & GRU & CNN \\
 \textbf{4}  & \textbf{3.95} & $\mathbf{+0.013}$ & 0.559 & 0.697 & 0.757 & 0.757 & 0.765 & 0.773 \\
 6  & 4.01 & $+0.004$ & 0.556 & 0.697 & 0.757 & 0.755 & 0.761 & 0.770 \\
 8  & 4.03 & $-0.001$ & 0.539 & 0.695 & 0.753 & 0.757 & 0.764 & 0.765 \\
-10 & 4.07 & $+0.000$ & 0.527 & 0.694 & 0.754 & 0.756 & 0.762 & 0.758 \\
+10 & 4.07 & $+0.000$ & 0.527 & 0.693 & 0.754 & 0.756 & 0.762 & 0.758 \\
 16 & 4.13 & $-0.014$ & 0.520 & 0.697 & 0.755 & 0.757 & 0.762 & 0.753 \\
 \bottomrule
 \end{tabular}
