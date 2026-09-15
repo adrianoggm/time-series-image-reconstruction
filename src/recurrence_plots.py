@@ -567,14 +567,12 @@ def reconstruct_from_embedding_2d(embedding, n_theta=720):
 
 def Reconstruct_RP(img,dictionary,valor,percentile=75.0,method="1d",rp_range=None):
     if method == "direct2ds":
-        # Validated DIRECT-2D-S decoder (see src/rp_decoders.py): decodes the RP
-        # input with its OWN matrix range (rp_range) instead of the signal
-        # amplitude range, avoiding the affine distortion the legacy path below
-        # applies to the distances handed to MDS.
+        # Validated DIRECT-2D-S decoder (see src/rp_decoders.py). Production is
+        # metadata-free: rp_range=None -> "diagonal" centring recovers the signed
+        # matrix up to a positive scale from the PNG alone. Passing per-window
+        # (Rmin,Rmax) metadata is the operator-range ORACLE variant (ablation only).
         from src.rp_decoders import decode_window
-        if rp_range is None:
-            raise ValueError("method='direct2ds' requires rp_range (per-window RP-matrix ranges)")
-        rr = rp_range[valor]
+        rr = "diagonal" if rp_range is None else rp_range[valor]
         rec_tc, _ = decode_window(img, dictionary[valor], source="direct", dims=2,
                                   recover="overlap", signed=True, rho=percentile / 100.0,
                                   rp_range=rr)

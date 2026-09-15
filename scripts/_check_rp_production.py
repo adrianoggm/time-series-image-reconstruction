@@ -1,5 +1,7 @@
 """Self-check for the PRODUCTION RP decoder path: recurrence_plots.Reconstruct_RP
-with method="direct2ds" (DIRECT-2D-S) plus reconstruct_tseries._build_rp_range.
+with method="direct2ds" (DIRECT-2D-S), metadata-free (rp_range=None -> diagonal
+centring) and with closed-form orientation. Also checks the operator-range oracle
+(reconstruct_tseries._build_rp_range) stays reachable for the ablation.
 
 Synthetic-only (no pipeline data needed). Assert-based, no pytest. Run:
     python -m scripts._check_rp_production
@@ -42,22 +44,20 @@ def main():
     assert img.dtype == np.uint8
     print("[ok] encoded synthetic window to uint8 RP image", img.shape)
 
-    # 3. dictionary = [[maxs],[mins]] (signal range, for OUTPUT rescale);
-    #    rp_range = per-channel (Rmin,Rmax) of the signed RP (INPUT decode range),
-    #    built via the same helper reconstruct_tseries wires into the pipeline.
+    # 3. dictionary = [[maxs],[mins]] (signal range, for OUTPUT rescale). Production
+    #    needs NOTHING else: rp_range=None -> diagonal centring.
     dictionary = {
         0: [
             [float(w[:, c].max()) for c in range(3)],
             [float(w[:, c].min()) for c in range(3)],
         ]
     }
-    rp_range = _build_rp_range(w[None, ...], TIME_STEPS)
-    assert 0 in rp_range and len(rp_range[0]) == 3
-    print("[ok] built dictionary + rp_range metadata via _build_rp_range")
+    print("[ok] built dictionary (signal range only — no RP-matrix metadata)")
 
-    # 4. Production DIRECT-2D-S decode through Reconstruct_RP (the same entry
-    #    point reconstruct_tseries._process_sample calls).
-    rec, ninv = Reconstruct_RP(img, dictionary, 0, method="direct2ds", rp_range=rp_range)
+    # 4. Production DIRECT-2D-S decode through Reconstruct_RP (the same entry point
+    #    and the same arguments reconstruct_tseries._process_sample now passes:
+    #    method="direct2ds", rp_range=None -> metadata-free diagonal inversion).
+    rec, ninv = Reconstruct_RP(img, dictionary, 0, method="direct2ds")
     assert rec.shape == (3, TIME_STEPS), rec.shape
     assert np.all(np.isfinite(rec)), "direct2ds reconstruction contains non-finite values"
 
@@ -66,10 +66,22 @@ def main():
         r = _abs_corr(rec[c], w[:, c])
         corrs.append(r)
         assert r > 0.95, f"channel {c}: |corr| too low ({r:.4f}), expected near-exact reconstruction"
-    print(f"[ok] direct2ds production decode: shape {rec.shape}, |corr| per channel = "
+    print(f"[ok] metadata-free production decode: shape {rec.shape}, |corr| per channel = "
           f"{[round(c, 4) for c in corrs]}")
 
-    # 5. Legacy method="1d" path must stay reachable and shape-compatible
+    # 5. Operator-range ORACLE variant (ablation only): passing the per-window
+    #    (Rmin,Rmax) metadata must stay reachable and must agree with the
+    #    metadata-free decode to within the 8-bit quantisation floor.
+    rp_range = _build_rp_range(w[None, ...], TIME_STEPS)
+    assert 0 in rp_range and len(rp_range[0]) == 3
+    rec_oracle, _ = Reconstruct_RP(img, dictionary, 0, method="direct2ds", rp_range=rp_range)
+    assert rec_oracle.shape == (3, TIME_STEPS), rec_oracle.shape
+    rng = np.ptp(w, axis=0)
+    nmae = float(np.mean(np.abs(rec_oracle.T - rec.T) / rng))
+    assert nmae < 0.02, f"metadata-free vs oracle NMAE too large: {nmae:.4f}"
+    print(f"[ok] operator-range oracle still reachable; agreement NMAE={nmae:.4f}")
+
+    # 6. Legacy method="1d" path must stay reachable and shape-compatible
     #    (backward compat) — fidelity is NOT asserted for this path.
     rec_1d, ninv_1d = Reconstruct_RP(img, dictionary, 0, method="1d")
     assert rec_1d.shape == (3, TIME_STEPS), rec_1d.shape

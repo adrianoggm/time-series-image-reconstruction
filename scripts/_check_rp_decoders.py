@@ -50,6 +50,7 @@ print("[ok] Task 1: distance sources + embedding + geometry metrics")
 # --- Task 2: overlap alignment + reconstruction (geometric core, all sources) ---
 from src.rp_decoders import (
     align_states,
+    closed_form_orientation_candidates,
     orientation_candidates,
     reconstruct_signal_from_states,
 )
@@ -57,6 +58,15 @@ from src.rp_decoders import (
 Qs = orientation_candidates(n_theta=720)
 assert len(Qs) == 1440
 assert all(np.allclose(Q.T @ Q, np.eye(2), atol=1e-9) for Q in Qs), "all Q must be orthogonal"
+
+Q_exact = closed_form_orientation_candidates(Y)
+assert len(Q_exact) == 4
+assert all(np.allclose(Q.T @ Q, np.eye(2), atol=1e-12) for Q in Q_exact)
+best_grid = min((align_states(Y, Q) for Q in Qs), key=lambda ab: ab[2])
+best_exact = min((align_states(Y, Q) for Q in Q_exact), key=lambda ab: ab[2])
+assert best_exact[2] < 1e-20, f"closed-form overlap must be numerical zero, got {best_exact[2]:.2e}"
+assert best_exact[2] <= best_grid[2] + 1e-20
+assert _abs_corr(reconstruct_signal_from_states(*best_exact[:2]), x) > 1.0 - 1e-12
 
 for src in ("direct", "geo"):
     Y, _ = embed_2d(distance_matrix(R_obs, source=src))
@@ -84,6 +94,24 @@ for src in ("direct", "geo"):
     assert rec.shape == (128,), (src, rec.shape)
     r = _abs_corr(rec, xc)
     assert r > 0.95, f"[{src}] signed 2-D decode corr too low: {r:.4f}"
+
+rec_exact = decode_channel(R_signed, minmax_c, source="direct", dims=2,
+                           recover="overlap", signed=True)
+exact_nmae = float(np.mean(np.abs(rec_exact - xc)) / np.ptp(xc))
+assert exact_nmae < 1e-12, f"closed-form native-float NMAE too large: {exact_nmae:.2e}"
+
+rec_grid = decode_channel(R_signed, minmax_c, source="direct", dims=2,
+                          recover="overlap", signed=True,
+                          orientation_method="grid", n_theta=720)
+assert rec_grid.shape == (128,) and np.all(np.isfinite(rec_grid))
+
+try:
+    decode_channel(R_signed, minmax_c, source="direct", dims=2,
+                   recover="overlap", orientation_method="unknown")
+except ValueError as exc:
+    assert "orientation_method" in str(exc)
+else:
+    raise AssertionError("unknown orientation_method must raise ValueError")
 
 rec_unsigned = decode_channel(R_signed, minmax_c, source="direct", dims=2,
                               recover="overlap", signed=False)
@@ -147,4 +175,39 @@ assert m_rp["evr2"] > m_sig["evr2"] + 0.2, f"rp_range must recover 2-D geometry 
 assert m_rp["evr2"] > 0.9, f"rp_range EVR2 should be near 1: {m_rp['evr2']:.3f}"
 print("[ok] Scale fix: rp_range decode recovers 2-D geometry (signal-range EVR2 "
       f"{m_sig['evr2']:.2f} -> rp-range {m_rp['evr2']:.2f})")
+
+# --- Task 5: the closed-form derivation printed in the paper matches the code ---
+# Pins doc/main2.tex Section "Signed recurrence-plot decoder", step 3: the raw overlap
+# residual is A_i cos(theta) + B_i sin(theta); mean-centring A,B profiles out the
+# translation delta; and the smaller-eigenvalue eigenvector of C~^T C~ minimises the
+# resulting quadratic form. If any of these drift, the paper's equations are wrong.
+rng_gen = np.random.default_rng(11)
+Y_rand = rng_gen.normal(size=(40, 2))
+for eta in (1.0, -1.0):
+    A = eta * Y_rand[:-1, 1] - Y_rand[1:, 0]
+    B = -eta * Y_rand[:-1, 0] - Y_rand[1:, 1]
+    for th in rng_gen.uniform(0, 2 * np.pi, size=5):
+        c_, s_ = np.cos(th), np.sin(th)
+        Q = np.array([[c_, -s_ * eta], [s_, c_ * eta]])
+        Z = Y_rand @ Q
+        raw = Z[:-1, 1] - Z[1:, 0]                      # b_i - a_{i+1}
+        assert np.allclose(raw, A * c_ + B * s_, atol=1e-12), \
+            f"paper's A_i/B_i do not reproduce the raw overlap residual (eta={eta})"
+        # delta* = -mean(raw) profiles out the translation == mean-centring A and B.
+        a_c, b_c, _ = align_states(Y_rand, Q)
+        assert np.allclose(b_c[:-1] - a_c[1:], raw - raw.mean(), atol=1e-12), \
+            "align_states' delta correction is not the mean-centred residual"
+    C_t = np.column_stack((A - A.mean(), B - B.mean()))
+    H = C_t.T @ C_t
+    evals, evecs = np.linalg.eigh(H)
+    u = evecs[:, 0]
+    J_star = float(u @ H @ u)
+    assert abs(J_star - evals[0]) < 1e-10, "Rayleigh quotient at the eigenvector != eigenvalue"
+    # No angle on a dense sweep may beat the closed-form minimum.
+    sweep = np.array([[np.cos(a_), np.sin(a_)] for a_ in np.linspace(0, 2 * np.pi, 20001)])
+    assert J_star <= np.einsum("ij,jk,ik->i", sweep, H, sweep).min() + 1e-12, \
+        f"closed form is not the global minimum over theta (eta={eta})"
+    # Both signs of the eigenvector are equally optimal -> 4 candidates, not 2.
+    assert abs(float((-u) @ H @ (-u)) - J_star) < 1e-12
+print("[ok] Task 5: paper's closed-form orientation equations match the implementation")
 print("all checks passed")

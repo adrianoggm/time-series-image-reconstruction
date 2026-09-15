@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""RP decoder ablation: which RP decoder reconstructs best?
+"""Controlled RP geometry ablation for the current production decoder.
 
-Runs the variant matrix over LOTO fold-0 test windows at rho=0.60 and reports
+Runs four variants over LOTO fold-0 test windows and reports
 pointwise fidelity (MAE, median MAE, MSE, Pearson) plus geometry diagnostics
-(E_RP, E_overlap, EVR2, MDS stress) and per-window wall-clock. Reconstruction
-only — classifier accuracy is a separate, optional phase (see plan Task 6).
+(E_RP, E_overlap, EVR2, MDS stress) and per-window wall-clock. The adopted,
+unsigned and legacy-1D arms all use the same metadata-free diagonal inversion;
+the signal-range arm deliberately supplies the incorrect signal amplitude range
+to isolate the affine-shift failure. The 2-D arms use closed-form orientation.
 
     python -m scripts._ablation_rp_2d --n 120
 """
@@ -17,9 +19,9 @@ import cv2
 import numpy as np
 
 from src.config import DEFAULT_DATA_DIR
-from src.recurrence_plots import varRP2
 from src.rp_decoders import (
     align_states,
+    closed_form_orientation_candidates,
     decode_window,
     distance_matrix,
     embed_2d,
@@ -28,11 +30,18 @@ from src.rp_decoders import (
 )
 
 VARIANTS = {
-    "RP-Jaccard-1D": dict(source="jaccard", dims=1, recover="append", signed=True),
-    "RP-GEO-1D":     dict(source="geo",     dims=1, recover="append", signed=True),
-    "RP-GEO-2D":     dict(source="geo",     dims=2, recover="overlap", signed=False),
-    "RP-DIRECT-2D":  dict(source="direct",  dims=2, recover="overlap", signed=False),
-    "RP-DIRECT-2D-S":dict(source="direct",  dims=2, recover="overlap", signed=True),
+    "Adopted metadata-free + signed": dict(
+        source="direct", dims=2, recover="overlap", signed=True,
+        rp_mode="diagonal", orientation_method="closed_form"),
+    "Incorrect signal-range inversion": dict(
+        source="direct", dims=2, recover="overlap", signed=True,
+        rp_mode="signal", orientation_method="closed_form"),
+    "Without signed selection": dict(
+        source="direct", dims=2, recover="overlap", signed=False,
+        rp_mode="diagonal", orientation_method="closed_form"),
+    "Legacy Jaccard 1-D": dict(
+        source="jaccard", dims=1, recover="append", signed=True,
+        rp_mode="diagonal", orientation_method="closed_form"),
 }
 PERCENTILE_RHO = 0.60
 
@@ -42,19 +51,6 @@ def _minmax(window):
             [float(np.min(window[:, c])) for c in range(3)]]
 
 
-def _rp_range(window):
-    """Per-channel (R_min, R_max) of the signed RP, matching NormalizeMatrix's
-    encode convention (global max, min over NONZERO entries). This is the
-    metadata a corrected encoder would persist so the PNG can be inverted to the
-    RP's own distance range instead of the signal amplitude range."""
-    out = []
-    for c in range(3):
-        R = varRP2(window[:, c].astype(float), TIME_STEPS=window.shape[0])
-        nz = R[R != 0]
-        out.append((float(nz.min()), float(R.max())))
-    return out
-
-
 def _pearson(a, b):
     a, b = a.ravel(), b.ravel()
     if np.std(a) < 1e-12 or np.std(b) < 1e-12:
@@ -62,7 +58,7 @@ def _pearson(a, b):
     return float(np.corrcoef(a, b)[0, 1])
 
 
-def _overlap_for_window(img, minmax, cfg, rp_range=None):
+def _overlap_for_window(img, minmax, cfg):
     """E_overlap (L1) for a 2-D variant; N/A (nan) for 1-D variants.
 
     # E_overlap here is the MIN-overlap-orientation residual — a source-level, sign-agnostic
@@ -74,10 +70,17 @@ def _overlap_for_window(img, minmax, cfg, rp_range=None):
     maxs, mins = minmax
     vals = []
     for c in range(3):
-        lo, hi = (mins[c], maxs[c]) if rp_range is None else (rp_range[c][0], rp_range[c][1])
-        R_obs = np.interp(img[:, :, c].astype(float), (0, 255), (lo, hi))
+        png = img[:, :, c].astype(float)
+        if cfg["rp_mode"] == "diagonal":
+            R_obs = png - float(np.median(np.diag(png)))
+        else:
+            R_obs = np.interp(png, (0, 255), (mins[c], maxs[c]))
         Y, _ = embed_2d(distance_matrix(R_obs, source=cfg["source"], rho=PERCENTILE_RHO))
-        cands = [align_states(Y, Q) for Q in orientation_candidates()]
+        if cfg["orientation_method"] == "closed_form":
+            Qs = closed_form_orientation_candidates(Y)
+        else:
+            Qs = orientation_candidates()
+        cands = [align_states(Y, Q) for Q in Qs]
         a, b, _ = min(cands, key=lambda ab: ab[2])
         vals.append(overlap_error_abs(a, b))
     return float(np.mean(vals))
@@ -86,9 +89,6 @@ def _overlap_for_window(img, minmax, cfg, rp_range=None):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=120)
-    ap.add_argument("--scale", choices=("signal", "rp"), default="signal",
-                    help="input-decode range: 'signal' (legacy, affinely distorts distances) "
-                         "or 'rp' (invert PNG with the RP matrix's own range — the corrected metadata)")
     args = ap.parse_args()
 
     base = f"{DEFAULT_DATA_DIR}tseries/recurrence_plot/sampling_loto/3-fold/fold-0/test/"
@@ -108,7 +108,6 @@ def main():
             continue
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         mm = _minmax(orig[i])
-        rr = _rp_range(orig[i]) if args.scale == "rp" else None
         for name, cfg in VARIANTS.items():
             # Time_ms below measures only the decode_window call; it EXCLUDES the
             # diagnostic-only _overlap_for_window recomputation done later in this loop,
@@ -116,21 +115,23 @@ def main():
             t0 = time.perf_counter()
             rec, metrics = decode_window(img, mm, source=cfg["source"], dims=cfg["dims"],
                                          recover=cfg["recover"], signed=cfg["signed"],
-                                         rho=PERCENTILE_RHO, rp_range=rr)
+                                         rho=PERCENTILE_RHO,
+                                         rp_range="diagonal" if cfg["rp_mode"] == "diagonal" else None,
+                                         orientation_method=cfg["orientation_method"])
             dt = time.perf_counter() - t0
             a = acc[name]
             a["mae"].append(float(np.mean(np.abs(orig[i] - rec))))
             a["mse"].append(float(np.mean((orig[i] - rec) ** 2)))
             a["pear"].append(_pearson(orig[i], rec))
             a["e_rp"].append(metrics["e_rp"])
-            a["e_ov"].append(_overlap_for_window(img, mm, cfg, rp_range=rr))
+            a["e_ov"].append(_overlap_for_window(img, mm, cfg))
             a["evr2"].append(metrics["evr2"])
             a["stress"].append(metrics["stress"])
             a["t"].append(dt)
 
     def agg(v):
         v = np.asarray(v, dtype=float)
-        return float(np.nanmean(v)) if v.size else float("nan")
+        return float(np.nanmean(v)) if v.size and not np.all(np.isnan(v)) else float("nan")
 
     rows = {}
     for name, a in acc.items():
@@ -142,12 +143,22 @@ def main():
 
     out_dir = Path("results/_stats")
     out_dir.mkdir(parents=True, exist_ok=True)
-    suffix = "" if args.scale == "signal" else "_rpscale"
-    (out_dir / f"rp_2d_ablation{suffix}.json").write_text(
-        json.dumps(dict(n_windows=m, rho=PERCENTILE_RHO, scale=args.scale, variants=rows), indent=2))
+    design = dict(n_windows=m, rho=PERCENTILE_RHO,
+                  png_inversion="diagonal metadata-free except explicit signal-range control",
+                  orientation="closed_form for all 2-D arms",
+                  sampling="loto/3-fold/fold-0/test")
+    json_rows = {
+        name: {key: (None if np.isnan(value) else value) for key, value in row.items()}
+        for name, row in rows.items()
+    }
+    (out_dir / "rp_geometry_ablation.json").write_text(
+        json.dumps(dict(design=design, variants=json_rows), indent=2))
 
     cols = ["MAE", "MedianMAE", "MSE", "Pearson", "E_RP", "E_overlap", "EVR2", "Stress", "Time_ms"]
-    lines = [f"# RP 2-D decoder ablation (LOTO fold-0, {m} windows, rho=0.60, scale={args.scale})", "",
+    lines = [f"# RP geometry ablation (LOTO fold-0, {m} windows)", "",
+             "The adopted, unsigned and legacy-1D arms use metadata-free diagonal centring; "
+             "the signal-range arm is the explicit incorrect-inversion control. "
+             "All 2-D arms use closed-form orientation.", "",
              "| Method | " + " | ".join(cols) + " |",
              "|" + "---|" * (len(cols) + 1)]
     for name, r in rows.items():
@@ -158,7 +169,16 @@ def main():
                  "sign-agnostic — identical within a source); Time_ms excludes this "
                  "diagnostic recomputation.")
     md = "\n".join(lines) + "\n"
-    (out_dir / f"rp_2d_ablation{suffix}.md").write_text(md)
+    (out_dir / "rp_geometry_ablation.md").write_text(md)
+
+    tex = [r"\begin{tabular}{lccc}", r"\toprule",
+           r"Variant & MAE (m/s$^2$) & Pearson & $\mathrm{EVR}_2$ \\",
+           r"\midrule"]
+    for name, row in rows.items():
+        tex.append(f"{name} & {row['MAE']:.3f} & {row['Pearson']:.3f} & "
+                   f"{row['EVR2']:.3f}" + r" \\")
+    tex += [r"\bottomrule", r"\end{tabular}"]
+    (out_dir / "rp_geometry_ablation.tex").write_text("\n".join(tex) + "\n")
     print(md)
 
 

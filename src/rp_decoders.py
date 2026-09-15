@@ -111,6 +111,43 @@ def orientation_candidates(n_theta=720):
     return Qs
 
 
+def closed_form_orientation_candidates(Y):
+    """Return the four overlap-optimal transforms without an angular grid.
+
+    For a fixed reflection parity ``eta``, the translation-corrected overlap
+    residual has the form ``C @ [cos(theta), sin(theta)]``. Its squared norm is
+    the quadratic form of the 2x2 matrix ``C.T @ C`` on the unit circle; the
+    eigenvector for the smallest eigenvalue gives the globally optimal angle
+    for this unnormalised least-squares objective. Both reflection
+    parities and both global signs are retained for the signed-RP comparison.
+    """
+    Y = np.asarray(Y, dtype=float)
+    if Y.ndim != 2 or Y.shape[1] != 2:
+        raise ValueError(f"Y must have shape (n_states, 2), got {Y.shape}")
+
+    Qs = []
+    for eta in (1.0, -1.0):
+        # Before translation correction,
+        # d_i = c*(eta*y_i2 - y_{i+1,1})
+        #     + s*(-eta*y_i1 - y_{i+1,2}).
+        # Centring both coefficients is exactly delta=-mean(d).
+        A = eta * Y[:-1, 1] - Y[1:, 0]
+        B = -eta * Y[:-1, 0] - Y[1:, 1]
+        C = np.column_stack((A, B))
+        if C.size:
+            C = C - np.mean(C, axis=0, keepdims=True)
+            H = C.T @ C
+        else:
+            H = np.zeros((2, 2), dtype=float)
+        H = 0.5 * (H + H.T)
+        _, eigvecs = np.linalg.eigh(H)
+        u = eigvecs[:, 0]
+        for sign in (1.0, -1.0):
+            c, s = sign * u
+            Qs.append(np.array([[c, -s * eta], [s, c * eta]]))
+    return Qs
+
+
 def align_states(Y, Q):
     """Apply Q, correct the MDS translation offset along the overlap, and return
     aligned state coordinates (a, b) plus the normalised overlap error.
@@ -167,7 +204,7 @@ def _rescale(x, minmax_c):
 
 def decode_channel(R_obs, minmax_c, source, dims=2, recover="overlap",
                    signed=True, rho=0.60, n_theta=720, top_k=8,
-                   scale_invariant=False):
+                   scale_invariant=False, orientation_method="closed_form"):
     """Unified single-channel RP decoder. Returns a length-TIME_STEPS channel in
     physical units, axis-compatible with recurrence_plots.Reconstruct_RP output.
 
@@ -191,8 +228,17 @@ def decode_channel(R_obs, minmax_c, source, dims=2, recover="overlap",
 
     # 2-D path.
     Y, _ = embed_2d(dmat)
+    if orientation_method == "closed_form":
+        Qs = closed_form_orientation_candidates(Y)
+    elif orientation_method == "grid":
+        Qs = orientation_candidates(n_theta=n_theta)
+    else:
+        raise ValueError(
+            "orientation_method must be 'closed_form' or 'grid', "
+            f"got {orientation_method!r}"
+        )
     cands = []
-    for Q in orientation_candidates(n_theta=n_theta):
+    for Q in Qs:
         a, b, e_ov = align_states(Y, Q)
         cands.append((e_ov, a, b))
     cands.sort(key=lambda c: c[0])
@@ -204,9 +250,8 @@ def decode_channel(R_obs, minmax_c, source, dims=2, recover="overlap",
 
     # Signed selection (lambda-free lexicographic): among the top_k lowest
     # overlap-error orientations, pick the one whose regenerated signed RP is
-    # closest to the observed one.
-    # ponytail: top_k prefilter caps the O(n_theta) signed-RP regenerations at
-    # top_k per channel; widen top_k only if the winner is unstable across folds.
+    # closest to the observed one. The closed-form path has only four
+    # candidates; ``top_k`` remains useful for the optional grid ablation.
     best = None
     for e_ov, a, b in cands[:top_k]:
         x = _rescale(reconstruct_signal_from_states(a, b), minmax_c)[:TIME_STEPS]
@@ -224,7 +269,8 @@ def overlap_error_abs(a, b):
 
 
 def decode_window(img_rgb, minmax, source, dims=2, recover="overlap",
-                  signed=True, rho=0.60, rp_range=None):
+                  signed=True, rho=0.60, rp_range=None,
+                  orientation_method="closed_form"):
     """Decode a 3-channel RP image to (TIME_STEPS,3) plus geometry metrics.
 
     Metrics (averaged over channels): e_rp (signed-RP reproduction error),
@@ -257,7 +303,8 @@ def decode_window(img_rgb, minmax, source, dims=2, recover="overlap",
             R_obs = np.interp(png_c, (0, 255), (lo, hi))
         rec = decode_channel(R_obs, (maxs[c], mins[c]), source=source, dims=dims,
                              recover=recover, signed=signed, rho=rho,
-                             scale_invariant=diagonal)
+                             scale_invariant=diagonal,
+                             orientation_method=orientation_method)
         chans.append(rec)
         e_rp.append(signed_rp_error(R_obs, rec, scale_invariant=diagonal))
         dmat = distance_matrix(R_obs, source=source, rho=rho)

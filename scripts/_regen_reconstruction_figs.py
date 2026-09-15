@@ -24,6 +24,7 @@ Output goes to `doc/images/` with the filenames the paper already references:
 
 from __future__ import annotations
 
+import argparse
 import os
 import shutil
 import tempfile
@@ -77,11 +78,10 @@ def encode_decode(signal: np.ndarray, encoder: str) -> tuple[np.ndarray, np.ndar
             rec_mod.SavevarRP_XYZ(signal, "w", "", "", normalized=1,
                                   path=slash, saveImage=True, TIME_STEPS=N)
             img = _read_encoded_png(os.path.join(tmp, "w.png"))
-            # Production DIRECT-2D-S decoder: decode with the RP matrix's own
-            # range (rp_range), recovered from this window exactly as the pipeline does.
-            from src.reconstruct_tseries import _build_rp_range
-            rr = _build_rp_range(signal[None, ...], N)
-            rec, _ = rec_mod.Reconstruct_RP(img, d, 0, method="direct2ds", rp_range=rr)
+            # Production DIRECT-2D-S decoder: metadata-free diagonal centring
+            # (rp_range=None at the Reconstruct_RP boundary) and closed-form
+            # orientation, exactly as used for the regenerated pipeline arrays.
+            rec, _ = rec_mod.Reconstruct_RP(img, d, 0, method="direct2ds", rp_range=None)
             # rec.shape is (3, N)
         elif encoder == "GAF":
             gaf_mod.SavevarGAF_XYZ(signal, "w", "", "", normalized=1,
@@ -153,16 +153,24 @@ def plot_per_axis(signal: np.ndarray, rec: np.ndarray, axis: int,
 
 
 def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--only-rp", action="store_true",
+                    help="regenerate only the RP synthetic, global and per-axis figures")
+    args = ap.parse_args()
+
     # -------- Synthetic --------
     t = np.linspace(0.0, np.pi, N)
     synth = np.column_stack([np.cos(t), np.sin(t), np.sin(t) - np.cos(t)]).astype(np.float64)
     print("Synthetic reconstructions:")
-    for enc, fname, title in [
+    synth_specs = [
         ("RP",   "Comparison_all_wideRP.png",   "RP reconstruction (synthetic)"),
         ("GAF",  "Comparison_all_wideGAF.png",  "GASF reconstruction (synthetic)"),
         ("GADF", "Comparison_all_wideGADF.png", "GADF reconstruction (synthetic)"),
         ("MTF",  "Comparison_all_widemtf.png",  "MTF reconstruction (synthetic)"),
-    ]:
+    ]
+    if args.only_rp:
+        synth_specs = [s for s in synth_specs if s[0] == "RP"]
+    for enc, fname, title in synth_specs:
         rec = encode_decode(synth, enc)
         plot_global(synth, rec, fname, title)
 
@@ -176,6 +184,8 @@ def main() -> None:
         ("GADF", "gadf", "gadf_sample_0_global.png", "GADF reconstruction (WISDM 1600x0)"),
         ("MTF",  "mtf",  "mtf_sample_0_global.png",  "MTF reconstruction (WISDM 1600x0)"),
     ]
+    if args.only_rp:
+        encoders = [e for e in encoders if e[0] == "RP"]
     reconstructions = {}
     for enc, short, fname, title in encoders:
         rec = encode_decode(wisdm, enc)
@@ -184,8 +194,11 @@ def main() -> None:
 
     # -------- WISDM per-axis (all four encoders so they're symmetric) --------
     print("WISDM 1600x0 reconstructions (per axis):")
-    for enc_short, title in [("rp", "RP"), ("gaf", "GASF"),
-                             ("gadf", "GADF"), ("mtf", "MTF")]:
+    axis_specs = [("rp", "RP"), ("gaf", "GASF"),
+                  ("gadf", "GADF"), ("mtf", "MTF")]
+    if args.only_rp:
+        axis_specs = [("rp", "RP")]
+    for enc_short, title in axis_specs:
         rec = reconstructions[enc_short]
         for axis, letter in enumerate("xyz"):
             plot_per_axis(wisdm, rec, axis,

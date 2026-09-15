@@ -3,7 +3,10 @@
 Backs up the current (rho=0.75) array to X_all_rec_rho075.npy the first time, then
 overwrites X_all_rec.npy with the rho-reconstructed version so the downstream
 classifiers / stats / error tables pick up the new operating point. Reconstructs
-from the existing PNGs (rho does NOT change the encoded images).
+from the existing PNGs (rho does NOT change the encoded images) using the
+PRODUCTION decoder (method="direct2ds": metadata-free, closed-form orientation),
+so its output is byte-comparable with what scripts.run_pipeline writes. Note rho
+is inert for that decoder — it only affects the legacy graph-geodesic path.
 
     python -m scripts.regen_rp_recon --rho 0.60 --samplings loto,loso --folds 0,1,2
 """
@@ -45,7 +48,7 @@ def regen_one(data_dir, sampling, fold, n_folds, percentile):
         print(f"  backed up rho=0.75 -> {backup}")
 
     with ProcessPoolExecutor() as ex:
-        futs = [ex.submit(_recon_window, i, p, mm, percentile) for (i, p, mm) in tasks]
+        futs = [ex.submit(_recon_window, i, p, mm, percentile, "direct2ds") for (i, p, mm) in tasks]
         res = [f.result() for f in tqdm(futs, total=n, desc=f"{sampling} fold-{fold}")]
     res.sort(key=lambda t: t[0])
     rec = np.array([r for _, r in res])          # (N, C, T) — pipeline convention
