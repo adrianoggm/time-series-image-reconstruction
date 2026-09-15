@@ -595,15 +595,15 @@ Table~\ref{tab:pointwise_pooled} reports pooled pointwise fidelity in physical u
 
 \begin{table}[!htbp]
 \centering
-\caption{Pooled pointwise fidelity over 8,172 windows, each the per-window global metric averaged over the three axes. MAE is reported as mean$\pm$standard deviation across windows (m/s\(^2\)); MSE (m\(^2\)/s\(^4\)) and Pearson (dimensionless) are pooled means.}\label{tab:pointwise_pooled}
+\caption{Pooled pointwise fidelity over 8,172 windows, each the per-window global metric averaged over the three axes. MAE is reported as mean$\pm$standard deviation across windows (m/s\(^2\)); MSE (m\(^2\)/s\(^4\)) and Pearson (dimensionless) are pooled means. MSE for the near-original trio is given to five decimals, because RP and GADF agree to four.}\label{tab:pointwise_pooled}
 \begin{tabular}{lccc}
 \toprule
 Method & MAE (mean \(\pm\) std) & MSE & Pearson \\
 \midrule
-RP   & \(0.0142\pm0.0156\) & 0.0008 & 0.99998 \\
-GASF & \(0.0205\pm0.0199\) & 0.0043 & 0.99988 \\
-GADF & \(0.0157\pm0.0167\) & 0.0008 & 0.99999 \\
-MTF  & \(3.94\pm4.25\)     & 55.43  & 0.01356 \\
+RP   & \(0.0142\pm0.0156\) & 0.00083 & 0.99998 \\
+GASF & \(0.0205\pm0.0199\) & 0.00430 & 0.99988 \\
+GADF & \(0.0157\pm0.0167\) & 0.00080 & 0.99999 \\
+MTF  & \(3.94\pm4.25\)     & 55.43   & 0.01356 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -733,7 +733,7 @@ MTF & Fiedler ordering (5.07) & cosine pivot (6.46) & spectral ordering helps; s
 
 The fidelity and utility blocks support one consistent division. RP, GASF, and GADF reconstruct near the clean 8-bit round-trip floor, preserve spectral shape on average, and remain equivalent to the raw signal for original-trained classification under both validation protocols. MTF is worse on every block. Classification alone would not establish reconstruction fidelity: a coarse representation can retain class information while losing amplitude. Here the pointwise and spectral metrics show that the three leading methods recover the signal under their stated contracts, whereas MTF preserves only a quantile-transition summary.
 
-The small ordering among RP, GADF, and GASF should not obscure this result. With the orientation solved in closed form, RP has the lowest observed mean MAE, MSE, and NMAE; GADF retains the highest Pearson correlation and the lowest local-change error; and GASF has the simplest established inverse. Their absolute differences are tiny compared with the gap to MTF, and no corresponding classification separation is detected.
+The small ordering among RP, GADF, and GASF should not obscure this result. With the orientation solved in closed form, RP has the lowest observed mean MAE and NMAE; GADF attains the lowest mean MSE together with the highest Pearson correlation and the lowest local-change error; and GASF has the simplest established inverse. The split between MAE and MSE reflects a heavier error tail for RP, whose across-window MSE dispersion is \(0.0045\) against \(0.0018\) for GADF. Their absolute differences are tiny compared with the gap to MTF, and no corresponding classification separation is detected.
 
 Practically, GASF is the simplest faithful baseline; GADF provides directional-difference recovery under a restricted branch; and RP preserves recurrence geometry at the cost of an MDS embedding. MTF is appropriate only when a coarse transition summary is acceptable. Holding out complete subjects reduces absolute classifier accuracy but does not alter this grouping. The simultaneous subject-cluster intervals turn a non-significant difference into a positive, margin-relative equivalence statement for RP, GASF, and GADF; TOST agrees.
 
