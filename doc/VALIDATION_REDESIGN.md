@@ -6,6 +6,21 @@
 > hacia la pregunta que importa para el objetivo futuro (augmentación generativa):
 > **¿qué ocurre cuando la imagen no es la salida perfecta del encoder?**
 
+## Scope (delimitación entre este paper y el siguiente)
+
+**Scope of the current paper — controlled reconstruction**
+- Controlled encoder–decoder reconstruction (images are exact encoder outputs).
+- Fidelity of the inversion; local robustness to controlled perturbations.
+- Downstream utility: preservation of original-trained classifier accuracy (train original → test reconstructed).
+- Mathematical delimitation of what each method reconstructs.
+
+**Out of scope / next article — generation & augmentation**
+- Genuinely generated encoding images and their structural validity.
+- Physical-scale prediction for generated samples (no source window ⇒ device metadata or generator estimate).
+- Synthetic-data transfer and augmentation: train-synthetic/test-real, real+synthetic→real, real-vs-synthetic discriminator, coverage/diversity/duplication, mode collapse (TimeGAN-style predictive/discriminative diagnostics).
+
+The current paper keeps only a single forward-looking sentence about generation (abstract/conclusion); the detailed generative protocol lives in the next article.
+
 ## v2 del paper
 
 `doc/main2.tex` es el borrador v2 (derivado de `main.tex`) con la redesign

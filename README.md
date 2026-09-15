@@ -16,13 +16,13 @@ The core contribution is a controlled, apples-to-apples comparison of four encod
 
 The benchmark is deliberately multi-lens: visual inspection, pointwise reconstruction error, polynomial-trend similarity, and downstream classification with KNN, SVM, Random Forest, LSTM, GRU, and CNN.
 
-The paper draft is [doc/main.tex](doc/main.tex). The workflow diagram source is [doc/workflow_overview.md](doc/workflow_overview.md).
+The paper draft is [doc/main2.tex](doc/main2.tex). The workflow diagram source is [doc/workflow_overview.md](doc/workflow_overview.md).
 
 ---
 
 ## Why This Repo Matters
 
-The headline result from [doc/main.tex](doc/main.tex) is that image encodings can be made genuinely reversible under a controlled protocol, but the word "best" depends on what the reconstructed signal is used for.
+The headline result from [doc/main2.tex](doc/main2.tex) is that image encodings can be made genuinely reversible under a controlled protocol, but the word "best" depends on what the reconstructed signal is used for.
 
 What is new here:
 
@@ -62,7 +62,7 @@ Practical recommendation:
 
 Scope note: these numbers do not prove unconstrained generative augmentation. The decoders assume controlled encoder-side metadata such as min/max scale, sign convention, quantisation branch, or equivalent calibration. That is exactly why the benchmark is useful: it separates "can this image representation be inverted under known conditions?" from "can a generator synthesize physically calibrated signals without extra metadata?"
 
-Detailed result tables live inline in the Results/Discussion sections of [doc/main.tex](doc/main.tex).
+Detailed result tables live inline in the Results/Discussion sections of [doc/main2.tex](doc/main2.tex).
 
 ---
 
@@ -219,7 +219,7 @@ Path conventions are centralized in [src/paths.py](src/paths.py):
 
 ## Paper Utilities
 
-All paper tables (LOTO and LOSO) are inline in the single self-contained source [doc/main.tex](doc/main.tex).
+All paper tables (LOTO and LOSO) are inline in the single self-contained source [doc/main2.tex](doc/main2.tex).
 
 Useful checks:
 
@@ -256,7 +256,8 @@ No command here compiles the paper; these scripts only check consistency between
     *validation.py            classifier validators
     _*.py / _*.sh             paper, audit, smoke, and batch helper scripts
   doc/
-    main.tex                  paper draft (all tables inline)
+    main2.tex                 paper draft, Elsevier build (all tables inline)
+    supplementary.tex         supplementary material (\externaldocument{main2})
     workflow_overview.md      pipeline diagram source
   docs/
     experiments/              supporting experiment notes
