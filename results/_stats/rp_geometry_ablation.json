@@ -1,0 +1,55 @@
+{
+  "design": {
+    "n_windows": 100,
+    "rho": 0.6,
+    "png_inversion": "diagonal metadata-free except explicit signal-range control",
+    "orientation": "closed_form for all 2-D arms",
+    "sampling": "loto/3-fold/fold-0/test"
+  },
+  "variants": {
+    "Adopted metadata-free + signed": {
+      "MAE": 0.009482223931440398,
+      "MedianMAE": 0.007814786168263907,
+      "MSE": 0.000283535363151961,
+      "Pearson": 0.9999979196542073,
+      "E_RP": 0.06516376570608555,
+      "E_overlap": 0.14237210751429322,
+      "EVR2": 0.9438834324763072,
+      "Stress": 0.00838356480638815,
+      "Time_ms": 337.4786746899997
+    },
+    "Incorrect signal-range inversion": {
+      "MAE": 1.2585593750902122,
+      "MedianMAE": 1.0572230185085247,
+      "MSE": 7.011974343308486,
+      "Pearson": 0.940553925865159,
+      "E_RP": 1.0709429200810374,
+      "E_overlap": 0.690929086017453,
+      "EVR2": 0.21808848874712997,
+      "Stress": 0.620334197794823,
+      "Time_ms": 334.5872988199996
+    },
+    "Without signed selection": {
+      "MAE": 2.0331740704859915,
+      "MedianMAE": 1.2765111452956197,
+      "MSE": 27.787963780360165,
+      "Pearson": 0.7894830041901122,
+      "E_RP": 0.8800777875515589,
+      "E_overlap": 0.14237210751429322,
+      "EVR2": 0.9438834324763072,
+      "Stress": 0.00838356480638815,
+      "Time_ms": 76.96064384000096
+    },
+    "Legacy Jaccard 1-D": {
+      "MAE": 2.159614671246999,
+      "MedianMAE": 1.856729788084879,
+      "MSE": 13.402628847972087,
+      "Pearson": 0.9186548160742762,
+      "E_RP": 0.7109826287861243,
+      "E_overlap": null,
+      "EVR2": 0.728710773473061,
+      "Stress": 0.20533303055317556,
+      "Time_ms": 240.45978572000095
+    }
+  }
+}
