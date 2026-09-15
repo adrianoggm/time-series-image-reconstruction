@@ -574,7 +574,7 @@ Under the restricted normalisation $\bar x_i\in[-\alpha,\alpha]$, the largest po
 For $\alpha=0.7$, this bound is approximately $0.9998$, and every non-constant window attains it, because the restricted normalisation places one sample at $-\alpha$ and another at $+\alpha$. The encoder's per-window min--max map is therefore exactly the fixed map $[-0.9998,0.9998]\to[0,255]$, whereas the decoder inverts the image with $[-1,1]$ and so applies a deterministic gain of $1.00013$. The resulting discrepancy is about $2\times10^{-4}$ at either endpoint, below one 8-bit intensity step. This is a deterministic consequence of the declared branch restriction, not an empirical estimate, and is why no per-window range metadata is needed.
 
 \paragraph*{Pivot-ensemble size.}
-Averaging the reconstruction over the $n_p$ most-central rows, rather than using a single pivot, is the second numerical choice. Table~\ref{tab:supp_gadf_npivots} reports a descriptive sweep on 1,500 windows drawn without replacement from the complete WISDM window set with seed 0. On this sample, pointwise error falls monotonically from a single pivot ($0.0353$) to five ($0.0158$, the fixed headline setting) and continues to $0.0119$ at $n_p=9$. The measured wall-clock differences are small because each additional pivot adds an $O(N)$ pass over an already-loaded matrix; these timings describe this implementation run and are not intended as a portable hardware benchmark. The sweep shows the effect of averaging but is not used to revise the already fixed headline configuration.
+Averaging the reconstruction over the $n_p$ most-central rows, rather than using a single pivot, is the second numerical choice. Table~\ref{tab:supp_gadf_npivots} reports a descriptive sweep on 1,500 windows drawn without replacement from the complete WISDM window set with seed 0. On this sample, pointwise error falls monotonically from a single pivot ($0.0353$) to five ($0.0158$, the fixed headline setting) and continues to $0.0119$ at $n_p=9$. The measured wall-clock differences are small because each additional pivot adds only an $O(N)$ pass over an already-loaded matrix, and they sit within the run-to-run noise of this machine rather than ordering with $n_p$; the timings describe one implementation run and are not a portable hardware benchmark. The sweep shows the effect of averaging but is not used to revise the already fixed headline configuration.
 
 \begin{table}[!htbp]
 \centering
@@ -587,7 +587,7 @@ Averaging the reconstruction over the $n_p$ most-central rows, rather than using
 $n_p$ & 1 & 3 & 5 & 7 & 9 \\
 \midrule
 MAE (8-bit PNG) & $0.0353$ & $0.0206$ & $\mathbf{0.0158}$ & $0.0134$ & $0.0119$ \\
-Time (ms/axis)  & $1.54$ & $1.55$ & $1.57$ & $1.58$ & $1.59$ \\
+Time (ms/axis)  & $1.82$ & $1.75$ & $2.03$ & $1.95$ & $1.83$ \\
 \bottomrule
 \end{tabular}
 \end{table}
