@@ -1,0 +1,17 @@
+\begin{table}[H]
+\centering
+\caption{Compact fidelity and spectral reconstruction metrics over all $N=8172$ pooled windows (mean$\pm$std across windows, averaged over the three axes). NMAE/NRMSE and $\Delta$-NMAE are normalised by each window's amplitude range; PSD-shape distance compares unit-mass spectra, and dominant-frequency error comes from Welch periodograms ($f_s=20$\,Hz). This replaces the cubic-polynomial coefficient distances.}
+\label{tab:fidelity_spectral}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Method} & \textbf{NMAE} & \textbf{NRMSE} & \textbf{Pearson} & \textbf{$\Delta$-NMAE} & \textbf{PSD-shape dist.} & \textbf{Dom.-freq.\ err.\ (Hz)} \\
+\midrule
+RP & $0.0010 \pm 0.0007$ & $0.0012 \pm 0.0009$ & $0.99998 \pm 0.00005$ & $0.0012 \pm 0.0008$ & $0.0040 \pm 0.0022$ & $0.007 \pm 0.107$ \\
+GASF & $0.0015 \pm 0.0006$ & $0.0028 \pm 0.0012$ & $0.99988 \pm 0.00014$ & $0.0021 \pm 0.0007$ & $0.0071 \pm 0.0051$ & $0.007 \pm 0.085$ \\
+GADF & $0.0013 \pm 0.0005$ & $0.0014 \pm 0.0006$ & $0.99999 \pm 0.00001$ & $0.0009 \pm 0.0003$ & $0.0026 \pm 0.0019$ & $0.005 \pm 0.081$ \\
+MTF & $0.278 \pm 0.080$ & $0.326 \pm 0.091$ & $0.014 \pm 0.489$ & $0.202 \pm 0.069$ & $0.362 \pm 0.181$ & $0.573 \pm 1.111$ \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
