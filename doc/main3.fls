@@ -388,7 +388,17 @@ INPUT ./images/mtf_sample_0_global.png
 INPUT /usr/share/texmf/fonts/tfm/public/lm/rm-lmbx10.tfm
 INPUT /usr/share/texmf/fonts/tfm/public/lm/rm-lmbx7.tfm
 INPUT /usr/share/texmf/fonts/tfm/public/lm/rm-lmbx5.tfm
+INPUT ./images/robustness_curves.pdf
+INPUT ./images/robustness_curves.pdf
+INPUT ./images/robustness_curves.pdf
+INPUT ./images/robustness_curves.pdf
+INPUT ./images/robustness_curves.pdf
 INPUT /usr/share/texmf/fonts/tfm/public/lm/rm-lmbx10.tfm
+INPUT ./images/equivalence_forest.pdf
+INPUT ./images/equivalence_forest.pdf
+INPUT ./images/equivalence_forest.pdf
+INPUT ./images/equivalence_forest.pdf
+INPUT ./images/equivalence_forest.pdf
 INPUT /usr/share/texmf/tex/latex/lm/t1lmtt.fd
 INPUT /usr/share/texmf/tex/latex/lm/t1lmtt.fd
 INPUT /usr/share/texmf/tex/latex/lm/t1lmtt.fd
