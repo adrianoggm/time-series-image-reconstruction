@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1790690689.76899 "main3.tex" "main3.pdf" "main3" 1790690695.19651 0
+["pdflatex"] 1790691826.57997 "main3.tex" "main3.pdf" "main3" 1790691830.81729 0
   "/etc/texmf/web2c/texmf.cnf" 1779395303.61325 475 c0e671620eb5563b2130f56340a5fde8 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/ecrm1200.tfm" 1136768653 3584 f80ddd985bd00e29e9a6047ebd9d4781 ""
@@ -158,7 +158,7 @@
   "/usr/share/texmf/fonts/tfm/public/lm/ec-lmss8.tfm" 1254269338 11180 705632ac6b4fb69204ad970192cdf4e5 ""
   "/usr/share/texmf/fonts/tfm/public/lm/ec-lmssbx10.tfm" 1254269338 11168 06d87f5698fd1b642d96449b7c8d90b0 ""
   "/usr/share/texmf/fonts/tfm/public/lm/ec-lmsso8.tfm" 1254269338 11312 6908420b41cb9ad797e206f7391721ea ""
-  "/usr/share/texmf/fonts/tfm/public/lm/ec-lmtt12.tfm" 1254269338 1368 6a60e6a5e029141041d64d339b87e533 ""
+  "/usr/share/texmf/fonts/tfm/public/lm/ec-lmtt10.tfm" 1254269338 1372 2ef2c2b492b3c4cd7879fe083abbb061 ""
   "/usr/share/texmf/fonts/tfm/public/lm/lmex10.tfm" 1148093231 992 ce925c9346c7613270a79afbee98c070 ""
   "/usr/share/texmf/fonts/tfm/public/lm/lmmi10.tfm" 1148093231 1528 6d36b2385e0ca062a654de6ac59cb34f ""
   "/usr/share/texmf/fonts/tfm/public/lm/lmmi12.tfm" 1148093231 1524 753b192b18f2991794f9d41a8228510b ""
@@ -205,7 +205,7 @@
   "/usr/share/texmf/fonts/type1/public/lm/lmsy10.pfb" 1254269338 27863 09ce3735688ffde955e72da27c95b61a ""
   "/usr/share/texmf/fonts/type1/public/lm/lmsy7.pfb" 1254269338 27941 d1f5d03f61a46c3fcc3a2ba904ddda52 ""
   "/usr/share/texmf/fonts/type1/public/lm/lmsy8.pfb" 1254269338 27802 5c876bb2c4040caaf035d60bd74a86bd ""
-  "/usr/share/texmf/fonts/type1/public/lm/lmtt12.pfb" 1255129361 110323 92daea7ca7b4120bd2b54b047c93be27 ""
+  "/usr/share/texmf/fonts/type1/public/lm/lmtt10.pfb" 1255129361 113227 1010e11451afc2822c95dae77c390042 ""
   "/usr/share/texmf/tex/latex/lm/lmodern.sty" 1616454256 1608 b00724785a9e9c599e5181bb8729160b ""
   "/usr/share/texmf/tex/latex/lm/omllmm.fd" 1616454256 890 57f5adccd504fb5c98bdf99ed7e7f195 ""
   "/usr/share/texmf/tex/latex/lm/omslmsy.fd" 1616454256 807 3de192f3efa968913bd2f096a7b430d8 ""
@@ -223,14 +223,11 @@
   "images/1600x0tmtf.png" 1779391254.87183 10075 4a47206a6d4b32775129bab002b48596 ""
   "images/1600xtrp0.png" 1779391254.34345 32599 cb7a35179a6c31b1cc1b95c3edfef8a4 ""
   "images/equivalence_forest.pdf" 1790689670.69591 22634 9470a4a8d9b1cf0277f63c3ace7786ae ""
-  "images/gadf_sample_0_global.png" 1783868900.86045 274841 bf0894f0df848a1eae7cb560ec4d6552 ""
-  "images/gaf_sample_0_global.png" 1783868900.6545 274450 26bba1f16834d7bf0072adb817778d06 ""
-  "images/mtf_sample_0_global.png" 1783868901.14721 353722 9852cf3b75f9594b148c2dbe966903db ""
+  "images/reconstruction_grid.pdf" 1790691461.90643 37531 7fb4b0b623778e4f38926ed796100ef3 ""
   "images/robustness_curves.pdf" 1790689670.45667 18772 983f00e3719b6d056524d246e1e8f8e9 ""
-  "images/rp_sample_0_global.png" 1785328208.28641 272995 1edd011524da485afbd11fa4a382082f ""
-  "main3.aux" 1790690694.77852 13100 5fd65a367d8f3fd2afe6b0f0675f83d3 "pdflatex"
-  "main3.spl" 1790690690.2752 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "main3.tex" 1790690652.96869 72644 7f596d0f4ed4270bfbf9a0941cf3439b ""
+  "main3.aux" 1790691830.2432 13347 af6aef45a951c38e77d42a25a533ebf3 "pdflatex"
+  "main3.spl" 1790691827.0636 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "main3.tex" 1790691802.74653 72328 cd47afd2b61312a79346588df5aa75e1 ""
   (generated)
   "main3.aux"
   "main3.log"
