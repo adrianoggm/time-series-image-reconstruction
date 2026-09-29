@@ -120,13 +120,17 @@ scripts/_*.py
 !scripts/_check_refs.py
 !scripts/_check_rp_cycle.sh
 !scripts/_compile_papers.sh
-!scripts/_run_audit_manuscripts.sh
 !scripts/_emit_main2_numbers.py
+!scripts/_gadf_pivot_stats.py
 !scripts/_make_error_tables.py
 !scripts/_make_fidelity_tables.py
 !scripts/_make_loso_tables.py
 !scripts/_make_robustness_tables.py
+!scripts/_mtf_controlled_ablation.py
+!scripts/_persist_paper_sources.sh
 !scripts/_regen_reconstruction_figs.py
+!scripts/_run_audit_manuscripts.sh
+!scripts/_stat_per_subject.py
 !scripts/_stat_tests.py
 
 !results/
@@ -136,7 +140,11 @@ results/_stats/*
 !results/_stats/error_tables.tex
 !results/_stats/fidelity_metrics.json
 !results/_stats/fidelity_tables.tex
+!results/_stats/gadf_pivot_sweep.json
+!results/_stats/gadf_pivot_sweep.tex
 !results/_stats/loso_tables.tex
+!results/_stats/mtf_decoder_ablation.json
+!results/_stats/per_subject_mae_loto.json
 !results/_stats/robustness.json
 !results/_stats/robustness_tables.tex
 !results/_stats/rp_closed_form_regen.json
