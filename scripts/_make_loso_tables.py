@@ -16,7 +16,6 @@ from pathlib import Path
 import numpy as np
 
 ROOT = Path(__file__).resolve().parent.parent / "results"
-ORIGINALS_DIR = ROOT / "_originals"
 
 CLASSIFIERS = [
     ("gru",          "GRU"),
@@ -45,9 +44,18 @@ def _load_recon(stype, clf, sampling, fold):
 
 
 def _load_orig(clf, sampling, fold):
-    """LOSO/LOTO original-report caches share the same filename pattern."""
-    p = ORIGINALS_DIR / clf / f"fold-{fold}-{sampling}-3f.json"
-    return json.loads(p.read_text(encoding="utf-8"))
+    """Report on the un-reconstructed windows for one (classifier, fold).
+
+    Read from the first available encoder's fold JSON rather than from the
+    ``results/_originals`` cache. The Original block is model-only and therefore
+    identical across encoders, whereas the cache is not versioned and has gone
+    stale before, silently shifting the Original column of these tables.
+    """
+    for stype, _label in STYPES:
+        p = ROOT / stype / clf / sampling / f"fold-{fold}.json"
+        if p.exists():
+            return json.loads(p.read_text(encoding="utf-8"))["evaluations"]["original"]
+    raise FileNotFoundError(f"no fold-{fold}.json for {clf}/{sampling} under {ROOT}")
 
 
 def build_summary(sampling: str, label_suffix: str, caption: str) -> str:
