@@ -220,9 +220,9 @@ INPUT /usr/share/texlive/texmf-dist/tex/latex/microtype/microtype.cfg
 INPUT /usr/share/texlive/texmf-dist/tex/latex/microtype/microtype.cfg
 INPUT /usr/share/texlive/texmf-dist/tex/latex/tools/xr.sty
 INPUT /usr/share/texlive/texmf-dist/tex/latex/tools/xr.sty
-INPUT ./main2.tex
-INPUT ./main2.tex
-INPUT main2.aux
+INPUT ./main3.tex
+INPUT ./main3.tex
+INPUT main3.aux
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarypositioning.code.tex
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarypositioning.code.tex
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/libraries/pgflibraryarrows.meta.code.tex
