@@ -152,6 +152,43 @@ def plot_per_axis(signal: np.ndarray, rec: np.ndarray, axis: int,
     print(f"  wrote {out_name}")
 
 
+def plot_reconstruction_grid(signal: np.ndarray, recs: dict, out_name: str) -> None:
+    """The four reconstructions as one 2x2 panel with a shared legend.
+
+    The per-encoder figures each carry their own title and a six-entry legend,
+    which together eat about a third of the width. Dropping both and sharing
+    the axes leaves the data far larger at the same figure size, which is what
+    the main manuscript needs when the four panels sit side by side.
+    """
+    order = [("rp", "(a) RP"), ("gaf", "(b) GASF"),
+             ("gadf", "(c) GADF"), ("mtf", "(d) MTF")]
+    palette = sns.color_palette("tab10", 6)
+    style = {"axes.titlesize": 10, "axes.labelsize": 10, "xtick.labelsize": 9,
+             "ytick.labelsize": 9, "legend.fontsize": 9, "lines.linewidth": 1.1,
+             "pdf.fonttype": 42}
+    with plt.rc_context(style):
+        fig, axes = plt.subplots(2, 2, figsize=(7.4, 4.6), sharex=True, sharey=True)
+        for ax, (short, label) in zip(axes.ravel(), order):
+            rec = _pad_to_N(np.asarray(recs[short]), signal.shape[0])
+            for k, axis_name in enumerate("xyz"):
+                ax.plot(signal[:, k], color=palette[2 * k], label=f"Original {axis_name}")
+                ax.plot(rec[k], color=palette[2 * k + 1], linestyle="--",
+                        label=f"Reconstructed {axis_name}")
+            ax.set_title(label, loc="left", pad=3)
+            ax.grid(True, linewidth=0.4, alpha=0.4)
+        for ax in axes[-1]:
+            ax.set_xlabel("Time step")
+        for ax in axes[:, 0]:
+            ax.set_ylabel(r"Signal value (m/s$^2$)")
+        handles, labels = axes[0, 0].get_legend_handles_labels()
+        fig.legend(handles, labels, loc="lower center", ncol=6, frameon=False,
+                   bbox_to_anchor=(0.5, -0.02), columnspacing=1.3, handlelength=1.8)
+        fig.tight_layout(pad=0.4, rect=(0, 0.045, 1, 1))
+        fig.savefig(os.path.join(OUT, out_name), bbox_inches="tight")
+        plt.close(fig)
+    print(f"  wrote {out_name}")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--only-rp", action="store_true",
@@ -191,6 +228,11 @@ def main() -> None:
         rec = encode_decode(wisdm, enc)
         reconstructions[short] = rec
         plot_global(wisdm, rec, fname, title)
+
+    # Composite panel used as the qualitative figure of the main manuscript.
+    if len(reconstructions) == 4:
+        print("WISDM 1600x0 composite grid:")
+        plot_reconstruction_grid(wisdm, reconstructions, "reconstruction_grid.pdf")
 
     # -------- WISDM per-axis (all four encoders so they're symmetric) --------
     print("WISDM 1600x0 reconstructions (per axis):")
