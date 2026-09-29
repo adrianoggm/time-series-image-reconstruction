@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1790680532.42555 "main2.tex" "main2.pdf" "main2" 1790680538.38412 0
+["pdflatex"] 1790682788.01882 "main2.tex" "main2.pdf" "main2" 1790682793.3447 0
   "/etc/texmf/web2c/texmf.cnf" 1779395303.61325 475 c0e671620eb5563b2130f56340a5fde8 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/ecrm1000.tfm" 1136768653 3584 adb004a0c8e7c46ee66cad73671f37b4 ""
@@ -234,8 +234,8 @@
   "images/gaf_sample_0_global.png" 1783868900.6545 274450 26bba1f16834d7bf0072adb817778d06 ""
   "images/mtf_sample_0_global.png" 1783868901.14721 353722 9852cf3b75f9594b148c2dbe966903db ""
   "images/rp_sample_0_global.png" 1785328208.28641 272995 1edd011524da485afbd11fa4a382082f ""
-  "main2.aux" 1790680537.89502 13367 63e49035444046b47568da894d810579 "pdflatex"
-  "main2.spl" 1790680532.89695 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "main2.aux" 1790682792.8789 13367 63e49035444046b47568da894d810579 "pdflatex"
+  "main2.spl" 1790682788.44764 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
   "main2.tex" 1790680428.69577 84897 1034b49e58995c0f7004a24a52148471 ""
   (generated)
   "main2.aux"
