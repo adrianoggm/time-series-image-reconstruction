@@ -105,7 +105,21 @@ python scripts/_check_refs.py            # broken/unused \label/\ref in doc/main
 python scripts/_verify_error_tables.py   # pointwise tables vs .npy reconstructions (runs in WSL)
 ```
 
-`scripts/_verify_paper_tables.py` is **obsolete**: it reads the deleted `doc/main.tex` and the stale `.results_snapshot/`. Use [scripts/_emit_main2_numbers.py](scripts/_emit_main2_numbers.py) instead — it emits the classification and equivalence table rows straight from the live `results/` tree and the regenerated stat reports. `scripts/_make_accuracy_tables.py` and `_make_loso_tables.py` also read `.results_snapshot/`, not `results/`.
+`scripts/_verify_paper_tables.py` and `scripts/_make_accuracy_tables.py` are **obsolete**: they read the deleted `doc/main.tex` and the stale `.results_snapshot/`. Use [scripts/_emit_main2_numbers.py](scripts/_emit_main2_numbers.py) instead — it emits the classification and equivalence table rows straight from the live `results/` tree and the regenerated stat reports. `_make_loso_tables.py` reads the live tree too.
+
+### Every printed number needs a stored source
+
+| Artefact under `results/_stats/` | Generator |
+|---|---|
+| `per_subject_mae_<sampling>.json` | `scripts/_stat_per_subject.py` — subject-clustered Wilcoxon on per-window MAE, Holm-corrected over the six encoder pairs |
+| `gadf_pivot_sweep.{json,tex}` | `scripts/_gadf_pivot_stats.py --n 1500` |
+| `mtf_decoder_ablation.json` | `scripts/_mtf_controlled_ablation.py` |
+
+[scripts/_persist_paper_sources.sh](scripts/_persist_paper_sources.sh) regenerates all three in WSL and copies them back to the Windows checkout. These three used to print to stdout only, which left three supplementary tables untraceable.
+
+[scripts/audit_manuscripts.py](scripts/audit_manuscripts.py) recomputes the pointwise and classification tables straight from the reconstruction arrays and writes `docs/audit/numerical_evidence.json`. Its `--compare-root` must name the **other** checkout; pointed at its own tree the cross-checkout diff is skipped rather than silently reporting "no differences".
+
+**`results/_originals/` is a cache, not a source.** It is untracked and has gone stale before: its CNN entries disagreed with the `original` block of the fold JSONs, which is what the paper actually reports. Table generators must read the Original column from any encoder's `results/<stype>/<clf>/<sampling>/fold-<k>.json`, as `_emit_main2_numbers.py` and `_make_loso_tables.py` now do.
 
 ## Aggregating results
 
