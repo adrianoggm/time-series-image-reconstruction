@@ -69,6 +69,9 @@
 \setlength{\floatsep}{8pt plus 2pt minus 2pt}
 \setlength{\intextsep}{8pt plus 2pt minus 2pt}
 \raggedbottom{}
+% Single column at 12pt leaves fewer break points than the 5p build, so let TeX
+% stretch a difficult paragraph rather than overflow the margin.
+\setlength{\emergencystretch}{2em}
 \hyphenation{op-tical net-works semi-conduc-tor}
 
 
@@ -130,6 +133,9 @@ The main contributions are:
 
 \begin{figure}[!tbp]
 \centering
+% The workflow diagram was laid out for a full two-column width; scale it to the
+% single-column text block of this build.
+\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
   font=\sffamily\footnotesize,
   node distance=8mm,
@@ -159,7 +165,7 @@ The main contributions are:
     \textbf{MTF:}\enspace Fiedler-ordered representative (lossy control)};
   \node[dlabel, above=1mm of methods.north west, anchor=south west] {Decoder $\mathcal D_m$ by method};
   \draw[arrow] (decode.south) -- (decode.south |- methods.north);
-\end{tikzpicture}
+\end{tikzpicture}}
 \caption{Controlled reconstruction workflow. Each axis is normalised, encoded, and stored as an 8-bit image channel, then decoded in its method-specific normalised domain and optionally returned to physical units with per-axis calibration. The lower box expands the method-specific decoder $\mathcal D_m$.}\label{fig:workflow_overview}
 \end{figure}
 
@@ -649,14 +655,18 @@ McNemar difference tests are secondary because failure to reject a difference do
 \begin{table}[!htbp]
 \centering
 \caption{Subject-level classification equivalence under grouped subject-out validation. The primary family comprises 18 simultaneous subject-cluster bootstrap intervals (six classifiers by RP/GASF/GADF); the six MTF negative-control comparisons form a separate family (51 subjects, \(10^4\) joint resamples per family). For each method, ``most boundary-near'' is the single simultaneous interval whose endpoint lies closest to the equivalence margin, with the classifier it comes from; all 24 individual intervals are in the Supplementary Material.}\label{tab:equivalence_ci}
-\begin{tabular}{lcccc}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccccc}
 \toprule
-Method & Mean \(\Delta\)acc range & Most boundary-near 95\% CI (classifier) & Equiv.\ \(\pm0.01\) & Equiv.\ \(\pm0.02\) \\
+ & & \multicolumn{2}{c}{Boundary-near 95\% CI} & \multicolumn{2}{c}{Equivalent} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+Method & Mean \(\Delta\)acc range & Interval & Classifier & \(\pm0.01\) & \(\pm0.02\) \\
 \midrule
-RP   & \([-0.0004,+0.0006]\) & \([-0.0016,+0.0027]\)~(RF)  & 6/6 & 6/6 \\
-GASF & \([-0.0006,+0.0003]\) & \([-0.0027,+0.0016]\)~(RF)  & 6/6 & 6/6 \\
-GADF & \([-0.0005,+0.0008]\) & \([-0.0013,+0.0030]\)~(SVM) & 6/6 & 6/6 \\
-MTF  & \([+0.0474,+0.1144]\) & \([+0.0212,+0.0736]\)~(KNN) & 0/6 & 0/6 \\
+RP   & \([-0.0004,+0.0006]\) & \([-0.0016,+0.0027]\) & RF  & 6/6 & 6/6 \\
+GASF & \([-0.0006,+0.0003]\) & \([-0.0027,+0.0016]\) & RF  & 6/6 & 6/6 \\
+GADF & \([-0.0005,+0.0008]\) & \([-0.0013,+0.0030]\) & SVM & 6/6 & 6/6 \\
+MTF  & \([+0.0474,+0.1144]\) & \([+0.0212,+0.0736]\) & KNN & 0/6 & 0/6 \\
 \bottomrule
 \end{tabular}
 \end{table}
