@@ -125,6 +125,7 @@ scripts/_*.py
 !scripts/_make_error_tables.py
 !scripts/_make_fidelity_tables.py
 !scripts/_make_loso_tables.py
+!scripts/_make_paper_figures.py
 !scripts/_make_robustness_tables.py
 !scripts/_mtf_controlled_ablation.py
 !scripts/_persist_paper_sources.sh
