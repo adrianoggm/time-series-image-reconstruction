@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1789473301.77573 "supplementary.tex" "supplementary.pdf" "supplementary" 1789473308.67585 0
+["pdflatex"] 1790680555.85762 "supplementary.tex" "supplementary.pdf" "supplementary" 1790680562.39915 0
   "/etc/texmf/web2c/texmf.cnf" 1779395303.61325 475 c0e671620eb5563b2130f56340a5fde8 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/ecrm1000.tfm" 1136768653 3584 adb004a0c8e7c46ee66cad73671f37b4 ""
@@ -248,10 +248,10 @@
   "images/mtf_sample_0_y_comp.png" 1783868902.83202 175962 8ba01c70a93c3d258b45c1c4061e2d24 ""
   "images/mtf_sample_0_z_comp.png" 1783868903.02058 149398 fe256ffaa4f068673d52efc00f4d50c4 ""
   "images/rp_gadf_structure_collage.png" 1780037593.74541 324101 c417c1083dd6c368bbebaf6b965d255c ""
-  "main2.aux" 1789473294.10524 13367 63e49035444046b47568da894d810579 ""
-  "main2.tex" 1789473265.38427 83996 bccab834ef90a3bbc657e58475931238 ""
-  "supplementary.aux" 1789473308.08773 19040 fb19f4da4e53acdeade97b7a840204fc "pdflatex"
-  "supplementary.tex" 1789473234.39692 80146 5b21b30ce1dc22e2801dc018bb3ce567 ""
+  "main2.aux" 1790680537.89502 13367 63e49035444046b47568da894d810579 ""
+  "main2.tex" 1790680428.69577 84897 1034b49e58995c0f7004a24a52148471 ""
+  "supplementary.aux" 1790680561.85714 19040 fb19f4da4e53acdeade97b7a840204fc "pdflatex"
+  "supplementary.tex" 1789478907.20126 80226 2c93e171b12bc23321047826461a8488 ""
   (generated)
   "supplementary.aux"
   "supplementary.log"
