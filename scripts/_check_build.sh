@@ -1,24 +1,31 @@
 #!/usr/bin/env bash
-# Post-build verification: undefined refs/citations, bad boxes, and label presence.
+# Strict gate: rebuild each document until latexmk reports it stable, then fail
+# loudly if the FINAL pass still has an undefined reference or citation.
 set -uo pipefail
 DOC=/mnt/c/Users/adriano.garcia/Desktop/Developer/TFG-Tratamiento-de-Series-Temporales/doc
 cd "$DOC"
+status=0
 
-for f in main2 supplementary; do
-  echo "########## $f.log ##########"
-  if [ ! -f "$f.log" ]; then echo "no log"; continue; fi
-  echo "-- undefined refs / citations --"
-  grep -Ei 'Warning: Reference|Warning: Citation|There were undefined' "$f.log" | sort -u | head -20 \
-    || true
-  echo "-- overfull hboxes > 10pt --"
-  grep -Eo 'Overfull \\hbox \([0-9]+\.[0-9]+pt' "$f.log" \
-    | awk -F'[(]' '{gsub("pt","",$2); if ($2+0 > 10) print $0}' | sort -u | head -15 || true
-  echo "-- rerun requested? --"
-  grep -Ei 'Rerun to get|Label\(s\) may have changed' "$f.log" | sort -u || echo "no rerun needed"
-  echo
+for f in main2 main3 supplementary; do
+  echo "########## $f ##########"
+  latexmk -pdf -interaction=nonstopmode -halt-on-error -file-line-error "$f.tex" \
+    > "/tmp/$f.check.log" 2>&1
+  rc=$?
+  if [ "$rc" -ne 0 ]; then
+    echo "  BUILD FAILED (latexmk exit=$rc)"
+    grep -E '^\./|^!|Fatal' "/tmp/$f.check.log" | head -15
+    status=1
+    continue
+  fi
+  # A stable build re-runs nothing; ask latexmk what it would still do.
+  latexmk -pdf -interaction=nonstopmode "$f.tex" > "/tmp/$f.stable.log" 2>&1
+  undef=$(grep -cE "LaTeX Warning: (Reference|Citation) .* undefined" "/tmp/$f.stable.log")
+  over=$(grep -cE 'Overfull \\hbox \([0-9]{2,}' "/tmp/$f.stable.log")
+  pages=$(pdfinfo "$f.pdf" 2>/dev/null | awk '/^Pages/{print $2}')
+  echo "  ok  pages=$pages  undefined=$undef  overfull(>=10pt)=$over"
+  [ "$undef" -eq 0 ] || { echo "  --- undefined ---"; grep -E "LaTeX Warning: (Reference|Citation) .* undefined" "/tmp/$f.stable.log" | sort -u | head -10; status=1; }
 done
 
-echo "########## new labels present in supplementary.aux ##########"
-grep -c 'supp_rp_orientation' supplementary.aux || echo 0
-echo "########## PDF timestamps vs sources ##########"
-ls -l --time-style=+%H:%M:%S main2.tex main2.pdf supplementary.tex supplementary.pdf
+echo
+[ "$status" -eq 0 ] && echo "ALL BUILDS CLEAN" || echo "BUILD GATE FAILED"
+exit $status

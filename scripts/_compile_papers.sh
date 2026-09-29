@@ -5,7 +5,7 @@ set -uo pipefail
 DOC=/mnt/c/Users/adriano.garcia/Desktop/Developer/TFG-Tratamiento-de-Series-Temporales/doc
 cd "$DOC"
 
-for f in main2 supplementary; do
+for f in main2 main3 supplementary; do
   echo "########## $f ##########"
   latexmk -pdf -interaction=nonstopmode -halt-on-error -file-line-error "$f.tex" \
     > "/tmp/$f.build.log" 2>&1
@@ -24,7 +24,7 @@ for f in main2 supplementary; do
 done
 
 echo "########## page counts ##########"
-for f in main2 supplementary; do
+for f in main2 main3 supplementary; do
   printf '%-16s ' "$f.pdf"
   pdfinfo "$f.pdf" 2>/dev/null | grep -i '^Pages' || echo "(pdfinfo unavailable)"
 done
