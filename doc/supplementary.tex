@@ -20,7 +20,10 @@
 \usepackage{pdflscape}
 \usepackage{microtype}
 \usepackage{xr}
-\externaldocument{main2}
+% Cross-references resolve against the submission manuscript, main3. Its merged
+% fidelity table shifts the numbering of every table from the third onward, so
+% building this supplement against main2 would print the wrong table numbers.
+\externaldocument{main3}
 \usetikzlibrary{positioning,arrows.meta,shapes.geometric,fit,backgrounds,calc}
 % --- Workflow-overview figure palette (mirrors the Mermaid version in doc/workflow_overview.md) ---
 \definecolor{wfIndigo}{HTML}{312E81}
@@ -276,20 +279,20 @@ The encoded images and four global reconstructions of WISDM walking window \text
 
 \section{Additional spectral-fidelity metrics}
 
-The main article separates spectral shape from total energy. Table~\ref{tab:supp_spectral_energy} reports the complementary quantities omitted from the compact body table. Energy error is the relative difference in total Welch power; band-shape error is the mean absolute difference in normalised spectral mass over 0--1, 1--3, 3--5, and 5--10\,Hz. Neither quantity is folded into the PSD-shape distance.
+The main article reports a compact fidelity table. Table~\ref{tab:supp_spectral_energy} adds the quantities omitted from it: NRMSE, which normalises the root mean squared error by the same per-window amplitude range as NMAE; the relative difference in total Welch power; and the band-shape error, the mean absolute difference in normalised spectral mass over 0--1, 1--3, 3--5, and 5--10\,Hz. Neither spectral quantity is folded into the PSD-shape distance of the main table.
 
 \begin{table}[H]
 \centering
-\caption{Complementary spectral metrics over 8,172 windows (mean$\pm$std across windows, averaged over axes).}
+\caption{Complementary fidelity and spectral metrics over 8,172 windows (mean$\pm$std across windows, averaged over axes).}
 \label{tab:supp_spectral_energy}
-\begin{tabular}{lcc}
+\begin{tabular}{lccc}
 \toprule
-Method & Relative total-energy error & Band-shape error \\
+Method & NRMSE & Relative total-energy error & Band-shape error \\
 \midrule
-RP   & $0.0030\pm0.0027$ & $0.00083\pm0.00043$ \\
-GASF & $0.0054\pm0.0055$ & $0.00085\pm0.00085$ \\
-GADF & $0.0011\pm0.0009$ & $0.00029\pm0.00021$ \\
-MTF  & $2.199\pm8.844$   & $0.05624\pm0.03692$ \\
+RP   & $0.0012\pm0.0009$ & $0.0030\pm0.0027$ & $0.00083\pm0.00043$ \\
+GASF & $0.0028\pm0.0012$ & $0.0054\pm0.0055$ & $0.00085\pm0.00085$ \\
+GADF & $0.0014\pm0.0006$ & $0.0011\pm0.0009$ & $0.00029\pm0.00021$ \\
+MTF  & $0.326\pm0.091$   & $2.199\pm8.844$   & $0.05624\pm0.03692$ \\
 \bottomrule
 \end{tabular}
 \end{table}
