@@ -115,6 +115,8 @@ python scripts/_verify_error_tables.py   # pointwise tables vs .npy reconstructi
 | `gadf_pivot_sweep.{json,tex}` | `scripts/_gadf_pivot_stats.py --n 1500` |
 | `mtf_decoder_ablation.json` | `scripts/_mtf_controlled_ablation.py` |
 
+The two results figures of the main manuscript are generated the same way, from those artefacts rather than by hand: `scripts/_make_paper_figures.py` reads `robustness.json` and `stat_report_loso.json` and writes `doc/images/robustness_curves.pdf` and `doc/images/equivalence_forest.pdf`. Re-run it after regenerating either statistic.
+
 [scripts/_persist_paper_sources.sh](scripts/_persist_paper_sources.sh) regenerates all three in WSL and copies them back to the Windows checkout. These three used to print to stdout only, which left three supplementary tables untraceable.
 
 [scripts/audit_manuscripts.py](scripts/audit_manuscripts.py) recomputes the pointwise and classification tables straight from the reconstruction arrays and writes `docs/audit/numerical_evidence.json`. Its `--compare-root` must name the **other** checkout; pointed at its own tree the cross-checkout diff is skipped rather than silently reporting "no differences".
