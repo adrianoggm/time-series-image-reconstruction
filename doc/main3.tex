@@ -564,7 +564,7 @@ Figure~\ref{fig:qualitative_main} compares the four reconstructions for the same
 \subfigtext{(d) MTF}
 
 \end{minipage}
-\caption{Original and reconstructed triaxial signals for one WISDM walking window.}\label{fig:qualitative_main}
+\caption{Qualitative reconstruction of one triaxial WISDM walking window from its stored image representation. RP, GASF, and GADF overlap the original waveform closely on all three axes, whereas MTF returns a quantile-level representative trajectory with visible plateaus. The encodings of this same window appear in Figure~\ref{fig:encodings_main}, and the per-axis MTF view that exposes the plateaus is in the Supplementary Material.}\label{fig:qualitative_main}
 \end{figure}
 
 \subsection{Reconstruction fidelity}
@@ -615,6 +615,12 @@ MTF  & $0.2812\pm0.0836$ & $0.2845\pm0.0850$ & $0.2868\pm0.0818$ & $0.2838\pm0.0
 }
 \end{table}
 
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\textwidth]{images/robustness_curves.pdf}
+\caption{Reconstruction stability under Gaussian pixel perturbation. Mean NMAE over the 150 activity-balanced windows at each noise level, with shaded subject-cluster 95\% bootstrap intervals; the vertical axis is logarithmic. RP, GASF, and GADF begin more than two orders of magnitude below MTF and degrade smoothly, RP lowest at every nonzero level, whereas MTF stays near \(0.28\) throughout because its representative reconstruction is already dominated by quantisation loss. Table~\ref{tab:robustness} lists the same means with their between-window dispersion.}\label{fig:robustness_curves}
+\end{figure}
+
 Decoding the same 150 windows from the native floating-point operators separates the error sources. RP, GASF, and GADF reconstruct to numerical precision that way, with mean NMAE below \(10^{-16}\), so their remaining clean error is attributable to 8-bit storage; MTF is already lossy before storage. The full decomposition across the native operator, the clean round trip, and perturbation at \(\sigma=8\) is in the Supplementary Material.
 
 \subsection{Downstream classification}\label{sec:subject_out_results}
@@ -639,7 +645,7 @@ McNemar difference tests are secondary because failure to reject a difference do
 
 \begin{table}[!htbp]
 \centering
-\caption{Subject-level classification equivalence under grouped subject-out validation. The primary family comprises 18 simultaneous subject-cluster bootstrap intervals (six classifiers by RP/GASF/GADF); the six MTF negative-control comparisons form a separate family (51 subjects, \(10^4\) joint resamples per family). For each method, ``most boundary-near'' is the single simultaneous interval whose endpoint lies closest to the equivalence margin, with the classifier it comes from; all 24 individual intervals are in the Supplementary Material.}\label{tab:equivalence_ci}
+\caption{Subject-level classification equivalence under grouped subject-out validation. The primary family comprises 18 simultaneous subject-cluster bootstrap intervals (six classifiers by RP/GASF/GADF); the six MTF negative-control comparisons form a separate family (51 subjects, \(10^4\) joint resamples per family). For each method, ``most boundary-near'' is the single simultaneous interval whose endpoint lies closest to the equivalence margin, with the classifier it comes from. Figure~\ref{fig:equivalence_forest} shows all 24 intervals, which are also tabulated in the Supplementary Material.}\label{tab:equivalence_ci}
 \small
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{lccccc}
@@ -655,6 +661,12 @@ MTF  & \([+0.0474,+0.1144]\) & \([+0.0212,+0.0736]\) & KNN & 0/6 & 0/6 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\textwidth]{images/equivalence_forest.pdf}
+\caption{Subject-level equivalence under grouped subject-out validation. Each row is one classifier--method comparison: the marker is the mean per-subject accuracy difference over the 51 subjects and the bar its simultaneous 95\% subject-cluster bootstrap interval, filled when the whole interval lies inside the \(\pm0.01\) equivalence margin (shaded) and hollow otherwise. Every one of the 18 comparisons in the primary RP/GASF/GADF family falls inside the margin; none of the six MTF controls does. The two panels use different horizontal scales, since the control family sits an order of magnitude further from zero.}\label{fig:equivalence_forest}
+\end{figure}
 
 \subsection{Decoder-mechanism ablations}\label{sec:decoder_ablation}
 
