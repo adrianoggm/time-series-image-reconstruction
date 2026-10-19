@@ -5,7 +5,7 @@
 # Uses `uv` if available (10-100× faster); falls back to standard pip otherwise.
 #
 # Usage:   bash scripts/setup.sh                # core deps
-#          bash scripts/setup.sh hf diffusion   # core + selected extras
+#          bash scripts/setup.sh dev             # core + linting tools
 #          bash scripts/setup.sh all            # everything
 #          TFG_PYTHON=3.11 bash scripts/setup.sh
 
