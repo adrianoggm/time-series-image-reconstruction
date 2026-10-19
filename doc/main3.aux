@@ -14,18 +14,18 @@
 \citation{huamin2020reconstruction}
 \citation{huang2023tsdigan}
 \citation{hellermann2026imagegan}
-\@writefile{toc}{\contentsline {section}{\numberline {2}Background and Related Work}{3}{}\protected@file@percent }
-\newlabel{sec:related_encodings}{{2}{3}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Time-series imaging}{3}{}\protected@file@percent }
-\citation{takens1981detecting}
 \@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Controlled reconstruction workflow. Each axis is normalised, encoded, and stored as an 8-bit image channel, then decoded in its method-specific normalised domain and optionally returned to physical units with per-axis calibration. The lower box expands the method-specific decoder $\mathcal  D_m$.}}{4}{}\protected@file@percent }
 \newlabel{fig:workflow_overview}{{1}{4}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Encoding methods}{4}{}\protected@file@percent }
-\newlabel{sec:encoding_methods}{{2.2}{4}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Background and Related Work}{4}{}\protected@file@percent }
+\newlabel{sec:related_encodings}{{2}{4}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Time-series imaging}{4}{}\protected@file@percent }
+\citation{takens1981detecting}
 \citation{eckmann1987recurrence,marwan2007recurrence}
 \citation{lu2019robust}
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces RP, GASF, GADF, and MTF encodings of the same triaxial WISDM walking window, with the $x,y,z$ axes mapped to the RGB channels. RP is $127\times 127$ because of the adjacent-state embedding; the other three are $128\times 128$.}}{5}{}\protected@file@percent }
 \newlabel{fig:encodings_main}{{2}{5}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Encoding methods}{5}{}\protected@file@percent }
+\newlabel{sec:encoding_methods}{{2.2}{5}{}{}{}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.1}Recurrence plots}{5}{}\protected@file@percent }
 \newlabel{sec:rp_encoding}{{2.2.1}{5}{}{}{}}
 \newlabel{eq:FormulaRP}{{1}{5}{}{}{}}
@@ -63,8 +63,8 @@
 \citation{wang2015encoding}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.3}GASF diagonal inverse}{12}{}\protected@file@percent }
 \newlabel{sec:gasf_reconstruction_method}{{3.3}{12}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Restricted-branch GADF decoder}{12}{}\protected@file@percent }
-\newlabel{sec:gadf_reconstruction_proposal}{{3.4}{12}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Restricted-branch GADF decoder}{13}{}\protected@file@percent }
+\newlabel{sec:gadf_reconstruction_proposal}{{3.4}{13}{}{}{}}
 \citation{Atkins1998}
 \citation{misc_wisdm_smartphone_and_smartwatch_activity_and_biometrics_dataset__507}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Best-effort Fiedler-vector MTF representative}{14}{}\protected@file@percent }
@@ -76,10 +76,10 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Evaluation design}{15}{}\protected@file@percent }
 \newlabel{sec:fidelity_metrics}{{4.2}{15}{}{}{}}
 \@writefile{toc}{\contentsline {paragraph}{Fidelity: signal and spectrum.}{15}{}\protected@file@percent }
-\citation{DavisonHinkley1997,Hall1987}
-\citation{Lakens2017}
 \@writefile{toc}{\contentsline {paragraph}{Robustness: controlled local stability.}{16}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Utility}{16}{}\protected@file@percent }
+\citation{DavisonHinkley1997,Hall1987}
+\citation{Lakens2017}
 \citation{Wilcoxon1945}
 \citation{McNemar1947}
 \citation{Schuirmann1987}
@@ -87,8 +87,8 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Statistical protocol}{17}{}\protected@file@percent }
 \newlabel{sec:statistical_protocol}{{4.3}{17}{}{}{}}
 \@writefile{toc}{\contentsline {paragraph}{Configuration and internal validity.}{17}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Reproducibility and provenance}{17}{}\protected@file@percent }
-\newlabel{sec:reproducibility}{{4.4}{17}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Reproducibility and provenance}{18}{}\protected@file@percent }
+\newlabel{sec:reproducibility}{{4.4}{18}{}{}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {5}Results}{18}{}\protected@file@percent }
 \newlabel{sec:results}{{5}{18}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Qualitative reconstruction}{18}{}\protected@file@percent }
@@ -101,30 +101,30 @@
 \newlabel{sec:results_robustness}{{5.3}{19}{}{}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Controlled local-stability test: NMAE, in units of \(10^{-3}\), under zero-mean Gaussian pixel noise (standard deviation \(\sigma \), out of 255). Values are mean$\pm $standard deviation across 150 activity-balanced, subject-spread windows after averaging two independent draws per nonzero level. Subject-cluster 95\% intervals are in the Supplementary Material.}}{20}{}\protected@file@percent }
 \newlabel{tab:robustness}{{3}{20}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Reconstruction stability under Gaussian pixel perturbation. Mean NMAE over the 150 activity-balanced WISDM windows as a function of the pixel-noise standard deviation \(\sigma \), out of 255. Shaded regions are subject-cluster 95\% bootstrap intervals and the vertical axis is logarithmic.}}{20}{}\protected@file@percent }
-\newlabel{fig:robustness_curves}{{4}{20}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Reconstruction stability under Gaussian pixel perturbation. Mean NMAE over the 150 activity-balanced WISDM windows as a function of the pixel-noise standard deviation \(\sigma \), out of 255. Shaded regions are subject-cluster 95\% bootstrap intervals and the vertical axis is logarithmic.}}{21}{}\protected@file@percent }
+\newlabel{fig:robustness_curves}{{4}{21}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Downstream classification}{21}{}\protected@file@percent }
 \newlabel{sec:subject_out_results}{{5.4}{21}{}{}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Grouped subject-out three-fold accuracy (primary protocol) for three representative classifiers spanning the families (convolutional, recurrent, classical). Accuracies are rounded to three decimals; the sub-$0.001$ per-method differences are quantified per subject in Table~\ref {tab:equivalence_ci}. All six classifiers and the window-level comparison are in the Supplementary Material.}}{21}{}\protected@file@percent }
-\newlabel{tab:subject_out_acc}{{4}{21}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Decoder-mechanism ablations}{21}{}\protected@file@percent }
-\newlabel{sec:decoder_ablation}{{5.5}{21}{}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Grouped subject-out three-fold accuracy (primary protocol) for three representative classifiers spanning the families (convolutional, recurrent, classical). Accuracies are rounded to three decimals; the sub-$0.001$ per-method differences are quantified per subject in Table~\ref {tab:equivalence_ci}. All six classifiers and the window-level comparison are in the Supplementary Material.}}{22}{}\protected@file@percent }
+\newlabel{tab:subject_out_acc}{{4}{22}{}{}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Subject-level classification equivalence under grouped subject-out validation. The primary family comprises 18 simultaneous subject-cluster bootstrap intervals (six classifiers by RP/GASF/GADF); the six MTF negative-control comparisons form a separate family (51 subjects, \(10^4\) joint resamples per family). For each method, ``most boundary-near'' is the single simultaneous interval whose endpoint lies closest to the equivalence margin, with the classifier it comes from.}}{22}{}\protected@file@percent }
 \newlabel{tab:equivalence_ci}{{5}{22}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Subject-level classification equivalence under grouped subject-out validation. Each row is one classifier--method comparison: markers show the mean per-subject accuracy difference over the 51 subjects, horizontal bars the simultaneous 95\% subject-cluster bootstrap interval, filled when that interval lies wholly inside the shaded \(\pm 0.01\) equivalence margin and hollow otherwise. The two panels use different horizontal scales.}}{22}{}\protected@file@percent }
-\newlabel{fig:equivalence_forest}{{5}{22}{}{}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Compact decoder-ablation summary. MAE is in physical units (m/s\(^2\)); the sample and controlled factors for each row are detailed in the Supplementary Material.}}{23}{}\protected@file@percent }
-\newlabel{tab:ablation_summary}{{6}{23}{}{}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Discussion}{23}{}\protected@file@percent }
-\newlabel{sec:discussion}{{6}{23}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Interpretation of the comparison}{23}{}\protected@file@percent }
-\newlabel{sec:disc_pointwise}{{6.1}{23}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Subject-level classification equivalence under grouped subject-out validation. Each row is one classifier--method comparison: markers show the mean per-subject accuracy difference over the 51 subjects, horizontal bars the simultaneous 95\% subject-cluster bootstrap interval, filled when that interval lies wholly inside the shaded \(\pm 0.01\) equivalence margin and hollow otherwise. The two panels use different horizontal scales.}}{23}{}\protected@file@percent }
+\newlabel{fig:equivalence_forest}{{5}{23}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Decoder-mechanism ablations}{23}{}\protected@file@percent }
+\newlabel{sec:decoder_ablation}{{5.5}{23}{}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Compact decoder-ablation summary. MAE is in physical units (m/s\(^2\)); the sample and controlled factors for each row are detailed in the Supplementary Material.}}{24}{}\protected@file@percent }
+\newlabel{tab:ablation_summary}{{6}{24}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Discussion}{24}{}\protected@file@percent }
+\newlabel{sec:discussion}{{6}{24}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Interpretation of the comparison}{24}{}\protected@file@percent }
+\newlabel{sec:disc_pointwise}{{6.1}{24}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Relationship between signed RP and GADF}{24}{}\protected@file@percent }
 \newlabel{sec:disc_structural}{{6.2}{24}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Limitations and scope}{24}{}\protected@file@percent }
-\newlabel{sec:disc_scope}{{6.3}{24}{}{}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{25}{}\protected@file@percent }
-\newlabel{sec:conclusion}{{7}{25}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Limitations and scope}{25}{}\protected@file@percent }
+\newlabel{sec:disc_scope}{{6.3}{25}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{26}{}\protected@file@percent }
+\newlabel{sec:conclusion}{{7}{26}{}{}{}}
 \bibcite{wang2015encoding}{{1}{}{{}}{{}}}
 \bibcite{wang2015encoding2}{{2}{}{{}}{{}}}
 \bibcite{huang2023tsdigan}{{3}{}{{}}{{}}}
@@ -151,4 +151,4 @@
 \bibcite{Schuirmann1987}{{24}{}{{}}{{}}}
 \bibcite{Holm1979}{{25}{}{{}}{{}}}
 \providecommand\NAT@force@numbers{}\NAT@force@numbers
-\gdef \@abspage@last{28}
+\gdef \@abspage@last{30}
