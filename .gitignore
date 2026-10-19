@@ -186,18 +186,21 @@ results/_baseline_grid720/*
 !doc/images/COSRP.png
 !doc/images/COSgadf.png
 !doc/images/COSmtf.png
-!doc/images/Comparison_all_wideGADF.png
-!doc/images/Comparison_all_wideGAF.png
-!doc/images/Comparison_all_wideRP.png
-!doc/images/Comparison_all_widemtf.png
 !doc/images/gadf_sample_0_global.png
 !doc/images/gaf_sample_0_global.png
 !doc/images/mtf_sample_0_global.png
-!doc/images/mtf_sample_0_x_comp.png
-!doc/images/mtf_sample_0_y_comp.png
-!doc/images/mtf_sample_0_z_comp.png
 !doc/images/rp_gadf_structure_collage.png
 !doc/images/rp_sample_0_global.png
 
 # Obsolete experiment snapshot, superseded by the live results/ tree.
 .results_snapshot/
+
+# LaTeX build intermediates (latexmk regenerates them; the PDFs stay tracked).
+doc/*.aux
+doc/*.fls
+doc/*.fdb_latexmk
+doc/*.spl
+doc/*.out
+doc/*.bbl
+doc/*.blg
+doc/*.synctex.gz
