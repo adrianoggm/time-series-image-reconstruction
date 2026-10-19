@@ -463,8 +463,8 @@ def weigthed_graphRP(rp):
                 
     return weighted_adjacency_matrix
 """
-def weigthed_graphRP(rp):
-    CostM = CreateCostMatrix(rp)
+def weigthed_graphRP(rp, percentile=75.0):
+    CostM = CreateCostMatrix(rp, percentile)
     # Sumas por fila: número de elementos "1" en cada fila
     row_sums = np.sum(CostM, axis=1, keepdims=True)  # forma (N, 1)
     # Intersección: producto punto entre CostM y su transpuesta
@@ -513,7 +513,70 @@ def reconstruct_time_series(shortest_path_matrix, ep=0.0, small_constant=1e-10):
     variances = np.var(embedded_coords, axis=0)
     max_eigenvalue_index = int(np.argmax(variances))
     return embedded_coords[:, max_eigenvalue_index][:, np.newaxis]
-def Reconstruct_RP(img,dictionary,valor):
+
+
+def reconstruct_state_embedding(shortest_path_matrix, ep=0.0, small_constant=1e-10):
+    """Same front-end as ``reconstruct_time_series`` but keep BOTH MDS axes.
+
+    Returns the (N-1, 2) embedding of the recovered adjacent-states instead of
+    collapsing each state onto its largest-eigenvalue axis. This is the 2-D
+    decoder of Section~sec:rp_reconstruction_method (the principled variant that
+    exploits the state overlap); the 1-D projection above stays the default.
+    """
+    symmetric = 0.5 * (shortest_path_matrix + shortest_path_matrix.T)
+    finite = np.where(np.isfinite(symmetric), symmetric, ep) + small_constant
+    return _classical_mds(finite, n_components=2)
+
+
+def reconstruct_from_embedding_2d(embedding, n_theta=720):
+    """Recover an N-sample signal from the (N-1, 2) state embedding.
+
+    Aligns axis-2 of state i with axis-1 of state i+1 (the RP overlap condition
+    s_i=(x_i,x_{i+1})) over the orthogonal group O(2), then averages the two
+    estimates of each shared sample. Returns a length-N series *before* amplitude
+    rescaling and *before* the global-sign choice; both are handled downstream by
+    ``fix_rotationscale(..., append_value="none")``, exactly as for the 1-D path.
+    """
+    P = np.asarray(embedding, dtype=float)  # (M, 2), M = N-1 states
+    M = P.shape[0]
+
+    # Best R in O(2) minimising sum_i ((R p_i)_2 - (R p_{i+1})_1)^2. The true
+    # configuration satisfies the overlap exactly, so its aligning transform is
+    # the global minimum (up to a sign flip, resolved downstream by signed RP).
+    # ponytail: theta grid scan (O(n_theta)); J(theta) is a 2-theta sinusoid so a
+    # closed form exists — swap it in only if this ever shows up in a profile.
+    thetas = np.linspace(0.0, 2.0 * np.pi, n_theta, endpoint=False)
+    best_J, best_R = None, None
+    for reflect in (1.0, -1.0):
+        for th in thetas:
+            c, s = np.cos(th), np.sin(th)
+            R = np.array([[c, -s * reflect], [s, c * reflect]])  # rot(th)·diag(1,reflect) spans O(2)
+            S = P @ R.T
+            J = float(np.sum((S[:-1, 1] - S[1:, 0]) ** 2))
+            if best_J is None or J < best_J:
+                best_J, best_R = J, R
+    S = P @ best_R.T
+
+    # Overlap reconstruction: x1 = s[0,0]; x_{i+1} = mean(s[i,1], s[i+1,0]); xN = s[M-1,1].
+    x = np.empty(M + 1)
+    x[0] = S[0, 0]
+    x[1:M] = 0.5 * (S[:-1, 1] + S[1:, 0])
+    x[M] = S[M - 1, 1]
+    return x
+
+
+def Reconstruct_RP(img,dictionary,valor,percentile=75.0,method="1d",rp_range=None):
+    if method == "direct2ds":
+        # Validated DIRECT-2D-S decoder (see src/rp_decoders.py). Production is
+        # metadata-free: rp_range=None -> "diagonal" centring recovers the signed
+        # matrix up to a positive scale from the PNG alone. Passing per-window
+        # (Rmin,Rmax) metadata is the operator-range ORACLE variant (ablation only).
+        from src.rp_decoders import decode_window
+        rr = "diagonal" if rp_range is None else rp_range[valor]
+        rec_tc, _ = decode_window(img, dictionary[valor], source="direct", dims=2,
+                                  recover="overlap", signed=True, rho=percentile / 100.0,
+                                  rp_range=rr)
+        return rec_tc.T, 0   # (C, T) to match the stacking convention; 0 = inversions n/a
     _r= img[:,:,0].astype('float')
     _g= img[:,:,1].astype('float')
     _b= img[:,:,2].astype('float')
@@ -534,57 +597,60 @@ def Reconstruct_RP(img,dictionary,valor):
     N=[]
     ninversiones=0
     for i in range(0,n):
-        wg=weigthed_graphRP(R[i]) 
-        spm=calculate_shortest_path_matrix(wg)  
+        wg=weigthed_graphRP(R[i], percentile)
+        spm=calculate_shortest_path_matrix(wg)
         ##we multiply * -1 ya que se invierte al calcular los valores propios
-        rp=reconstruct_time_series(spm, ep=0.0)
-        rp,a=fix_rotationscale(R[i],rp,i,dictionary[valor])
+        if method == "2d":
+            # Principled 2-D decoder: keep both MDS axes, align on the state
+            # overlap, average the shared samples (already length N, so no append).
+            emb = reconstruct_state_embedding(spm, ep=0.0)
+            rp = reconstruct_from_embedding_2d(emb)
+            rp, a = fix_rotationscale(R[i], rp, i, dictionary[valor], append_value="none")
+        else:
+            rp=reconstruct_time_series(spm, ep=0.0)
+            rp,a=fix_rotationscale(R[i],rp,i,dictionary[valor])
         ninversiones=ninversiones+a
         N.append(rp)
     N=np.array(N)
     return N,ninversiones
-def fix_rotationscale(rporiginal,seriereconstruida,i,dictionary,TIME_STEPS=128):
-     #print(dictionary)
+def fix_rotationscale(rporiginal,seriereconstruida,i,dictionary,TIME_STEPS=128,
+                      use_orientation=True, append_value="mean"):
+     # ``use_orientation`` / ``append_value`` expose the two RP post-processing
+     # choices for ablation (Section sec:rp_ablation); the defaults reproduce the
+     # reported decoder exactly (signed orientation check on, per-window mean).
      MAX=dictionary[0]
      MIN=dictionary[1]
-     
-     #escalo la serie para que tenga los valores 
-     
-     
-     #n=(seriereconstruida-min_val)/(max_val-min_val)
-     #print(seriereconstruida.shape)
-     #Scaling part
-     #n=seriereconstruida
-     n=np.append(seriereconstruida,np.mean(seriereconstruida))
-     
-     #posi= MIN[i]+n*(MAX[i]-1)
-     min_a, max_a = np.min(n), np.max(n)  
-     
 
-    # Transformar los puntos
-     #posi =min_b + n * (max_b - min_b)
-     posi=np.interp(n,(min_a,max_a),(MIN[i], MAX[i]))
-     rposi=varRP2(posi, TIME_STEPS)    
-     
-     n=n*-1+1  
-     min_a, max_a = np.min(n), np.max(n)  
-     
-     #nega = min_b + n * (max_b - min_b)
-     nega=np.interp(n,(min_a,max_a),(MIN[i], MAX[i]))
-     rnega=varRP2(nega, TIME_STEPS)
-     #print(n)
-     #print(nega)
-
-     # Pick the orientation (positive or negated) whose RP image is closer to
-     # the encoded one in Euclidean distance.
-     distancia_euclidianaa = np.linalg.norm(rporiginal - rposi)
-     distancia_euclidianab = np.linalg.norm(rporiginal - rnega)
-     inverted = 0
-     if distancia_euclidianab < distancia_euclidianaa:
-         rp = nega[:TIME_STEPS]
-         inverted += 1
+     # Re-augment the N-1 adjacent-state series back to N samples.
+     if append_value == "mean":
+         n = np.append(seriereconstruida, np.mean(seriereconstruida))
+     elif append_value == "endpoint":
+         n = np.append(seriereconstruida, seriereconstruida[-1])
      else:
+         n = np.asarray(seriereconstruida)
+
+     min_a, max_a = np.min(n), np.max(n)
+     posi=np.interp(n,(min_a,max_a),(MIN[i], MAX[i]))
+     rposi=varRP2(posi, TIME_STEPS)
+
+     inverted = 0
+     if not use_orientation:
+         # Ablation: keep the direct MDS orientation, no signed-RP disambiguation.
          rp = posi[:TIME_STEPS]
+     else:
+         n = n*-1+1
+         min_a, max_a = np.min(n), np.max(n)
+         nega=np.interp(n,(min_a,max_a),(MIN[i], MAX[i]))
+         rnega=varRP2(nega, TIME_STEPS)
+         # Pick the orientation (positive or negated) whose RP image is closer to
+         # the encoded one in Euclidean distance.
+         distancia_euclidianaa = np.linalg.norm(rporiginal - rposi)
+         distancia_euclidianab = np.linalg.norm(rporiginal - rnega)
+         if distancia_euclidianab < distancia_euclidianaa:
+             rp = nega[:TIME_STEPS]
+             inverted += 1
+         else:
+             rp = posi[:TIME_STEPS]
 
      # `posi` already has length TIME_STEPS (= seriereconstruida + 1 appended mean),
      # so the slice here is a no-op — it stays defensive against future changes

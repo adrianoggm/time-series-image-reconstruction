@@ -22,11 +22,11 @@
     Where to create the venv (default: .\.venv next to the repo).
 
 .PARAMETER Extras
-    Optional extras to install (hf, diffusion, dev, all).
+    Optional extras to install (dev).
 
 .EXAMPLE
     .\scripts\setup.ps1
-    .\scripts\setup.ps1 -Extras hf,diffusion
+    .\scripts\setup.ps1 -Extras dev
     .\scripts\setup.ps1 -VenvDir "C:\Users\$env:USERNAME\tfg310"
 #>
 

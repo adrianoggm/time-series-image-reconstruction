@@ -12,6 +12,7 @@ from tensorflow.keras.optimizers import Adam
 from src.config import DEFAULT_DATA_DIR
 from src.evaluator import ClassifierAdapter, evaluate_run
 from src.paths import ALL_STYPES
+from src.seeding import set_global_seeds
 
 CLASSIFIER_NAME = "lstm"
 
@@ -43,6 +44,7 @@ def _adapter(epochs: int, batch_size: int) -> ClassifierAdapter:
 
 def run(stype, sampling="loto", fold=0, n_folds=3, dataset_folder=DEFAULT_DATA_DIR,
         force=False, train_new=False, epochs=20, batch_size=64):
+    set_global_seeds()
     return evaluate_run(
         adapter=_adapter(epochs, batch_size), stype=stype, sampling=sampling,
         fold=fold, n_folds=n_folds, dataset_folder=dataset_folder,

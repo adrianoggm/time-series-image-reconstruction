@@ -1,0 +1,852 @@
+
+
+\documentclass[5p]{elsarticle}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{placeins}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{adjustbox}
+\usepackage{url}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{pdflscape}
+\usepackage{microtype}
+\usepackage{flafter}       % a float never appears before its first reference
+\usepackage{stfloats}      % allow bottom placement of full-width table*/figure* floats
+% Loosen float placement so wide floats settle near their reference instead of drifting.
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{5}
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.72}
+\renewcommand{\dbltopfraction}{0.92}
+\renewcommand{\dblfloatpagefraction}{0.72}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric,fit,backgrounds,calc}
+% --- Workflow-overview figure palette (mirrors the Mermaid version in doc/workflow_overview.md) ---
+\definecolor{wfIndigo}{HTML}{312E81}
+\definecolor{wfIndigoLight}{HTML}{E0E7FF}
+\definecolor{wfIndigoMid}{HTML}{4F46E5}
+\definecolor{wfAmberDark}{HTML}{D97706}
+\definecolor{wfAmberLight}{HTML}{FEF3C7}
+\definecolor{wfAmberText}{HTML}{78350F}
+\definecolor{wfEmeraldDark}{HTML}{059669}
+\definecolor{wfEmeraldLight}{HTML}{D1FAE5}
+\definecolor{wfEmeraldText}{HTML}{064E3B}
+\definecolor{wfEmeraldBg}{HTML}{ECFDF5}
+\definecolor{wfPinkDark}{HTML}{DB2777}
+\definecolor{wfPinkLight}{HTML}{FCE7F3}
+\definecolor{wfPinkText}{HTML}{831843}
+\definecolor{wfBlueDark}{HTML}{2563EB}
+\definecolor{wfBlueLight}{HTML}{DBEAFE}
+\definecolor{wfBlueText}{HTML}{1E3A8A}
+\definecolor{wfBlueBg}{HTML}{EFF6FF}
+\definecolor{wfViolet}{HTML}{7C3AED}
+\definecolor{wfVioletDark}{HTML}{5B21B6}
+\definecolor{wfRoseDark}{HTML}{E11D48}
+\definecolor{wfRoseLight}{HTML}{FFE4E6}
+\definecolor{wfRoseText}{HTML}{881337}
+\definecolor{wfRoseBg}{HTML}{FFF1F2}
+\definecolor{wfSlate}{HTML}{475569}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\newcommand{\widecomparisonplot}[1]{\includegraphics[width=0.76\textwidth]{#1}}
+
+\newcommand{\encodingexampleplot}[1]{\includegraphics[width=0.42\linewidth]{#1}}
+\newcommand{\subfigtext}[1]{\par\smallskip{\footnotesize #1\par}}
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+\raggedbottom{}
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{Controlled Reconstruction of Image-Based Time-Series Encodings: Operational Decoders for GAF, RP, and MTF Representations}
+
+\author[mydass]{Adriano García-Giralda Milena}
+\author[cls]{Francisco García Moreno}
+\author[alg]{José Antonio Jiménez Madrid}
+\author[cls]{María Bermúdez Edo}
+
+\affiliation[mydass]{organization={MYDASS Research Group, University of Granada}, country={Spain}}
+\affiliation[cls]{organization={Department of Computer Languages and Systems, University of Granada}, country={Spain}}
+\affiliation[alg]{organization={Department of Algebra, University of Granada}, country={Spain}}
+
+
+
+
+
+
+
+\begin{abstract}
+Image-based time-series encodings expose temporal structure to image-domain models, but their usefulness for signal generation depends on whether the encoded image can be mapped back to the time domain. We study this controlled reconstruction problem for Recurrence Plots (RP), Gramian Angular Summation and Difference Fields (GASF/GADF), and Markov Transition Fields (MTF). We propose two faithful decoders: a signed-RP decoder based on two-dimensional classical multidimensional scaling, adjacent-state overlap, and signed orientation selection; and a closed-form, restricted-branch GADF decoder with image-derived boundary anchoring and multi-pivot averaging. The established GASF diagonal inverse is the invertible baseline. Because MTF is many-to-one, its Fiedler-ordered output is evaluated only as a best-effort representative decoder and lossy control.
+
+On 8,172 triaxial WISDM windows we organise the evaluation as a hierarchy of \emph{fidelity}, \emph{robustness}, and \emph{utility}. Fidelity separates spectral shape from total energy; utility asks whether subject-level accuracy is equivalent within a one-percentage-point margin. Every decoder returns an image-derived normalised trajectory with no method-specific per-window metadata: RP, GASF, and GADF recover the waveform --- RP by locating its zero level from the zero-valued diagonal, up to an immaterial positive scale --- whereas MTF returns only a quantile-level representative. Normalised reconstruction is thus image-only; physical-unit errors and the original-trained classifier evaluation additionally use the shared per-axis amplitude calibration. Over all 8,172 windows RP, GASF, and GADF form a near-original fidelity tier, with global mean MAEs of 0.0142, 0.0205, and 0.0157\,m/s$^2$; their mean Pearson correlations are approximately one, mean PSD-shape distances below 0.01, and mean dominant-frequency errors below 0.01\,Hz. A controlled 150-window native-operator ablation finds all three exact to numerical precision, so their clean round-trip residual is attributable to 8-bit storage; for RP, the orientation is obtained from a $2\times2$ eigenproblem in closed form rather than searched over an angular grid. Under the primary grouped subject-out three-fold classification protocol, simultaneous subject-cluster bootstrap intervals then place every one of the 18 RP/GASF/GADF classifier--method accuracy differences within the equivalence region. These are mean results with the reported between-window dispersion, not per-window bounds. MTF is consistently lossy. A repeated Gaussian-noise experiment is interpreted only as a controlled local-stability stress test; genuinely generated images remain unevaluated.
+\end{abstract}
+
+\begin{keyword}
+Markov Transition Fields \sep Recurrence Plots \sep Gramian Angular Fields \sep Gramian Angular Difference Field \sep Time Series Reconstruction \sep Image Encoding \sep Accelerometer Data \sep Machine Learning
+\end{keyword}
+
+\end{frontmatter}
+
+
+
+
+\section{Introduction}\label{sec:introduction}
+A time series is an ordered sequence of measurements. Image-based encodings transform that sequence into a matrix whose two axes represent temporal positions, or short states built from neighbouring samples. A pixel is therefore not a colour from a physical scene: it records a relationship between the signal at one position and the signal at another.
+
+The three encoding families studied here express different relationships. A Recurrence Plot (RP) asks whether the signal visits similar states at two positions; repeated behaviour then appears as repeated spatial patterns. A Gramian Angular Field (GAF) first maps normalised sample values to angles and compares every pair through an angular sum or difference. Its two variants are the Gramian Angular Summation Field (GASF) and Gramian Angular Difference Field (GADF). A Markov Transition Field (MTF) first groups amplitudes into discrete states, estimates how likely transitions between those states are, and distributes those transition probabilities over the temporal grid. In short, RP represents state-space proximity, GAF represents pairwise angular relations, and MTF represents transitions between coarse amplitude levels.
+
+These matrices are attractive for convolutional classifiers because distances, angular relations, and transition patterns become explicit spatial structure rather than relations that a model must infer entirely from the raw sequence~\cite{wang2015encoding,wang2015encoding2}. When paired with an explicit inverse, image-based representations can also provide an interface between time series and image-domain generative models~\cite{huang2023tsdigan,hellermann2026imagegan}.
+
+For signal generation, however, a useful image is not enough. A synthetic or restored image must also map back to a valid time series. This separates three questions that are often discussed together: whether an image representation helps classification, whether a controlled image produced by a known encoder can be decoded, and whether a generative model can produce structurally valid images. This paper focuses on the second question. We first ask which encodings preserve enough information to recover the underlying accelerometer waveform; only then can image-domain generation be evaluated meaningfully.
+
+The setting is deliberately controlled. Every image evaluated here is the deterministic output of a known encoder and is stored as an 8-bit image. Each accelerometer axis is encoded independently, decoded in its normalised domain, and optionally returned to physical units using the same per-axis amplitude calibration. No diffusion model or GAN is trained, and we make no claim that arbitrary generated images are automatically physically valid.
+
+Because the four operators retain different information, they lead to different reconstruction problems. GASF has a known diagonal inverse and serves as the invertible baseline. GADF contains angular differences but not absolute angles, so it requires a branch choice and an image-derived anchor. The continuous signed RP contains adjacent-state geometry, so decoding requires metric embedding, overlap alignment, and signed orientation selection. MTF discards within-state amplitudes and is inherently many-to-one, so its output is evaluated only as a representative trajectory. Figure~\ref{fig:workflow_overview} summarises the workflow, and Table~\ref{tab:decoder_contract} later states the decoder contract for each method.
+
+The evaluation follows the same hierarchy for all methods: fidelity, robustness, and utility. Fidelity measures range-normalised pointwise error together with spectral shape and energy; robustness decodes perturbed and re-encoded images; and utility tests whether six original-trained classifiers retain subject-level accuracy within a one-percentage-point equivalence margin. These blocks answer three research questions: \emph{(RQ1) fidelity} --- does each decoder recover the signal from the image alone?; \emph{(RQ2) stability} --- how does the reconstruction degrade as the stored image is perturbed?; and \emph{(RQ3) equivalence} --- is downstream subject-level accuracy equivalent to the original within a pre-set margin? Both stratified window-level and grouped subject-out three-fold splits are reported on the WISDM smartwatch accelerometer data.
+
+The main contributions are:
+
+\begin{itemize}
+    \item \textbf{Signed-RP decoding:} a decoder for continuous Lu--Tong recurrence plots of overlapping states that combines 2D classical MDS, adjacent overlap alignment with an explicit translation correction, closed-form orientation from a \(2\times2\) eigenproblem followed by signed selection among its four exact candidates, and zero-level recovery from the diagonal, recovering the signed matrix up to an immaterial positive scale without per-window operator metadata;
+    \item \textbf{GADF decoding:} a closed-form restricted-branch decoder whose image-derived boundary anchor and multi-pivot reconstruction make the normalised inverse operational without method-specific per-window metadata;
+    \item \textbf{Controlled comparison:} a common protocol that places the new RP and GADF decoders beside the prior-art GASF diagonal inverse and a Fiedler-vector MTF representative decoder, with MTF explicitly treated as a lossy control; and
+    \item \textbf{Validation framework:} an evaluation over fidelity, robustness, and utility, including range-normalised local-change error, separate spectral-shape and energy errors, a repeated local perturbation test, and simultaneous subject-cluster equivalence intervals.
+\end{itemize}
+
+\begin{figure*}[!tbp]
+\centering
+\begin{tikzpicture}[
+  font=\sffamily\footnotesize,
+  node distance=8mm,
+  box/.style={rectangle, rounded corners=3pt, draw=wfIndigoMid, line width=0.7pt,
+              fill=wfIndigoLight, text=wfIndigo, align=center,
+              minimum height=13mm, text width=2.5cm, inner sep=3pt},
+  detail/.style={rectangle, rounded corners=3pt, draw=wfBlueDark, line width=0.7pt,
+                 fill=wfBlueLight, text=wfBlueText, align=left,
+                 minimum height=9mm, text width=10cm, inner sep=5pt},
+  dlabel/.style={text=wfBlueText, font=\sffamily\scriptsize\itshape},
+  arrow/.style={->, draw=wfSlate, line width=0.9pt, >=Stealth}
+]
+  \node[box] (input) {Triaxial window\\$x\in\mathbb{R}^{128\times3}$};
+  \node[box, right=of input] (encode) {Per-axis normalisation\\and encoding $\mathcal E_m$};
+  \node[box, right=of encode] (image) {Three-channel\\8-bit image};
+  \node[box, right=of image] (decode) {Method-specific\\decoder $\mathcal D_m$};
+  \node[box, right=of decode] (output) {Normalised $\hat{\tilde x}$\\(optional calibrated $\hat x$)};
+  \draw[arrow] (input) -- (encode);
+  \draw[arrow] (encode) -- (image);
+  \draw[arrow] (image) -- (decode);
+  \draw[arrow] (decode) -- (output);
+
+  \node[detail, below=10mm of image] (methods) {%
+    \textbf{RP:}\enspace 2-D MDS $\to$ overlap alignment $\to$ closed-form orientation $\to$ signed selection\\
+    \textbf{GASF:}\enspace diagonal half-angle inverse\\
+    \textbf{GADF:}\enspace restricted branch $\to$ boundary anchor $\to$ multi-pivot\\
+    \textbf{MTF:}\enspace Fiedler-ordered representative (lossy control)};
+  \node[dlabel, above=1mm of methods.north west, anchor=south west] {Decoder $\mathcal D_m$ by method};
+  \draw[arrow] (decode.south) -- (decode.south |- methods.north);
+\end{tikzpicture}
+\caption{Controlled reconstruction workflow. Each axis is normalised, encoded, and stored as an 8-bit image channel, then decoded in its method-specific normalised domain and optionally returned to physical units with per-axis calibration. The lower box expands the method-specific decoder $\mathcal D_m$.}\label{fig:workflow_overview}
+\end{figure*}
+
+\section{Background and Related Work}\label{sec:related_encodings}
+
+This section separates three ideas that are easy to blur together. It first explains why time-series images are useful, then defines what each encoding stores, and finally reviews what is known about decoding those images back to signals.
+
+\subsection{Time-series imaging}
+The common idea behind time-series imaging is to compare many temporal positions at once. Rows and columns preserve the order of the window, while each pixel stores a method-specific relationship between the positions indexed by that row and column. The resulting textures are therefore visual summaries of temporal structure: RP highlights repeated or nearby states, GAF expresses relations between sample-derived angles, and MTF shows transition patterns between quantised amplitude states. The exact operators are defined in Section~\ref{sec:encoding_methods}.
+
+This representation lets vision architectures operate on pairwise temporal relations that sequence models must otherwise infer from raw samples. Wang and Oates introduced GAF and MTF images for time-series classification and imputation before applying convolutional networks~\cite{wang2015encoding,wang2015encoding2}. Recurrence plots predate that line as a tool for visualising when a dynamical system returns to a previously visited region of its state space~\cite{eckmann1987recurrence,marwan2007recurrence}. They were later adopted as image inputs for the same reason: a single frame exposes distances, periodicities, and symmetries as spatial structure.
+
+Since then, image encodings have been applied across several time-series tasks. In human activity recognition, inertial signals have been transformed into GAF, MTF, RP, and related image representations so that convolutional vision architectures can be used for feature extraction~\cite{ahmad2021inertial}. Image representations have also been employed for multivariate anomaly detection by exposing inter-sensor spatial relationships, with temporal context supplied by sliding windows~\cite{ma2024anomaly}, as well as for missing-value imputation~\cite{huamin2020reconstruction}. More recently, image-domain generative models have been used to generate or complete time series through explicitly invertible two-dimensional representations. Examples include GASF-based traffic imputation~\cite{huang2023tsdigan} and the separate XIRP representation, designed for image-based GAN generation followed by inversion to the temporal domain~\cite{hellermann2026imagegan}.
+
+These applications show that two-dimensional encodings can be useful inputs for discriminative and generative models. They do not, by themselves, show that the original waveform is preserved. A representation can predict an activity label while discarding amplitude, phase, or ordering information that is essential for reconstruction. The remainder of this section therefore asks a narrower question: what information does each image operator retain, and what decoding work already exists?
+
+
+\begin{figure*}[!htbp]
+\centering
+\begin{minipage}[t]{0.24\linewidth}
+\centering
+\includegraphics[width=\linewidth]{images/1600xtrp0.png}
+\subfigtext{(a) RP}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.24\linewidth}
+\centering
+\includegraphics[width=\linewidth]{images/1600x0tgasf.png} % chktex 29
+\subfigtext{(b) GASF}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.24\linewidth}
+\centering
+\includegraphics[width=\linewidth]{images/1600x0tgadf.png} % chktex 29
+\subfigtext{(c) GADF}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.24\linewidth}
+\centering
+\includegraphics[width=\linewidth]{images/1600x0tmtf.png} % chktex 29
+\subfigtext{(d) MTF}
+\end{minipage}
+\caption{The four image encodings of one triaxial WISDM walking window, with the per-axis $(x,y,z)$ intensities stacked as the RGB channels. RP encodes signed recurrence distances between adjacent states; GASF is symmetric; GADF is antisymmetric and therefore directional; and MTF shows the discrete transition-level regions of its quantised states. RP is $127\times127$ (adjacent-state embedding) and the others $128\times128$. The reconstructions of this same window are shown in Figure~\ref{fig:qualitative_main}.}\label{fig:encodings_main}
+\end{figure*}
+
+\subsection{Encoding methods}
+\label{sec:encoding_methods}
+
+The preceding overview gives the concept behind each representation. This subsection now defines the exact operators evaluated in the study: the signed adjacent-state RP, GASF, GADF, and MTF. Previously proposed reconstruction approaches are reviewed separately in Section~\ref{sec:prior_reconstruction}.
+
+\subsubsection{Recurrence plots}
+\label{sec:rp_encoding}
+
+Following delay-coordinate embedding~\cite{takens1981detecting}, a scalar sequence \(x=(x_1,\ldots,x_N)\) is represented by the overlapping states
+\[
+s_i=(x_i,x_{i+1})\in\mathbb{R}^2,
+\qquad i=1,\ldots,N-1.
+\]
+A conventional recurrence plot is constructed from pairwise distances between these states, often after applying a recurrence threshold~\cite{eckmann1987recurrence,marwan2007recurrence}. Such unsigned distance representations describe state proximity but do not retain the direction of the corresponding displacement.
+
+For the present study, we adopt the continuous signed construction proposed by Lu and Tong~\cite{lu2019robust}. Given the reference direction
+\[
+v=\frac{[1,1]^\top}{\sqrt{2}},
+\]
+the recurrence matrix is defined as
+\begin{equation}
+R_{ij}=\sigma(i,j)\lVert s_i-s_j\rVert_2,
+\label{eq:FormulaRP}
+\end{equation}
+where, for \(\lVert s_i-s_j\rVert_2>0\),
+\[
+\hat u_{ij}=\frac{s_i-s_j}{\lVert s_i-s_j\rVert_2},
+\]
+and
+\begin{equation}
+\sigma(i,j)=
+\begin{cases}
+1,
+&
+\lVert s_i-s_j\rVert_2=0
+\ \text{or}
+\hat u_{ij}\cdot v\geq\cos(\pi/4),
+\\
+-1,
+&
+\text{otherwise}.
+\end{cases}
+\end{equation}
+
+The magnitude of \(R_{ij}\) therefore contains the pairwise Euclidean geometry of the two-dimensional adjacent states, while its sign introduces a directional distinction relative to \(v\). Because the \(N-1\) states overlap through their shared samples, the encoded geometry also has an underlying sequential consistency that is not present in a generic collection of two-dimensional points.
+
+\subsubsection{Gramian angular fields}
+\label{sec:gaf_encoding}
+
+After normalisation to the method-specific interval, each sample is mapped to an angular coordinate,
+\[
+\phi_i=\arccos(\tilde{x}_i).
+\]
+Gramian Angular Summation Fields (GASF) and Gramian Angular Difference Fields (GADF) are then defined as~\cite{wang2015encoding}
+\begin{align}
+G^{\mathrm{S}}_{ij}
+&=\cos(\phi_i+\phi_j) \nonumber\\
+&=\tilde{x}_i\tilde{x}_j
+-\sqrt{1-\tilde{x}_i^2}\sqrt{1-\tilde{x}_j^2},
+\label{eq:gasf_indexed}
+\\
+G^{\mathrm{D}}_{ij}
+&=\sin(\phi_i-\phi_j) \nonumber\\
+&=\sqrt{1-\tilde{x}_i^2}\tilde{x}_j
+-\tilde{x}_i\sqrt{1-\tilde{x}_j^2}.
+\label{eq:gadf_indexed}
+\end{align}
+
+The two fields retain different information. GASF is symmetric and its main diagonal satisfies
+\[
+G^{\mathrm{S}}_{ii}=\cos(2\phi_i),
+\]
+so each diagonal entry contains a single-sample angular term. GADF is antisymmetric and has an identically zero diagonal,
+\[
+G^{\mathrm{D}}_{ii}=0.
+\]
+It therefore represents relative angular differences and their direction, but does not directly expose the absolute angular position of each sample. Consequently, any GADF reconstruction must account for both the ambiguity of the inverse sine and the global angular offset that is removed by the difference operator.
+
+\subsubsection{Markov transition fields}
+\label{sec:mtf_definition}
+
+MTF first assigns every sample \(x_t\) to one of \(Q\) quantile states \(q_t\)~\cite{wang2015encoding}. A first-order transition matrix is then estimated as
+\[
+W_{p,q}=P(q_{t+1}=q\mid q_t=p),
+\]
+where \(W_{p,q}\) represents the probability of moving from state \(p\) to state \(q\).
+
+The transition matrix is expanded over the original temporal grid according to
+\[
+M_{a,b}=W_{q_a,q_b},
+\qquad
+a,b=1,\ldots,N.
+\]
+Thus, each image entry represents the transition probability associated with the quantile states occupied at two temporal positions.
+
+MTF retains quantised state membership and transition structure, but it does not preserve the exact amplitude of a sample within its quantile interval. Samples assigned to the same state share the same transition profile, and the numerical ordering of the latent amplitude states is not uniquely identifiable from the image values alone. The mapping is therefore inherently many-to-one.
+
+\subsection{Prior reconstruction methods}
+\label{sec:prior_reconstruction}
+
+Reconstruction is specific to the information retained by each encoding. The literature provides a direct inverse for GASF and geometric reconstruction methods for earlier recurrence plots, whereas GADF and MTF require different treatment. The four families are reviewed below in the same order as their operators were defined.
+
+\subsubsection{Recurrence plots}
+
+Earlier RP reconstruction follows two main routes. Hirata et al.\ start from a thresholded recurrence plot, convert it into a weighted graph, estimate distances along graph paths, and apply multidimensional scaling (MDS) to reproduce the topological shape of the original trajectory~\cite{hirata2008reproduction}. Sipers et al.\ instead study unthresholded recurrence plots generated by time-delay embeddings. They characterise when the underlying scalar signal is identifiable up to its mean and a choice of sign, and introduce a distance between recurrence plots that supports reconstruction by minimisation~\cite{sipers2011unique}. Their later method uses a singular-value decomposition for reconstruction under disturbances and extends the analysis to multi-level recurrence plots, which preserve more information than binary plots while remaining compressed~\cite{sipers2017robust}.
+
+These studies establish that unsigned recurrence information can support geometric or signal reconstruction, but none is a direct decoder for the continuous signed adjacent-state operator in Equation~\ref{eq:FormulaRP}. Here, \(\lvert R\rvert\) already supplies the dense Euclidean distances between two-dimensional states, so no graph-distance approximation is needed. The remaining problem is different: MDS recovers the state configuration only up to an orthogonal transformation, and the scalar sequence must then be obtained by enforcing the shared-sample relation between consecutive states. The Lu--Tong signs provide the additional directional information used to select the remaining orientation.
+
+\subsubsection{Gramian angular fields}
+
+For GASF, Wang and Oates give a direct inverse from the main diagonal. If the signal is normalised to \([0,1]\), then \(\phi_i\in[0,\pi/2]\) and
+\[
+\tilde{x}_i=\sqrt{\frac{G^{\mathrm{S}}_{ii}+1}{2}}.
+\]
+The non-negative square root is unique on this branch. Their imputation pipeline first restores a damaged GASF with a denoising autoencoder and then applies this diagonal inverse~\cite{wang2015encoding}. Tao et al.\ later use RP and GAF images with a denoising autoencoder to reconstruct missing time-series values~\cite{huamin2020reconstruction}. Both studies address missing-value imputation through learned image restoration; neither provides the signed-RP or GADF decoder required here.
+
+GADF does not inherit that diagonal decoder because \(G^{\mathrm{D}}_{ii}=0\) for every sample. Wang and Oates state that GADF constructed from \([0,1]\)-scaled data has an accurate inverse map, but their operational imputation procedure and explicit inverse formula use GASF~\cite{wang2015encoding}. In particular, they do not specify a decoder that resolves the inverse-sine branch, restores the global angular offset removed by pairwise differences, and remains usable after finite-precision image storage. Those are the three issues addressed by the restricted-branch GADF decoder proposed in Section~\ref{sec:gadf_reconstruction_proposal}.
+
+\subsubsection{Markov transition fields}
+
+Wang and Oates report substantially greater uncertainty when reconstructing MTF than GAF and note that even approximate signal recovery is difficult~\cite{wang2015encoding}. This limitation follows directly from the operator: quantile assignment discards each sample's position within its bin, so different continuous signals can produce the same state sequence, transition matrix, and MTF image. The mapping is therefore many-to-one, and no image-only decoder can recover the exact original amplitudes without additional information. An MTF decoder can return only a representative trajectory compatible with the inferred quantised states; it should not be interpreted as an inverse.
+
+
+\subsection{Research gap}\label{sec:research_gap}
+Two gaps follow from this review. First, the reviewed literature does not provide an operational decoder for either restricted-branch GADF or the continuous signed adjacent-state RP considered here, particularly after finite-precision image storage. Second, it does not provide a controlled comparison of RP, GASF, GADF, and MTF under the same reconstruction, perturbation, and downstream-utility protocol. This work addresses both gaps: it proposes operational GADF and signed-RP decoders, requires no method-specific per-window metadata for normalised reconstruction, and evaluates all four methods together, with GASF as the established invertible baseline and MTF as a lossy control.
+
+\section{Problem Formulation}\label{sec:problem_formulation}
+
+The formal problem is therefore not to classify an image, but to test the round trip from a signal to an image and back to a signal. Let \(x=(x_1,\ldots,x_N)\) denote one axis of an accelerometer window. Method \(m\) applies a normaliser \(\mathcal N_m\), an encoder \(\mathcal E_m\), and a decoder \(\mathcal D_m\):
+\[
+\tilde x^{(m)}=\mathcal N_m(x),\qquad
+M^{(m)}=\mathcal E_m(\tilde x^{(m)}),
+\]
+\[
+\hat{\tilde x}^{(m)}=\mathcal D_m(M^{(m)}).
+\]
+Here \(M^{(m)}\in\mathbb R^{N_m\times N_m}\), with \(N_m=N\) for GASF, GADF, and MTF and \(N_m=N-1\) for the adjacent-state RP\@. The primary reconstruction problem is to recover the normalised signal \(\hat{\tilde x}^{(m)}\); returning to physical units,
+\[
+\hat x=\mathcal N_m^{-1}(\hat{\tilde x}^{(m)};x_{\min},x_{\max}),
+\]
+is a common optional calibration step. Each accelerometer axis is encoded independently, stored as one RGB channel, decoded, and regrouped into a triaxial window.
+
+\section{Proposed Reconstruction Methods}\label{sec:proposed_methods}
+
+\subsection{Shared normalisation and storage protocol}\label{sec:shared_protocol}
+
+Encoded matrices are stored and reread as 8-bit PNG images. Every matrix is written with an affine per-window map onto \([0,255]\), and the GASF and GADF images are read back with the fixed operator range \([-1,1]\), so their inverse needs no per-window information. For GASF the two maps coincide exactly: normalising the signal to \([0,1]\) forces \(\phi\) to attain both \(0\) and \(\pi/2\), so the diagonal reaches \(+1\) and \(-1\) in every non-constant window. For GADF the attained extreme is instead \(\pm2\alpha\sqrt{1-\alpha^2}\), so reading the image as \([-1,1]\) applies a fixed gain of \(1/(2\alpha\sqrt{1-\alpha^2})\); at \(\alpha=0.7\) this is \(1.00013\), an endpoint discrepancy below one 8-bit intensity step. Our stored GADF matrices follow the transposed convention \(\sin(\phi_j-\phi_i)\), so an implementation working in the notation of Equation~\ref{eq:gadf_indexed} must negate the image it reads. MTF already occupies \([0,1]\) and is stored without renormalisation. RP keeps its per-window map, since its signed-distance range varies from window to window; the decoder removes the resulting per-window shift by centring on the zero-valued diagonal, leaving an unknown positive scale that classical MDS and the final range map absorb. Table~\ref{tab:decoder_contract} separates information required for normalised reconstruction from the optional amplitude calibration used for physical units.
+
+\begin{table*}[!htbp]
+\centering
+\caption{Decoder outputs and the method-specific per-window information required under the current storage protocol. Fixed encoder conventions are assumed known.}\label{tab:decoder_contract}
+\small
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}L{0.12\textwidth}L{0.38\textwidth}L{0.40\textwidth}@{}}
+\toprule
+Method & Decoder output & Required per-window information \\
+\midrule
+RP   & Normalised waveform & None (zero level from the diagonal; residual positive scale immaterial) \\
+GASF & Normalised waveform in $[0,1]$ & None \\
+GADF & Normalised waveform in $[-\alpha,\alpha]$ & None \\
+MTF  & Quantile-level representative trajectory & None \\
+\bottomrule
+\end{tabular}
+
+\smallskip
+\footnotesize
+ Returning any decoded output to the observed signal scale additionally requires the common per-axis calibration $(x_{\min},x_{\max})$.
+\end{table*}
+
+Under the current storage protocol none of the four decoders requires method-specific per-window metadata to recover the normalised waveform. The min--max PNG mapping removes the absolute scale of the RP distance matrix, but the RP diagonal is identically zero: the constant diagonal pixel level marks where \(R=0\) sits in \([0,255]\), so centring the image on its diagonal median recovers the signed matrix up to a positive scale, which classical MDS and the final range map absorb. RP therefore reconstructs its normalised shape from the image alone, on the same footing as GASF and GADF\@. The common amplitude calibration \((x_{\min},x_{\max})\) is used only to return any normalised trajectory to the observed physical scale. Section~\ref{sec:decoder_ablation} shows that inverting the RP image with an incorrect external range is what fails. On 150 activity-balanced windows, diagonal-centred RP decoding was close to the decoder supplied with the true per-window operator range: clean NMAE was 0.0010 versus 0.0008, and under \(\sigma=8\) pixel noise, after averaging the same two draws within each window, 0.0166 versus 0.0167 (Supplementary Material). For GADF, the small difference between its attained operator range and the fixed \([-1,1]\) inversion applied by the decoder is analysed separately in the Supplementary Material.
+
+\subsection{Signed recurrence-plot decoder}\label{sec:rp_reconstruction_method}
+
+For the continuous signed RP in Equation~\ref{eq:FormulaRP}, the magnitude matrix contains Euclidean distances between adjacent states \(s_i=(x_i,x_{i+1})\). The proposed decoder recovers their full two-dimensional geometry and fixes the orthogonal ambiguity using overlap and sign:
+
+
+\begin{enumerate}
+\item Recover the signed matrix from the image without per-window metadata. The RP diagonal is identically zero, so its constant stored pixel level locates \(R=0\); subtracting the diagonal median, \(R^{\mathrm{obs}}=\mathrm{PNG}-\operatorname{median}_i\mathrm{PNG}_{ii}\), recovers the signed matrix up to a positive scale, which the classical-MDS step and the final range map absorb. Form the symmetric distance matrix
+\[
+D_{ij}=\tfrac12\bigl(|R^{\mathrm{obs}}_{ij}|+|R^{\mathrm{obs}}_{ji}|\bigr),\qquad D_{ii}=0.
+\]
+\item Apply classical MDS to \(D\)~\cite{Torgerson1952}. If \(J=I-\mathbf1\mathbf1^\top/(N-1)\), eigendecomposition of \(-\tfrac12JD^2J\) yields the two leading coordinates \(Y=V_2\Lambda_2^{1/2}\).
+
+\item Fix the two-dimensional orthogonal transformation of \(Y\) in closed form. Every such transformation can be written \(Q_{\theta,\eta}=\mathrm{rot}(\theta)\,\mathrm{diag}(1,\eta)\), with rotation angle \(\theta\) and reflection parity \(\eta\in\{+1,-1\}\). Writing \(Z=YQ_{\theta,\eta}\) and reading the candidate states as \((a_i,b_i)=(Z_{i1},Z_{i2})\), the criterion is the adjacent-state overlap: \(b_i\) and \(a_{i+1}\) are two estimates of the same sample \(x_{i+1}\), so their disagreement measures the error of the orientation. Pairwise distances fix the configuration only up to a common translation \(\delta\) along the overlap direction, so the angle and that translation are chosen together,
+\[
+\min_{\theta,\delta}\;J,
+\qquad
+J=\sum_{i=1}^{N-2}{\bigl(b_i-a_{i+1}+\delta\bigr)}^2,
+\]
+the recovered offset being applied symmetrically as \(a_i\mapsto a_i-\delta/2\) and \(b_i\mapsto b_i+\delta/2\).
+
+For fixed \(\eta\), the raw overlap residual is linear in \((\cos\theta,\sin\theta)\):
+\[
+b_i-a_{i+1}=A_i\cos\theta+B_i\sin\theta,
+\quad
+\begin{aligned}
+A_i&=\eta Y_{i2}-Y_{i+1,1},\\
+B_i&=-\eta Y_{i1}-Y_{i+1,2}.
+\end{aligned}
+\]
+Hence for any \(\theta\) the optimal translation is the negated mean residual, \(\delta^\star=-\frac{1}{N-2}\sum_i(b_i-a_{i+1})\), and substituting it simply mean-centres the two coefficients. With \(\tilde A_i=A_i-\bar A\), \(\tilde B_i=B_i-\bar B\), and \(\tilde C=[\,\tilde A\;\;\tilde B\,]\in\mathbb R^{(N-2)\times2}\), the profiled objective is the quadratic form
+\[
+J\bigl(\theta,\delta^\star\bigr)=u^\top H_\eta u,
+\qquad
+H_\eta=\tilde C^\top\tilde C,
+\qquad
+u=\begin{bmatrix}\cos\theta\\ \sin\theta\end{bmatrix}.
+\]
+Because \(\lVert u\rVert=1\), minimising this Rayleigh quotient over the unit circle is an eigenproblem: the minimiser is the unit eigenvector of the symmetric \(2\times2\) matrix \(H_\eta\) belonging to its smaller eigenvalue. Both signs \(\pm u\) attain the same minimum, so the two parities give exactly four globally optimal candidates and no angular discretisation is required. Among them, select the orientation whose regenerated signed RP is closest to \(R^{\mathrm{obs}}\) in Frobenius norm, comparing both after normalisation to unit norm so the choice (and any tie among near-minimisers) is resolved independently of the unknown positive scale.
+\item For aligned states \(\hat s_i=(a_i,b_i)\), recover all \(N\) samples:
+\[
+\begin{aligned}
+\hat x_1 &= a_1,\\
+\hat x_i &= \tfrac12(b_{i-1}+a_i),\quad 2\le i\le N-1,\\
+\hat x_N &= b_{N-1}.
+\end{aligned}
+\]
+\item Pairwise distances leave a common translation and a positive scale undetermined. Map the recovered sequence's minimum and maximum to the known normalised range to fix both; physical-unit recovery, if required, then uses the shared calibration.
+\end{enumerate}
+
+Retaining both MDS dimensions is essential because the embedded states are genuinely two-dimensional. The signed comparison resolves the reflection that remains after overlap alignment; Section~\ref{sec:decoder_ablation} summarises both choices.
+
+Because the orientation is obtained from a \(2\times2\) eigenproblem rather than searched, that step costs \(O(N)\) --- the cost of forming \(H_\eta\) --- instead of the \(O(n_\theta N)\) of an angular grid with \(n_\theta\) candidates, and it is exact rather than accurate to the grid spacing. The decoder's asymptotic cost remains dominated by the classical-MDS eigendecomposition, \(O(N^3)\). At the evaluated window size \(N=128\), whose operator is \(127\times127\), the interpreted-Python scan over 1,440 grid transforms nevertheless dominates the measured wall-clock difference; asymptotic dominance and finite-size implementation timing are therefore distinct statements. An angular grid is retained only as a historical baseline in the ablation of Section~\ref{sec:decoder_ablation}.
+
+\subsection{GASF diagonal inverse}\label{sec:gasf_reconstruction_method}
+
+GASF is the controlled prior-art baseline~\cite{wang2015encoding}. On the branch \(\phi_i\in[0,\pi/2]\),
+\[
+G^{\mathrm S}_{ii}=\cos(2\phi_i),\qquad
+\hat\phi_i=\tfrac12\arccos(G^{\mathrm S}_{ii}),\qquad
+\hat{\tilde x}_i=\cos(\hat\phi_i).
+\]
+The branch condition matters: under \([-1,1]\) scaling the diagonal determines only \(|\tilde x_i|\). With the \([0,1]\) protocol used here, the normalised shape follows from the diagonal and the amplitude range is needed only for optional physical-unit recovery.
+
+\subsection{Restricted-branch GADF decoder}\label{sec:gadf_reconstruction_proposal}
+
+GADF contains relative angles \(G^{\mathrm D}_{ij}=\sin(\phi_i-\phi_j)\) but no diagonal amplitude information. We scale each non-constant window to
+\[
+\bar x_t=2\alpha\frac{x_t-x_{\min}}{x_{\max}-x_{\min}}-\alpha,
+\qquad \alpha=0.7,
+\]
+so \(\phi_t=\arccos(\bar x_t)\). A unique principal-branch inverse requires
+\[
+\max_{i,j}|\phi_i-\phi_j|
+=\pi-2\arccos(\alpha)<\frac{\pi}{2},
+\]
+which is equivalent to \(\alpha<1/\sqrt2\). The choice \(\alpha=0.7\) is therefore close to the largest admissible symmetric range while retaining a numerical margin. Under this restriction,
+\[
+\arcsin(G^{\mathrm D}_{ij})=\phi_i-\phi_j.
+\]
+
+A pivot row \(p\) determines all angles relative to \(\phi_p\):
+
+\[
+\phi_j=\phi_p-\arcsin(G^{\mathrm D}_{pj}).
+\]
+The remaining global offset is fixed from the image. Per-window normalisation guarantees samples at both boundaries \(\pm\alpha\). Define
+\(\bar C=N^{-1}\sum_j\cos\phi_j\) and \(\bar S=N^{-1}\sum_j\sin\phi_j\). The row mean
+\[
+\mu_i=\frac1N\sum_j G^{\mathrm D}_{ij}
+=\bar C\sin\phi_i-\bar S\cos\phi_i
+\]
+
+is strictly increasing over the restricted angular interval. Indeed, writing
+\(\bar C=R\cos\psi\) and \(\bar S=R\sin\psi\) gives
+\(\mu(\phi)=R\sin(\phi-\psi)\). The mean direction \(\psi\) lies inside the cone
+spanned by the sample angles; because that cone has width below \(\pi/2\),
+\(\mu'(\phi)=R\cos(\phi-\psi)>0\) throughout the interval. Hence
+\[
+e=\arg\max_i|\mu_i|
+\]
+identifies a boundary row. Because \(\mu\) increases with \(\phi\), its sign resolves which boundary: \(\mu_e>0\) gives \(\phi_e=\arccos(-\alpha)\) and \(\mu_e<0\) gives \(\phi_e=\arccos(\alpha)\). For each of the \(n_p=5\) rows with the smallest \(|\mu_p|\),
+\[
+\begin{aligned}
+\hat\phi^{(p)}_j
+&=\phi_e-\arcsin(G^{\mathrm D}_{ep})-\arcsin(G^{\mathrm D}_{pj}),\\
+\hat{\bar x}_j
+&=\cos\left(\frac1{n_p}\sum_{p}\hat\phi^{(p)}_j\right).
+\end{aligned}
+\]
+Averaging angles over central pivots reduces PNG quantisation noise without changing the \(O(N^2)\) cost of reading the matrix and computing its row means. The inverse is exact in real arithmetic under the branch, boundary, and sign assumptions; it is not a generic inverse for unconstrained GADF images.
+
+\subsection{Best-effort Fiedler-vector MTF representative}\label{sec:mtf_reconstruction_method}
+
+MTF is many-to-one, so the decoder returns a representative trajectory compatible with its transition structure:
+
+\begin{enumerate}
+\item Cluster the \(N\) image rows into \(Q\) groups using \(k\)-means with farthest initialisation. Equal rows correspond to the same quantile state in a clean MTF.
+\item Average image blocks to estimate \(W\), symmetrise it as \(S=(W+W^\top)/2\), and form the graph Laplacian \(L=D-S\).
+\item Sort the recovered groups by the Fiedler vector of \(L\), following spectral seriation~\cite{Atkins1998}. The Fiedler coordinate supplies a one-dimensional ordering of the latent groups; for a general transition graph this remains a heuristic rather than an identifiability guarantee.
+\item Assign the midpoint \((k-\tfrac12)/Q\) to samples in ordered group \(k\).
+\end{enumerate}
+
+The image does not determine the global reversal of the amplitude order, and all values within a bin share one representative. We use \(Q=4\); the full bin-count and metadata sweeps are reported in the Supplementary Material.
+\section{Experimental Protocol}\label{sec:experimental_protocol}
+
+\subsection{Dataset and segmentation}
+
+We use the 20\,Hz smartwatch accelerometer stream of the WISDM Smartphone and Smartwatch Activity and Biometrics Dataset~\cite{misc_wisdm_smartphone_and_smartwatch_activity_and_biometrics_dataset__507}. Five nearly balanced activities are retained: standing (20.6\%), sitting (20.2\%), walking (20.0\%), stairs (19.7\%), and jogging (19.5\%). Within every contiguous subject--activity recording, we form non-overlapping windows of \(N=128\) samples (6.4\,s) and discard the final incomplete block. No window crosses a subject or activity boundary.
+
+This produces 8,172 labelled triaxial windows from 51 subjects, or 24,516 one-axis reconstructions. GASF, GADF, and MTF images are \(128\times128\); the adjacent-state RP is \(127\times127\), and its overlap reconstruction returns 128 samples.
+
+Two complementary three-fold protocols are evaluated. The \emph{window-level} split is class-stratified and may place windows from the same subject in train and test, so it measures reconstruction-induced distribution shift within the observed population. Its three test folds each contain 2,724 triaxial windows. The \emph{grouped subject-out} split assigns all windows from a subject to one fold; folds 0, 1, and 2 respectively hold out 17, 18, and 16 subjects and contain 2,645, 2,788, and 2,739 test windows. It is our \emph{primary} protocol, since it estimates generalisation to unseen individuals; the window-level split is reported only as an optimistic within-distribution reference, and its full comparison is deferred to the Supplementary Material. In either protocol the union of the three test folds is the same 8,172 triaxial windows, equivalently 24,516 one-axis reconstructions. Because the decoders are deterministic and untrained, pooled reconstruction errors are therefore protocol-independent; classifier performance differs because a new model is trained for each fold, and the subject-level equivalence result (Table~\ref{tab:equivalence_ci}) is reported under the subject-out protocol.
+
+\subsection{Evaluation design}
+
+The four reconstruction procedures are compared in a hierarchy of three blocks --- fidelity, robustness, and utility --- so that each answers a distinct question and later blocks are interpreted only once earlier ones hold.
+
+\paragraph{Fidelity: signal and spectrum.}\label{sec:fidelity_metrics}
+Time-domain fidelity uses \emph{range-normalised} metrics, so the four encoders are comparable regardless of each window's amplitude. Writing \(r=\max_i x_i-\min_i x_i\) for one axis,
+\[
+\mathrm{NMAE}=\frac{1}{r\,n}\sum_i|x_i-\hat x_i|,
+\]
+\[
+\mathrm{NRMSE}=\frac{1}{r}\sqrt{\tfrac1n\sum_i{(x_i-\hat x_i)}^2},
+\]
+together with Pearson correlation and the range-normalised first-difference error
+\[
+\Delta\text{-NMAE}=\frac{1}{r(n-1)}\sum_i\bigl|(x_{i+1}-x_i)-(\hat x_{i+1}-\hat x_i)\bigr|,
+\]
+which checks whether local changes, not only global amplitude, are preserved. When \(r\le\tau_r=10^{-8}\,\mathrm{m/s^2}\), a relative error is numerically undefined; that axis is omitted from range-normalised summaries rather than divided by an arbitrary epsilon. No evaluated window was excluded under this rule. We drop MRE, whose \(|x_i|+\varepsilon\) denominator lets accelerometer zero-crossings dominate.
+
+The spectral lens uses Welch periodograms at \(f_s=20\,\)Hz, computed with 64-sample Hann segments and 50\% overlap~\cite{Welch1967}. To separate shape from energy, each spectrum is first normalised to unit mass,
+\[
+p_x(f)=\frac{P_x(f)}{\sum_f P_x(f)+\varepsilon},\qquad
+d_{\mathrm{shape}}=\lVert p_x-p_{\hat x}\rVert_1,
+\]
+while total-energy error is reported separately as
+\[
+e_E=\frac{|\sum_f P_x(f)-\sum_f P_{\hat x}(f)|}{\sum_f P_x(f)+\varepsilon}.
+\]
+The main table reports PSD shape and dominant frequency; energy and band-mass errors appear in the Supplementary Material. This lens replaces the previous cubic-polynomial fit.
+
+\paragraph{Robustness: controlled local stability.}
+We sample 150 fold-0 windows, exactly 30 per activity and spread across the available subjects within each activity, drawn with a fixed seed before inspecting any perturbation result so the sample cannot be chosen to favour a method. For every nonzero \(\sigma\in\{2,4,8,16\}\), two independent arrays of zero-mean Gaussian noise are added independently to every pixel and channel of the stored image; intensities are clipped to \([0,255]\), rounded back to integers, and decoded (seed 0). We average replicates within a window and report between-window dispersion and subject-cluster bootstrap intervals. With only two draws per level, the reported dispersion characterises heterogeneity across windows rather than the full noise distribution at any single window; the inference is therefore about between-window variability. This is a controlled local-stability stress test, not a surrogate for generated-image defects.
+
+For the clean image \(I_{m,w}\), the cycle residual is
+\[
+c_{m,w}=\frac{\sum_{a=1}^{3}\lVert \mathcal E_m(\hat x^{(0)}_{m,w,a})-M_{m,w,a}\rVert_F}
+{\sum_{a=1}^{3}\lVert M_{m,w,a}\rVert_F+\varepsilon},
+\]
+where \(M_{m,w,a}\) is the native float operator matrix that produced image channel \(a\). This quantity is an image-domain wiring diagnostic rather than a fidelity measure, and it is not comparable across encoders: the Lu--Tong sign is a threshold, so for RP a reconstruction that is exact in floating point still leaves a nonzero residual (Supplementary Material). The wiring gate compares the newly computed clean reconstruction \(\hat x^{(0)}_{m,w}\) with the corresponding cached pipeline reconstruction \(\hat x^{\mathrm{cache}}_{m,w}\): every sampled window must have mean axis-wise NMAE below 0.05. All four methods passed this gate on every sampled window. Cycle details are reported in the Supplementary Material; the per-source error decomposition appears in Section~\ref{sec:results_robustness}.
+
+\paragraph{Utility}
+Six classifiers are trained once per fold on original triaxial windows; three representative models spanning the families are reported in the body (CNN, GRU, and Random Forest --- convolutional, recurrent, and classical), and all six appear in the Supplementary Material. The same fitted model is then evaluated on the original and on each reconstruction of the held-out windows, a distribution-shift test. Because normalised reconstruction is image-only, each decoded axis is first returned to physical units using the source window's shared \((x_{\min},x_{\max})\) calibration, matching the units the classifiers were trained on; this common, source-derived calibration is the only signal-domain information used downstream. We frame utility as an \emph{equivalence} question --- whether reconstruction accuracy lies within a practically negligible margin of the original --- rather than as a difference test. This tests whether the reconstruction preserves enough information for an original-trained classifier, not whether it augments training; a transfer matrix that trains and evaluates across original and reconstructed data (and their mixture) is left to future work.
+
+\subsection{Statistical protocol}\label{sec:statistical_protocol}
+
+All comparisons are paired. Per-window MAE summaries are compared using Wilcoxon signed-rank tests~\cite{Wilcoxon1945}; a subject-clustered analysis repeats the comparison after reducing each subject to one mean. Window-wise classifier correctness uses continuity-corrected McNemar tests~\cite{McNemar1947} as a secondary diagnostic.
+
+The primary utility inference uses the per-subject accuracy difference (Original minus reconstruction). We jointly resample the 51 subjects \(10^4\) times and construct simultaneous \(95\%\) max-deviation bootstrap intervals over one family of 18 subject-out comparisons (six classifiers by RP/GASF/GADF)~\cite{DavisonHinkley1997,Hall1987}. The six MTF negative-control comparisons form a separate family. Equivalence requires the entire classifier-specific simultaneous interval to lie within \(\pm0.01\). This one-percentage-point margin in subject-level accuracy was set as the largest degradation considered operationally negligible when replacing an original window with its reconstruction; the observed subject-out fold variation, which it comfortably undercuts, is reported only as secondary context, and margin choice remains a substantive judgement~\cite{Lakens2017}. The wider \(\pm0.02\) region is a less stringent sensitivity analysis, not a conservative alternative. Paired two one-sided tests (TOST) provide confirmation~\cite{Schuirmann1987}: at \(\alpha=0.05\), TOST corresponds to a bilateral \(90\%\) interval, so the simultaneous \(95\%\) bootstrap criterion is the stricter headline rule.
+
+For the confirmatory TOST and difference tests, Holm--Bonferroni controls family-wise \(\alpha=0.05\) separately over the 24 original-versus-reconstruction comparisons, the 36 between-encoder comparisons, and the six pointwise-error pairs~\cite{Holm1979}. The window-level equivalence analysis is repeated as separate secondary families in the Supplementary Material; neither tests nor intervals are pooled across protocols.
+
+\paragraph{Configuration and internal validity.}
+For the subject-out numbers to estimate generalisation to unseen individuals, settings supporting the primary RP/GASF/GADF claims are fixed across folds: classifier hyperparameters and the 20-epoch training budget are unchanged. The complete configurations are listed in the Supplementary Material: the classical models largely follow library defaults, whereas the neural architectures are explicitly specified. All were fixed before the grouped subject-out evaluation and were not selected using any outer-fold test prediction; no classifier hyperparameter search was run. In addition, per-window normalisation is deterministic; \(\alpha=0.7\) follows from the analytic bound \(\alpha<1/\sqrt2\); \(n_p=5\) is held fixed; and the RP orientation step has no tunable parameter at all, since the four candidates follow from a \(2\times2\) eigenproblem. The exception is MTF's \(Q=4\), selected in an exploratory pooled-test sweep. Consequently, MTF is retained only as a descriptive lossy control: we do not claim an unbiased estimate of an optimally tuned MTF decoder. Confirmatory comparison of MTF configurations would require a subject-grouped inner loop inside every outer fold. This limitation cannot affect the confirmatory conclusions for RP, GASF, or GADF, whose settings were not selected by that sweep.
+\subsection{Reproducibility and provenance}\label{sec:reproducibility}
+The implementation uses Python 3.10--3.11, TensorFlow 2.11--2.15, scikit-learn, and SciPy. Classical MDS is deterministic; reconstructed windows retain explicit indices during parallel execution; and both fold assignments use fixed seeds. The repository includes encoders, decoders, classifiers, the fidelity and spectral metric module, the subject-clustered equivalence and bootstrap tests, and the table-generation scripts. Structured summaries record the sampling unit, seed, replicate count and decoder mode used by every refreshed RP table; large reconstruction arrays remain external artefacts identified by their provenance hashes. Extended configurations and outputs are supplied in the Supplementary Material.
+
+\section{Results}\label{sec:results}
+
+\subsection{Qualitative reconstruction}
+
+Figure~\ref{fig:qualitative_main} compares the four reconstructions for the same WISDM walking window. RP, GASF, and GADF almost completely overlap the original on all axes. MTF retains coarse temporal structure but replaces continuous amplitude variation with quantile-level plateaus. An analytical control signal, inversion-sensitivity panels, and per-axis MTF plots are provided in the Supplementary Material.
+
+\begin{figure*}[!t]
+\centering
+\begin{minipage}[t]{0.48\linewidth}
+\includegraphics[width=\linewidth]{images/rp_sample_0_global.png}
+\subfigtext{(a) RP}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\linewidth}
+\includegraphics[width=\linewidth]{images/gaf_sample_0_global.png}
+\subfigtext{(b) GASF}
+\end{minipage}
+
+\begin{minipage}[t]{0.48\linewidth}
+\includegraphics[width=\linewidth]{images/gadf_sample_0_global.png}
+\subfigtext{(c) GADF}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\linewidth}
+\includegraphics[width=\linewidth]{images/mtf_sample_0_global.png}
+\subfigtext{(d) MTF}
+
+\end{minipage}
+\caption{Original and reconstructed triaxial signals for one WISDM walking window.}\label{fig:qualitative_main}
+\end{figure*}
+
+\subsection{Reconstruction fidelity}
+
+Table~\ref{tab:pointwise_pooled} reports pooled pointwise fidelity in physical units and Table~\ref{tab:fidelity_spectral} the range-normalised and spectral metrics. Each deterministic decoder scores every one of the 8,172 windows once, so the pooled values are identical for the window-level and subject-out partitions. RP, GASF, and GADF operate near the clean 8-bit round-trip error floor, whereas MTF is orders of magnitude less accurate pointwise. On average, the near-original trio also preserves spectral shape (mean distance below 0.01) and dominant frequency (mean error below 0.01\,Hz); the nonzero standard deviations in Table~\ref{tab:fidelity_spectral} show that these are aggregate statements rather than bounds for every window. MTF's mean spectral-shape distance is 0.362 and its mean dominant-frequency error is 0.573\,Hz. The local-change error \(\Delta\)-NMAE stays at the \(10^{-3}\) level for the near-original methods and rises to 0.202 for MTF.
+
+\begin{table}[!htbp]
+\centering
+\caption{Pooled pointwise fidelity over 8,172 windows, each the per-window global metric averaged over the three axes. MAE is reported as mean$\pm$standard deviation across windows (m/s\(^2\)); MSE (m\(^2\)/s\(^4\)) and Pearson (dimensionless) are pooled means. MSE for the near-original trio is given to five decimals, because RP and GADF agree to four.}\label{tab:pointwise_pooled}
+\begin{tabular}{lccc}
+\toprule
+Method & MAE (mean \(\pm\) std) & MSE & Pearson \\
+\midrule
+RP   & \(0.0142\pm0.0156\) & 0.00083 & 0.99998 \\
+GASF & \(0.0205\pm0.0199\) & 0.00430 & 0.99988 \\
+GADF & \(0.0157\pm0.0167\) & 0.00080 & 0.99999 \\
+MTF  & \(3.94\pm4.25\)     & 55.43   & 0.01356 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table*}[!htbp]
+\centering
+\caption{Range-normalised and spectral fidelity over 8,172 windows (mean\(\pm\)std across windows, averaged over the three axes). PSD-shape distance compares Welch spectra after each is normalised to unit mass; energy and band-mass errors are reported separately in the Supplementary Material.}\label{tab:fidelity_spectral}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccc}
+\toprule
+Method & NMAE & NRMSE & Pearson & \(\Delta\)-NMAE & PSD-shape dist. & Dom.-freq.\ err.\ (Hz) \\
+\midrule
+RP   & \(0.0010\pm0.0007\) & \(0.0012\pm0.0009\) & \(0.99998\pm0.00005\) & \(0.0012\pm0.0008\) & \(0.0040\pm0.0022\) & \(0.007\pm0.107\) \\
+GASF & \(0.0015\pm0.0006\) & \(0.0028\pm0.0012\) & \(0.99988\pm0.00014\) & \(0.0021\pm0.0007\) & \(0.0071\pm0.0051\) & \(0.007\pm0.085\) \\
+GADF & \(0.0013\pm0.0005\) & \(0.0014\pm0.0006\) & \(0.99999\pm0.00001\) & \(0.0009\pm0.0003\) & \(0.0026\pm0.0019\) & \(0.005\pm0.081\) \\
+MTF  & \(0.278\pm0.080\)   & \(0.326\pm0.091\)   & \(0.014\pm0.489\)     & \(0.202\pm0.069\)   & \(0.362\pm0.181\)   & \(0.573\pm1.111\) \\
+\bottomrule
+\end{tabular}
+}
+\end{table*}
+
+Paired window-level Wilcoxon tests distinguish every encoder pair after Holm correction. The practically important effect is the separation from MTF: RP, GASF, and GADF each show a large effect (\(|r|=0.866\)) against it. Differences within the near-original trio are small in absolute units despite statistical detection at \(N=8{,}172\). Repeating the test on 51 subject means preserves the MTF separation and the modest ordering within the trio --- per-subject mean MAE 0.0137 for RP, 0.0148 for GADF, and 0.0199 for GASF, with RP over GADF at \(p=8.6\times10^{-5}\) after Holm correction over the six encoder pairs --- showing that these findings are not produced solely by window-level pseudoreplication. Per-fold and per-axis breakdowns, and the full per-classifier subject-clustered equivalence under both protocols, are in the Supplementary Material.
+
+\subsection{Robustness to image perturbation}\label{sec:results_robustness}
+
+The implementation follows the local-stability protocol defined above. The activity-balanced sample contains 30 windows per class and covers all 51 subjects. The self-consistency objects are the newly decoded clean reconstruction \(\hat x^{(0)}_{m,w}\) and its cached pipeline counterpart \(\hat x^{\mathrm{cache}}_{m,w}\); all four methods passed the per-window gate.
+
+Table~\ref{tab:robustness} shows increasing error for the three near-original decoders, but no catastrophic failure within the tested range: at \(\sigma=16\) (about \(6\%\) of the intensity range), their mean NMAE remains below \(0.07\). RP has the lowest descriptive mean at every nonzero level, \(0.034\) at \(\sigma=16\). The second position depends on the level: GADF lies between RP and GASF for \(\sigma\le8\), whereas at \(\sigma=16\) GASF (\(0.063\)) overtakes GADF (\(0.067\)). This experiment was not designed as a pairwise superiority test, so we do not infer a population-level robustness ranking from those means alone. MTF stays near \(0.28\) across the curve because its representative reconstruction is already dominated by intrinsic quantisation loss. Subject-cluster intervals and cycle residuals are reported in the Supplementary Material. These results quantify local stability only; they do not cover the coherent structural defects of generated images.
+
+\begin{table*}[!htbp]
+\centering
+\caption{Controlled local-stability test: NMAE under zero-mean Gaussian pixel noise (standard deviation \(\sigma\), out of 255). Values are mean$\pm$standard deviation across 150 activity-balanced, subject-spread windows after averaging two independent draws per nonzero level. Subject-cluster 95\% intervals are in the Supplementary Material.}\label{tab:robustness}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lccccc}
+\toprule
+Method & \(\sigma=0\) & \(\sigma=2\) & \(\sigma=4\) & \(\sigma=8\) & \(\sigma=16\) \\
+\midrule
+RP   & $0.0010\pm0.0007$ & $0.0044\pm0.0031$ & $0.0083\pm0.0049$ & $0.0167\pm0.0088$ & $0.0340\pm0.0143$ \\
+GASF & $0.0015\pm0.0003$ & $0.0130\pm0.0043$ & $0.0214\pm0.0053$ & $0.0358\pm0.0061$ & $0.0634\pm0.0084$ \\
+GADF & $0.0012\pm0.0004$ & $0.0074\pm0.0018$ & $0.0147\pm0.0031$ & $0.0315\pm0.0079$ & $0.0669\pm0.0161$ \\
+MTF  & $0.2812\pm0.0836$ & $0.2845\pm0.0850$ & $0.2868\pm0.0818$ & $0.2838\pm0.0787$ & $0.2797\pm0.0751$ \\
+\bottomrule
+\end{tabular}
+}
+\end{table*}
+
+Table~\ref{tab:error_sources} attributes the error to three sources over the same 150 windows: the native floating-operator inverse, the clean 8-bit PNG round trip, and perturbed storage at \(\sigma=8\). That decomposition resolves the apparent GADF contradiction: its native float inverse is exact to numerical precision, whereas the small nonzero term previously called ``float error'' included the storage mapping. All three near-original decoders are exact in floating point --- their mean native-operator NMAE is at the level of double-precision rounding, below \(10^{-16}\) --- so for every one of them 8-bit quantisation is the sole clean-round-trip source. For RP this is a consequence of the closed-form orientation: with an angular grid the orientation was accurate only to the grid spacing, which left a residual mean NMAE of \(3.5\times10^{-4}\) even on the native float operator (Section~\ref{sec:decoder_ablation}). MTF's loss is already present in its floating representative reconstruction.
+
+\begin{table*}[!htbp]
+\centering
+\caption{Reconstruction NMAE by source over the 150 activity-balanced robustness windows: native float operator mean, and mean$\pm$standard deviation for the clean and perturbed PNG conditions. RP, GASF, and GADF are exact to numerical precision in floating point, so their clean error is entirely 8-bit quantisation; MTF is already lossy before storage.}\label{tab:error_sources}
+\begin{tabular}{lccc}
+\toprule
+Method & Native float operator & 8-bit PNG & Perturbed ($\sigma=8$) \\
+\midrule
+RP   & $9.1\times10^{-17}$ & $0.0010\pm0.0007$ & $0.0167\pm0.0088$ \\
+GASF & $4.3\times10^{-17}$ & $0.0015\pm0.0003$ & $0.0358\pm0.0061$ \\
+GADF & $7.0\times10^{-17}$ & $0.0012\pm0.0004$ & $0.0315\pm0.0079$ \\
+MTF  & $0.2819\pm0.0830$   & $0.2812\pm0.0836$ & $0.2838\pm0.0787$ \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Downstream classification}\label{sec:subject_out_results}
+
+Table~\ref{tab:subject_out_acc} is the main classification result, under the primary grouped subject-out protocol. RP, GASF, and GADF track the original signal on every classifier, while MTF degrades all of them. The corresponding within-distribution window-level accuracies --- uniformly higher, as expected --- and all six classifiers are reported in the Supplementary Material; both protocols preserve this grouping, although the near-original methods exchange tiny descriptive positions across classifiers.
+
+\begin{table}[!htbp]
+\centering
+\caption{Grouped subject-out three-fold accuracy (primary protocol) for three representative classifiers spanning the families (convolutional, recurrent, classical). Accuracies are rounded to three decimals; the sub-$0.001$ per-method differences are quantified per subject in Table~\ref{tab:equivalence_ci}. All six classifiers and the window-level comparison are in the Supplementary Material.}\label{tab:subject_out_acc}
+\begin{tabular}{lccccc}
+\toprule
+Classifier & Original & RP & GASF & GADF & MTF \\
+\midrule
+CNN & 0.796 & 0.796 & 0.796 & 0.796 & 0.686 \\
+GRU & 0.811 & 0.811 & 0.811 & 0.811 & 0.702 \\
+RF  & 0.786 & 0.786 & 0.787 & 0.787 & 0.689 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+McNemar difference tests are secondary because failure to reject a difference does not establish equivalence. The primary result is Table~\ref{tab:equivalence_ci}: each classifier-specific simultaneous interval lies within \(\pm0.01\) for RP, GASF, and GADF, even when complete subjects are held out. For each method the table reports the single simultaneous interval whose endpoint lies closest to the margin, with the classifier it belongs to; every such worst-case interval remains inside \(\pm0.01\). All 24 individual simultaneous intervals are shown in the Supplementary Material. Holm-adjusted TOST gives the same method-level verdict. MTF is equivalent to none: its mean per-subject accuracy deficit ranges from 0.05 to 0.11 under subject-out.
+
+\begin{table*}[!htbp]
+\centering
+\caption{Subject-level classification equivalence under grouped subject-out validation. The primary family comprises 18 simultaneous subject-cluster bootstrap intervals (six classifiers by RP/GASF/GADF); the six MTF negative-control comparisons form a separate family (51 subjects, \(10^4\) joint resamples per family). For each method, ``most boundary-near'' is the single simultaneous interval whose endpoint lies closest to the equivalence margin, with the classifier it comes from; all 24 individual intervals are in the Supplementary Material.}\label{tab:equivalence_ci}
+\begin{tabular}{lcccc}
+\toprule
+Method & Mean \(\Delta\)acc range & Most boundary-near 95\% CI (classifier) & Equiv.\ \(\pm0.01\) & Equiv.\ \(\pm0.02\) \\
+\midrule
+RP   & \([-0.0004,+0.0006]\) & \([-0.0016,+0.0027]\)~(RF)  & 6/6 & 6/6 \\
+GASF & \([-0.0006,+0.0003]\) & \([-0.0027,+0.0016]\)~(RF)  & 6/6 & 6/6 \\
+GADF & \([-0.0005,+0.0008]\) & \([-0.0013,+0.0030]\)~(SVM) & 6/6 & 6/6 \\
+MTF  & \([+0.0474,+0.1144]\) & \([+0.0212,+0.0736]\)~(KNN) & 0/6 & 0/6 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Decoder-mechanism ablations}\label{sec:decoder_ablation}
+
+These ablations probe the mechanisms used by the headline RP and GADF decoders rather than select them on an outer-fold test set. Table~\ref{tab:ablation_summary} reports the decision-changing comparisons; the sample used by each row is stated in the Supplementary Material. The refreshed RP geometry experiment holds the diagonal-centred storage path and closed-form orientation fixed while removing signed selection or substituting the deliberately incorrect signal-range inversion. GADF benefits from pivot averaging, and Fiedler spectral ordering improves the MTF representative over the earlier cosine-pivot heuristic when both decode the identical 8-bit image.
+
+The isolated orientation experiment uses 150 activity-balanced windows (450 axis-series) and the same metadata-free inversion in both arms. On the unquantised operator path the closed form is exact --- mean NMAE \(9.1\times10^{-17}\), with a mean normalised squared-overlap diagnostic of \(3\times10^{-31}\) --- whereas the grid leaves \(3.5\times10^{-4}\). On clean 8-bit images the two give 0.0010 and 0.0012; under \(\sigma=8\) noise they converge (0.0171 versus 0.0172, treating each noise draw as an axis-series observation) because pixel noise then dominates the orientation term. Total measured decoding time, including the common MDS step, falls from 0.60 to 0.27\,s per axis-series, and the closed form selects the NMAE-optimal candidate on every one of the 450 clean axis-series. The clean-PNG cycle residual is 0.0533 against 0.0512 for the grid, and 0.1627 against 0.1596 at \(\sigma=8\), but for the signed RP that diagnostic is governed by sign flips at the \(\hat u_{ij}\cdot v=\cos(\pi/4)\) threshold rather than by reconstruction error, so it does not separate the two arms. The full sweep is in the Supplementary Material.
+
+For historical regression only, the earlier production snapshot has pooled MAE 0.0148 versus 0.0142\,m/s\(^2\) for the refreshed pipeline. That comparison is not an orientation-only ablation: the snapshot also used operator-range metadata and a scale-dependent signed selector. The raw floating-operator GADF inverse is exact to numerical precision (mean NMAE \(7.0\times10^{-17}\), Table~\ref{tab:error_sources}); the earlier nonzero ``float'' value arose from applying the fixed storage map before decoding, not from the operator inverse. The full GADF pivot sweep, the controlled MTF decoder comparison, and the exploratory MTF bin-count sensitivity analysis are in the Supplementary Material; the float/PNG error decomposition is Table~\ref{tab:error_sources}.
+
+\begin{table*}[!htbp]
+\centering
+\caption{Compact decoder-ablation summary. MAE is in physical units (m/s\(^2\)); the sample and controlled factors for each row are detailed in the Supplementary Material.}\label{tab:ablation_summary}
+\small
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llll}
+\toprule
+Method & Used variant (MAE) & Degraded alternative (MAE) & Interpretation \\
+\midrule
+RP geometry & diagonal-centred + signed (0.009) & signal-range inversion (1.259) & same 100 windows; closed form in both 2-D arms \\
+RP production & refreshed metadata-free (0.0142) & legacy grid + range metadata (0.0148) & historical regression, not an orientation-only comparison \\
+GADF & five pivots (0.0158) & one pivot (0.0353) & averaging suppresses PNG noise \\
+MTF & Fiedler ordering (5.07) & cosine pivot (6.46) & spectral ordering helps; still quantisation-lossy \\
+\bottomrule
+\end{tabular}}
+\end{table*}
+
+\section{Discussion}\label{sec:discussion}
+
+\subsection{Interpretation of the comparison}\label{sec:disc_pointwise}
+
+The fidelity and utility blocks support one consistent division. RP, GASF, and GADF reconstruct near the clean 8-bit round-trip floor, preserve spectral shape on average, and remain equivalent to the raw signal for original-trained classification under both validation protocols. MTF is worse on every block. Classification alone would not establish reconstruction fidelity: a coarse representation can retain class information while losing amplitude. Here the pointwise and spectral metrics show that the three leading methods recover the signal under their stated contracts, whereas MTF preserves only a quantile-transition summary.
+
+The small ordering among RP, GADF, and GASF should not obscure this result. With the orientation solved in closed form, RP has the lowest observed mean MAE and NMAE; GADF attains the lowest mean MSE together with the highest Pearson correlation and the lowest local-change error; and GASF has the simplest established inverse. The split between MAE and MSE reflects a heavier error tail for RP, whose across-window MSE dispersion is \(0.0045\) against \(0.0018\) for GADF. Their absolute differences are tiny compared with the gap to MTF, and no corresponding classification separation is detected.
+
+Practically, GASF is the simplest faithful baseline; GADF provides directional-difference recovery under a restricted branch; and RP preserves recurrence geometry at the cost of an MDS embedding. MTF is appropriate only when a coarse transition summary is acceptable. Holding out complete subjects reduces absolute classifier accuracy but does not alter this grouping. The simultaneous subject-cluster intervals turn a non-significant difference into a positive, margin-relative equivalence statement for RP, GASF, and GADF; TOST agrees.
+
+\subsection{Relationship between signed RP and GADF}\label{sec:disc_structural}
+
+Signed RP and GADF are not equivalent matrices, but both encode directional pairwise differences. For slowly varying local increments, let \(\bar x_{ij}\) denote a common local expansion amplitude between the restricted-normalisation samples \(\bar x_i\) and \(\bar x_j\). Then
+\[
+R_{ij}\approx \sigma(i,j)\sqrt2\,|x_i-x_j|,
+\qquad
+G^{\mathrm D}_{ij}\approx
+\frac{\bar x_j-\bar x_i}{\sqrt{1-\bar x_{ij}^2}}.
+\]
+GADF is intrinsically antisymmetric because its sign follows from \(\sin(\phi_i-\phi_j)\); the Lu--Tong RP applies an external directional sign and need not be exactly antisymmetric. This analogy explains their visual proximity without implying a shared inverse or formal information equivalence. The full operator derivation and null-corrected regional-overlap diagnostic are provided in the Supplementary Material.
+
+\subsection{Limitations and scope}\label{sec:disc_scope}
+
+\begin{itemize}
+\item \textbf{Controlled inputs.} Every image is produced by a known encoder. The repeated Gaussian-noise experiment measures only local pixel stability; it does not cover structural invalidity, occlusion, missing anchors, non-Euclidean RP matrices, or genuinely generated images. Augmentation benefit is therefore not demonstrated.
+\item \textbf{Scale and calibration.} All four decoders return an image-derived normalised trajectory --- RP, GASF, and GADF recover the waveform, MTF a quantile-level representative --- with no method-specific per-window metadata (RP recovers its zero level from the diagonal, the residual positive scale being immaterial for normalised reconstruction). Returning to physical units requires the common per-axis amplitude calibration \((x_{\min},x_{\max})\) for every method equally. Because the WISDM sensor full-scale range is undocumented, this calibration uses each window's observed \((x_{\min},x_{\max})\); a known device full-scale would reduce it to a single dataset-wide constant. In a future generative setting, where no source window exists, the physical amplitude scale would need to be supplied by device metadata or estimated by the generative model.
+\item \textbf{Branch and anchor assumptions.} GASF uses a fixed branch; GADF requires \(\alpha<1/\sqrt2\), a consistent sign convention, and a detectable boundary. Near-constant or perturbed images may violate the anchor assumption.
+\item \textbf{Statistical dependence.} Pooled window tests understate intra-subject dependence and combine fold-specific rules. The primary intervals jointly resample subjects and control the 18-comparison subject-out family. MTF is handled separately as six negative-control comparisons. Equivalence remains relative to the chosen margin. The \(\pm0.02\) result is only a less stringent sensitivity analysis. In addition, only 8,032 of the 8,172 windows are distinct as (window, subject, activity) triples, the remaining 140 repeating an identical earlier window of the source stream, so pooled window-level tests slightly overstate the number of independent observations.
+\item \textbf{External validity.} Results cover one smartwatch accelerometer dataset, five activities, 51 subjects, 20\,Hz sampling, and \(N=128\) windows.
+\item \textbf{Storage precision.} The near-original tier is measured after an 8-bit PNG round trip; other formats or perturbations may change the error floor.
+\item \textbf{Decoder cost.} Solving the RP orientation in closed form removes the angular search, but the decoder is still dominated by the classical-MDS eigendecomposition, \(O(N^3)\) per axis. At \(N=128\) this is inexpensive; for long windows an approximate or incremental embedding would be required, and its effect on fidelity is untested here. GASF, GADF, and MTF decode in \(O(N^2)\).
+\end{itemize}
+
+\section{Conclusion}\label{sec:conclusion}
+
+This work establishes when an image-based time-series representation can be treated as a reversible signal representation rather than only as a visual feature map. The central contribution is therefore not another encoding, but an operational account of what information RP, GASF, GADF, and MTF retain, which ambiguities must be resolved to decode them, and what reconstruction quality remains after finite-precision image storage.
+
+Two previously missing decoders make that account operational. For the continuous signed adjacent-state RP, the zero-valued diagonal removes the need to store the per-window operator range, while two-dimensional classical MDS, overlap alignment, and closed-form orientation with signed selection recover the normalised waveform from the image alone. For GADF, restricting the angular branch makes the relative angles uniquely recoverable; an image-derived boundary anchor restores their global offset, and multi-pivot averaging reduces 8-bit quantisation error. These mechanisms solve different inverse problems and require no method-specific per-window metadata. GASF supplies the established diagonal inverse, whereas the Fiedler-ordered MTF output deliberately marks the limit of reconstruction: because quantile assignment is many-to-one, it can provide only a representative trajectory, not the original waveform.
+
+The common evaluation on 8,172 WISDM windows confirms a clear information hierarchy. RP, GASF, and GADF form a near-lossless tier, with mean MAEs of 0.0142, 0.0205, and 0.0157\,m/s$^2$, correlations approximately equal to one, and small local-change and spectral-shape errors. All three are exact at the native floating-operator level under their stated branches and conventions, so their clean residual error is attributable to 8-bit storage alone; for RP this required replacing the angular orientation search with the closed-form eigenproblem, which removes the last algorithmic term. More importantly, this fidelity survives the downstream task: across six classifiers and complete held-out subjects, all 18 RP/GASF/GADF accuracy differences lie within the simultaneous one-percentage-point equivalence region. MTF remains substantially lossy in the signal, spectral, and classification evaluations, showing why downstream usefulness alone should not be interpreted as invertibility.
+
+The result is a controlled foundation for reversible image-domain processing of time series. It identifies RP, GASF, and restricted-branch GADF as viable substrates when the recovered waveform matters, while making the assumptions and information loss of each representation explicit. The conclusions remain limited to images produced by known encoders: the perturbation experiment establishes local stability, not validity under arbitrary image defects, and returning a normalised reconstruction to physical units still requires the shared amplitude calibration. Evaluating structurally imperfect and genuinely generated encoding images is therefore a separate next step, for which the decoder contracts and reconstruction baselines established here provide the required starting point.
+
+
+\begin{thebibliography}{99}
+\raggedright
+
+\bibitem{wang2015encoding}
+Zhiguang Wang and Tim Oates. ``Imaging time-series to improve classification and imputation''. In \textit{Proceedings of the 24th International Joint Conference on Artificial Intelligence (IJCAI)}, pp. 3939--3945, 2015.
+
+\bibitem{wang2015encoding2}
+Zhiguang Wang and Tim Oates. ``Encoding time series as images for visual inspection and classification using tiled convolutional neural networks''. In \textit{Workshops at the Twenty-Ninth AAAI Conference on Artificial Intelligence}, 2015.
+
+\bibitem{huang2023tsdigan}
+Tongge Huang, Pranamesh Chakraborty, and Anuj Sharma. ``Deep convolutional generative adversarial networks for traffic data imputation encoding time series as images''. \textit{International Journal of Transportation Science and Technology}, vol. 12, no. 1, pp. 1--18, 2023. doi: \url{https://doi.org/10.1016/j.ijtst.2021.10.007}.
+
+\bibitem{hellermann2026imagegan}
+Justin Hellermann and Stefan Lessmann. ``Leveraging image-based generative adversarial networks for time series generation''. \textit{International Journal of Forecasting}, vol. 42, no. 2, pp. 616--639, 2026. doi: \url{https://doi.org/10.1016/j.ijforecast.2025.09.004}.
+
+\bibitem{eckmann1987recurrence}
+Jean-Pierre Eckmann, S. Oliffson Kamphorst, and David Ruelle. ``Recurrence plots of dynamical systems''. \textit{Europhysics Letters}, vol. 4, no. 9, pp. 973--977, 1987. doi: \url{https://doi.org/10.1209/0295-5075/4/9/004}.
+
+\bibitem{marwan2007recurrence}
+Norbert Marwan, M. Carmen Romano, Marco Thiel, and Jürgen Kurths. ``Recurrence plots for the analysis of complex systems''. \textit{Physics Reports}, vol. 438, no. 5--6, pp. 237--329, 2007. doi: \url{https://doi.org/10.1016/j.physrep.2006.11.001}.
+
+\bibitem{ahmad2021inertial}
+Zeeshan Ahmad and Naimul Khan. ``Inertial sensor data to image encoding for human action recognition''. \textit{IEEE Sensors Journal}, vol. 21, no. 9, pp. 10978--10988, 2021. doi: \url{https://doi.org/10.1109/JSEN.2021.3062261}.
+
+\bibitem{ma2024anomaly}
+Jidong Ma and Hairu Wang. ``Anomaly detection in sensor data via encoding time series into images''. \textit{Journal of King Saud University -- Computer and Information Sciences}, vol. 36, no. 10, article 102232, 2024. doi: \url{https://doi.org/10.1016/j.jksuci.2024.102232}.
+
+\bibitem{huamin2020reconstruction}
+Huamin Tao, Qiuqun Deng, and Shanzhu Xiao. ``Reconstruction of time series with missing value using 2D representation-based denoising autoencoder''. \textit{Journal of Systems Engineering and Electronics}, vol. 31, no. 6, pp. 1087--1096, 2020. doi: \url{https://doi.org/10.23919/JSEE.2020.000081}.
+
+\bibitem{takens1981detecting}
+Floris Takens. ``Detecting strange attractors in turbulence''. In \textit{Dynamical Systems and Turbulence, Warwick 1980}, Lecture Notes in Mathematics, vol. 898, pp. 366--381, Springer, 1981. doi: \url{https://doi.org/10.1007/BFb0091924}.
+
+\bibitem{lu2019robust}
+Jianjie Lu and Kai-Yu Tong. ``Robust single accelerometer-based activity recognition using modified recurrence plot''. \textit{IEEE Sensors Journal}, vol. 19, no. 15, pp. 6317--6324, 2019. doi: \url{https://doi.org/10.1109/JSEN.2019.2911204}.
+
+\bibitem{hirata2008reproduction}
+Yoshito Hirata, Shunsuke Horai, and Kazuyuki Aihara. ``Reproduction of distance matrices and original time series from recurrence plots and their applications''. \textit{The European Physical Journal Special Topics}, vol. 164, no. 1, pp. 13--22, 2008. doi: \url{https://doi.org/10.1140/epjst/e2008-00830-8}.
+
+\bibitem{sipers2011unique}
+Aloys Sipers, Paul J. A. Borm, and Ralf L. M. Peeters. ``On the unique reconstruction of a signal from its unthresholded recurrence plot''. \textit{Physics Letters A}, vol. 375, no. 24, pp. 2309--2321, 2011. doi: \url{https://doi.org/10.1016/j.physleta.2011.04.040}.
+
+\bibitem{sipers2017robust}
+Aloys Sipers, Paul J. A. Borm, and Ralf L. M. Peeters. ``Robust reconstruction of a signal from its unthresholded recurrence plot subject to disturbances''. \textit{Physics Letters A}, vol. 381, no. 6, pp. 604--615, 2017. doi: \url{https://doi.org/10.1016/j.physleta.2016.12.028}.
+
+\bibitem{Torgerson1952}
+Warren S. Torgerson. ``Multidimensional scaling: I. Theory and method''. \textit{Psychometrika}, vol. 17, no. 4, pp. 401--419, 1952. doi: \url{https://doi.org/10.1007/BF02288916}.
+
+\bibitem{Atkins1998}
+Jonathan E. Atkins, Erik G. Boman, and Bruce Hendrickson. ``A spectral algorithm for seriation and the consecutive ones problem''. \textit{SIAM Journal on Computing}, vol. 28, no. 1, pp. 297--310, 1998. doi: \url{https://doi.org/10.1137/S0097539795285771}.
+
+\bibitem{misc_wisdm_smartphone_and_smartwatch_activity_and_biometrics_dataset__507}
+Gary M. Weiss. ``WISDM Smartphone and Smartwatch Activity and Biometrics Dataset''. \textit{UCI Machine Learning Repository}, 2019. doi: \url{https://doi.org/10.24432/C5HK59}.
+
+\bibitem{Welch1967}
+Peter D. Welch. ``The use of fast Fourier transform for the estimation of power spectra: A method based on time averaging over short, modified periodograms''. \textit{IEEE Transactions on Audio and Electroacoustics}, vol. 15, no. 2, pp. 70--73, 1967. doi: \url{https://doi.org/10.1109/TAU.1967.1161901}.
+
+\bibitem{Wilcoxon1945}
+Frank Wilcoxon. ``Individual comparisons by ranking methods''. \textit{Biometrics Bulletin}, vol. 1, no. 6, pp. 80--83, 1945. doi: \url{https://doi.org/10.2307/3001968}.
+
+\bibitem{McNemar1947}
+Quinn McNemar. ``Note on the sampling error of the difference between correlated proportions or percentages''. \textit{Psychometrika}, vol. 12, no. 2, pp. 153--157, 1947. doi: \url{https://doi.org/10.1007/BF02295996}.
+
+\bibitem{DavisonHinkley1997}
+Anthony C. Davison and David V. Hinkley. \textit{Bootstrap Methods and Their Application}. Cambridge University Press, 1997.
+
+\bibitem{Hall1987}
+Peter Hall. ``On the bootstrap and likelihood-based confidence regions''. \textit{Biometrika}, vol. 74, no. 3, pp. 481--493, 1987. doi: \url{https://doi.org/10.1093/biomet/74.3.481}.
+
+\bibitem{Lakens2017}
+Daniël Lakens. ``Equivalence tests: A practical primer for t tests, correlations, and meta-analyses''. \textit{Social Psychological and Personality Science}, vol. 8, no. 4, pp. 355--362, 2017. doi: \url{https://doi.org/10.1177/1948550617697177}.
+
+\bibitem{Schuirmann1987}
+Donald J. Schuirmann. ``A comparison of the two one-sided tests procedure and the power approach for assessing the equivalence of average bioavailability''. \textit{Journal of Pharmacokinetics and Biopharmaceutics}, vol. 15, no. 6, pp. 657--680, 1987. doi: \url{https://doi.org/10.1007/BF01068419}.
+
+\bibitem{Holm1979}
+Sture Holm. ``A simple sequentially rejective multiple test procedure''. \textit{Scandinavian Journal of Statistics}, vol. 6, no. 2, pp. 65--70, 1979.
+\end{thebibliography}
+\end{document}

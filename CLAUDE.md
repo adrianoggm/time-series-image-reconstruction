@@ -4,7 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-Reference implementation of a TFG on reconstructing triaxial accelerometer time series (WISDM) from four image-based encodings — **RP, GASF, GADF, MTF** — and benchmarking the reconstructions against the original signals with six classifiers (KNN, SVM, RandomForest, LSTM, GRU, CNN). The paper draft (`doc/main.tex`) is part of the deliverable and is updated alongside the code.
+Reference implementation of a TFG on reconstructing triaxial accelerometer time series (WISDM) from four image-based encodings — **RP, GASF, GADF, MTF** — and benchmarking the reconstructions against the original signals with six classifiers (KNN, SVM, RandomForest, LSTM, GRU, CNN). The manuscripts are part of the deliverable and are updated alongside the code.
+
+**`doc/main3.tex` is the submission manuscript** (`elsarticle`, `[preprint,12pt]`). `doc/main2.tex` is the earlier two-column `[5p]` build, kept for reference only — it is no longer derived from the same source, so the two are edited independently. Build `main3.tex` first: the supplement resolves cross-references through `\externaldocument{main3}`, which needs `main3.aux`. The `.aux`/`.fls`/`.fdb_latexmk`/`.spl` intermediates are gitignored; only the PDFs are tracked.
+
+No generative model is trained anywhere in this repo. Every decoder is analytic. The k-diffusion training stack, its configs and the Hugging Face / W&B upload helpers were removed; `torch` is not a dependency.
 
 ## Setup
 
@@ -12,7 +16,7 @@ The dependency manifest is `pyproject.toml`. Python is pinned to **>=3.10,<3.12*
 
 ```bash
 bash scripts/setup.sh                # Linux/macOS/WSL, core deps
-bash scripts/setup.sh hf diffusion   # + optional extras
+bash scripts/setup.sh dev            # + ruff and pre-commit
 .\scripts\setup.ps1                  # Windows PowerShell equivalent
 ```
 
@@ -63,15 +67,33 @@ Every validator (`scripts/knnvalidation.py`, `lstmvalidation.py`, etc.) is a thi
 
 `evaluate_run` is where the cross-cutting caching lives — adding a new classifier or a new encoding should never duplicate this logic:
 
-- **E1 (model cache)** — `models/<classifier>.<h5|joblib>` is fit **once on the originals** and reused across every encoding. Trained on the very first validator call; subsequent calls (any encoder) just predict.
+- **E1 (model cache)** — `models/<clf>__<sampling>-fold-<k>-<n>f.<h5|joblib>` is fit **once on the originals** and reused across every encoding *within that (sampling, fold)*. Trained on the very first validator call; subsequent calls (any encoder) just predict. The bare `models/<clf>.<ext>` form in [src/models.py](src/models.py) is a legacy fallback only — `evaluate_run` always passes `sampling`/`fold`/`n_folds`, so new runs write the qualified filename. The split was added because LOTO fold-0 and LOSO fold-0 would otherwise collide.
 - **E2 (original-report cache)** — `results/_originals/<classifier>/fold-<k>-<sampling>-<n>f.json` stores the classification report on the un-reconstructed validation set. Same logic: independent of the encoder, persisted and reused.
-- **E3 (skip-if-done)** — if `results/<stype>/<classifier>/fold-<k>.json` exists, the call is a no-op unless `--force` is passed.
+- **E3 (skip-if-done)** — if `results/<stype>/<classifier>/<sampling>/fold-<k>.json` exists, the call is a no-op unless `--force` is passed. (The bare `results/<stype>/<classifier>/fold-<k>.json` form is again a legacy fallback in `results_dir`; new callers always include the sampling segment.)
 
-Implication: when you change a classifier's hyperparameters or training code, delete its `models/<clf>.*` cache and the matching `results/_originals/<clf>/...` JSON or pass `--train-new` to `run_pipeline.py`; otherwise the evaluator silently reuses the stale model.
+Implication: when you change a classifier's hyperparameters or training code, either pass `--train-new --force` to `run_pipeline.py`, or delete by hand:
+- `models/<clf>__<sampling>-fold-<k>-<n>f.<ext>`
+- `results/_originals/<clf>/fold-<k>-<sampling>-<n>f.json`
+- `results/<stype>/<clf>/<sampling>/fold-<k>.json`
+
+Otherwise the evaluator silently reuses the stale model.
+
+**Reconstruction-array axis order is auto-normalised, not stype-specific.** [src/evaluator.py](src/evaluator.py)::`_load_reconstruction` inspects `arr.shape` and transposes `(N, C, T)` → `(N, T, C)` when the channel axis is in position 1. Every classifier downstream assumes `(N, T, C)` (or its flattened `(N, T*C)` form). Persist reconstructions however you like, but don't hardcode an axis convention in callers — let `_load_reconstruction` normalise.
 
 ## Reconstruction internals (parallel-order bug, fixed)
 
 `src/reconstruct_tseries.py` reconstructs each window in parallel via `ProcessPoolExecutor`. **The aggregation must preserve sample order** — earlier versions used `as_completed`, which produced label/sample misalignment and showed up downstream as nonsense classifier accuracies (the historical RP-KNN 0.51 in baselines was this bug, not the algorithm). The current code carries `(index, recon, axis)` tuples through the pool and sorts by index before stacking. If you touch the parallel loop, preserve that invariant.
+
+### RP production decoder contract
+
+Production RP reconstruction is `Reconstruct_RP(..., method="direct2ds")` with **two defaults that the paper depends on**:
+
+- **`rp_range=None` → metadata-free.** `src/rp_decoders.py::decode_window` inverts the PNG by centring on the diagonal median (`R = png - median(diag(png))`), since the RP diagonal is identically zero. Passing per-window `(R_min, R_max)` instead is the *operator-range oracle*, an ablation-only variant. `reconstruct_tseries._build_rp_range` is kept solely for that variant — production never calls it (it costs as much as computing the RP).
+- **`orientation_method="closed_form"`.** The O(2) orientation comes from the smaller-eigenvalue eigenvector of a symmetric 2×2 matrix per reflection parity, giving four exact candidates; `"grid"` (n_theta=720) is the historical baseline kept for the ablation. Closed form is exact on the native float operator (NMAE ~9e-17 vs the grid's 3.5e-4) and ~2.2× faster.
+
+Changing either default changes published numbers. Guard both with `python -m scripts._check_rp_decoders` and `python -m scripts._check_rp_production`.
+
+**Parallel reconstruction needs `OMP_NUM_THREADS=1`.** The pool is per-window, so multi-threaded BLAS inside each worker oversubscribes the cores: measured 2.3 it/s at default threading vs 16–17 it/s pinned to one thread each (24-core host). `scripts/_regen_rp_6folds.sh` exports it.
 
 RP-specific: `src/recurrence_plots.py::fix_rotationscale` returns `posi[:TIME_STEPS]` (not `[:128]`). The adjacent-state embedding `(x_j, x_{j+1})` produces `N-1` recovered samples; the function augments back to `N=TIME_STEPS` by appending the per-window mean. Don't hardcode 128.
 
@@ -79,14 +101,31 @@ MTF-specific: when `T % numstates == 0` (e.g. `T=128, Q=4`) there are no leftove
 
 ## Statistical analysis
 
-Significance tests for paper claims live in [scripts/_stat_tests.py](scripts/_stat_tests.py): bootstrap 95% CIs for accuracy, paired McNemar (continuity-corrected via `chi2.sf` for tail precision), Wilcoxon signed-rank on per-window MAE with effect size `r = Z/√N`, Steiger's z for dependent correlations, and Holm-Bonferroni inside each family. Writes `results/_stats/stat_report.{md,json}`.
+Significance tests for paper claims live in [scripts/_stat_tests.py](scripts/_stat_tests.py): bootstrap 95% CIs for accuracy, paired McNemar (continuity-corrected via `chi2.sf` for tail precision), Wilcoxon signed-rank on per-window MAE with effect size `r = Z/√N`, Steiger's z for dependent correlations, and Holm-Bonferroni inside each family. Writes `results/_stats/stat_report_<sampling>.{md,json}` — pass `TFG_STAT_SAMPLING=loso` for the subject-out family (default `loto`).
 
 Verification scripts (run them before committing paper changes):
 ```bash
-python scripts/_check_refs.py            # broken/unused \label/\ref in doc/main.tex
-python scripts/_verify_paper_tables.py   # tab:*_classifiers accuracies vs JSON snapshot
+python scripts/_check_refs.py            # broken/unused \label/\ref in doc/main2.tex + supplementary.tex
 python scripts/_verify_error_tables.py   # pointwise tables vs .npy reconstructions (runs in WSL)
 ```
+
+The table generators that read the deleted `doc/main.tex` and the deleted `.results_snapshot/` are gone. Use [scripts/_emit_main2_numbers.py](scripts/_emit_main2_numbers.py) — it emits the classification and equivalence table rows straight from the live `results/` tree and the regenerated stat reports. `_make_loso_tables.py` reads the live tree too.
+
+### Every printed number needs a stored source
+
+| Artefact under `results/_stats/` | Generator |
+|---|---|
+| `per_subject_mae_<sampling>.json` | `scripts/_stat_per_subject.py` — subject-clustered Wilcoxon on per-window MAE, Holm-corrected over the six encoder pairs |
+| `gadf_pivot_sweep.{json,tex}` | `scripts/_gadf_pivot_stats.py --n 1500` |
+| `mtf_decoder_ablation.json` | `scripts/_mtf_controlled_ablation.py` |
+
+The two results figures of the main manuscript are generated the same way, from those artefacts rather than by hand: `scripts/_make_paper_figures.py` reads `robustness.json` and `stat_report_loso.json` and writes `doc/images/robustness_curves.pdf` and `doc/images/equivalence_forest.pdf`. Re-run it after regenerating either statistic.
+
+[scripts/_persist_paper_sources.sh](scripts/_persist_paper_sources.sh) regenerates all three in WSL and copies them back to the Windows checkout. These three used to print to stdout only, which left three supplementary tables untraceable.
+
+[scripts/audit_manuscripts.py](scripts/audit_manuscripts.py) recomputes the pointwise and classification tables straight from the reconstruction arrays and writes `docs/audit/numerical_evidence.json`. Its `--compare-root` must name the **other** checkout; pointed at its own tree the cross-checkout diff is skipped rather than silently reporting "no differences".
+
+**`results/_originals/` is a cache, not a source.** It is untracked and has gone stale before: its CNN entries disagreed with the `original` block of the fold JSONs, which is what the paper actually reports. Table generators must read the Original column from any encoder's `results/<stype>/<clf>/<sampling>/fold-<k>.json`, as `_emit_main2_numbers.py` and `_make_loso_tables.py` now do.
 
 ## Aggregating results
 
@@ -100,9 +139,57 @@ Walks `results/**/fold-*.json` (skipping `_originals/`) and emits a Markdown com
 
 `.github/workflows/smoke.yml` runs an import-only smoke test on (Ubuntu, Windows) × (3.10, 3.11) — it does not exercise the pipeline. It also asserts `get_time_setup('WISDM')` returns `(128, 128)` and that `DEFAULT_DATA_DIR` ends with a path separator. Both invariants are load-bearing across the codebase; if you change them, expect a cascade.
 
+## Linting
+
+Ruff is configured in [pyproject.toml](pyproject.toml) (line-length 120, target `py310`, rules `E,F,I,UP,B`, ignoring `E501,E402`). With the `dev` extras installed:
+
+```bash
+pip install -e ".[dev]"
+ruff check .
+ruff format .
+```
+
+There is no pytest suite and `pytest` is not a dependency. Don't add it to a workflow expecting tests to exist; the only automated check is the smoke import in `.github/workflows/smoke.yml`, which imports every `src/` and `scripts/` module.
+
 ## Calling code in WSL from a Windows checkout
 
 The maintainer keeps the repo on Windows (`C:\Users\...\TFG-Tratamiento-de-Series-Temporales`) but runs the pipeline in WSL2 (`/home/adrianogarcia/tfg/`). Sync with `rsync -a /mnt/c/Users/.../scripts/<file> /home/adrianogarcia/tfg/scripts/`. Avoid piping long commands through `wsl.exe -- bash -lc "..."` — PowerShell mangles quotes; write the command to a `.sh` file in `scripts/` and execute it via `bash /tmp/<copy>.sh` (strip CRs with `sed 's/\r$//'` first).
+
+## Every tracked entry point
+
+The repo was pruned to what the paper actually uses: anything not reachable from
+this list was removed. If you add a module, add it here or it will look dead to
+the next person.
+
+**Pipeline** — `python -m scripts.<name>`: `run_pipeline`, `generate_images`,
+`generate_time_series`, and the six validators (`knnvalidation`, `Validation`
+for SVM, `randomforestvalidation`, `lstmvalidation`, `gruvalidation`,
+`cnnvalidation`).
+
+**Results** — `summarize_results`, `emit_classifier_tables`,
+`_apply_classifier_tables`, `_emit_main2_numbers`, `_make_error_tables`,
+`_make_loso_tables`, `_make_fidelity_tables`, `_make_robustness_tables`,
+`audit_manuscripts`.
+
+**Statistics and ablations** — `_stat_tests`, `_stat_per_subject`,
+`_gadf_pivot_stats`, `_mtf_controlled_ablation`, `_ablation_rp_2d`,
+`_ablation_rp_metadata`, `_ablation_rp_orientation`.
+
+**Figures** — `_make_paper_figures`, `_regen_reconstruction_figs`, and the
+supplementary RP/GADF diagnostic trio `rp_gadf_structure_overlap`,
+`rp_gadf_structure_null_boundary`, `plot_rp_gadf_structure_figures` (the last
+writes `doc/images/rp_gadf_structure_collage.png`). These three are CLI-only —
+nothing imports them, which does not make them dead.
+
+**Gates** — `_check_refs.py`, `_check_rp_decoders`, `_check_rp_production`, and
+the shell scripts `_check_build.sh` (strict LaTeX gate; it forces a `latexmk -g`
+pass, because grepping a cached no-op run reported clean builds that carried
+overfull boxes), `_check_rp_cycle.sh`, `_compile_papers.sh`,
+`_persist_paper_sources.sh`, `_run_audit_manuscripts.sh`, `_run_recon_grid.sh`.
+
+Note `scripts/_*.py` and `scripts/_*.sh` are gitignored by default; a reproduction
+script is kept by adding a `!` whitelist line to `.gitignore`. A helper that is
+not whitelisted is scratch and nobody else will see it.
 
 ## Conventions worth knowing
 

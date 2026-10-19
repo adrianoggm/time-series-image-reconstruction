@@ -47,43 +47,35 @@ def normalize_series(series):
     scaled_serie = np.where(scaled_serie >= 1., 1., scaled_serie)
     scaled_serie = np.where(scaled_serie <= -1., -1., scaled_serie)
     return scaled_serie
-def normalize_series07(series):
+def normalize_series07(series, alpha=0.7):
     min_val = np.min(series)
     max_val = np.max(series)
-    # Escalar entre -0.7 y 0.7
-    scaled_serie = 1.4 * (series - min_val) / (max_val - min_val) - 0.7
-    scaled_serie = np.where(scaled_serie >= 0.7, 0.7, scaled_serie)
-    scaled_serie = np.where(scaled_serie <= -0.7, -0.7, scaled_serie)
+    # Escalar entre -alpha y +alpha
+    scaled_serie = 2 * alpha * (series - min_val) / (max_val - min_val) - alpha
+    scaled_serie = np.where(scaled_serie >= alpha, alpha, scaled_serie)
+    scaled_serie = np.where(scaled_serie <= -alpha, -alpha, scaled_serie)
     return scaled_serie
 
-def gramian_angular_diff_field(series, method='difference'):
-    # Normalización de la serie temporal
-    normalized_series = normalize_to_zero_one(series)
-    #print("SERIE_normalizada_R",normalized_series)
-    # Conversión a ángulos
-    # Polar encoding
-    #print("Serie norm",series,normalized_series)
-    phi = np.arccos(normalized_series) 
-    
-    #print("Serie norm",phi,normalized_series)
-    #print("Angulos",phi)
-    #print("valores de PHI de R",phi)
-    """
-    Para la reconstruccion nos servirá
-    r = np.linspace(0, 1, len(normalized_series))
-    print("Radius",r)
-    """
-    # Construcción del GADF
+def gramian_angular_diff_field(series, method='difference', alpha=0.7):
+    # Construcción del GADF. Cada variante usa su propio escalado/ángulo:
     if method == 'summation':
+        # GASF: amplitud completa [0,1] -> phi in [0, pi/2].
+        normalized_series = normalize_to_zero_one(series)
+        phi = np.arccos(normalized_series)
         gaf = tabulate(phi, phi, cos_sum)
-        
+
     elif method == 'difference':
-        normalized_series = normalize_series07(series)
-        #phi = np.arcsin(normalized_series) 
+        # GADF restringido: escalado a [-alpha, alpha] (alpha<1/sqrt(2)) ANTES de
+        # calcular phi, de modo que todo |phi_i - phi_j| < pi/2 quede dentro de
+        # la rama principal de arcsin y el inverso sea cerrado y exacto.
+        # (Antes phi se calculaba sobre la normalización [0,1] y el escalado a
+        # 0.7 quedaba sin efecto, dejando la imagen justo en el borde pi/2.)
+        scaled_series = normalize_series07(series, alpha)
+        phi = np.arccos(scaled_series)
         gaf = tabulate(phi, phi, sin_diff)
     else:
         raise ValueError("Method must be 'summation' or 'difference'")
-    
+
     return gaf
     
 
@@ -206,39 +198,65 @@ def Reconstruct_GADF(img,dictionary,a):
     N.append(g)
     N.append(b)
     return N
-def GADF_to_TS(gaf,i,dictionary,method='difference'):
-    #We should select the  row with the all >= values that row means that value i is the min value of the real function.
-    #now were we find the max value of the row is the max value of the real function that column value.
-    #knowing that we can reconstruct the values of the function.
-    # We choose the row with the closest mean value to 0 and recosntruct the original values as.
-    # we obtain the value of the row as i-i val 
-     # Step 1: Find the row whose mean is closest to 0 (candidate for reconstruction)
-    MINVALUE=-0.7 
-    MAXVALUE=0.7
+def gadf_anchor(gaf, alpha=0.7):
+    """Locate the absolute angular anchor of a (transposed) GADF matrix.
+
+    Returns ``(e, phi_e)``: the extreme row index and the boundary angle assigned
+    to it. With ``gaf[r][j]=sin(phi_j-phi_r)`` the row with the largest |mean|
+    sits on an amplitude boundary; a positive mean means ``phi_r`` is the
+    small-angle boundary ``arccos(alpha)`` (x=+alpha), negative the large one.
+    """
     row_means = np.mean(gaf, axis=1)
-    minvalindex = np.argmax(np.abs(row_means))
-    maxvalindex = np.argmin(np.abs(row_means))
-    target_row_idx = np.argmin(np.abs(row_means)) 
-    pivot_value=np.arcsin(gaf[maxvalindex][target_row_idx])+MAXVALUE #x  =  arcsin(val) +0.7
-    
-    phi = np.arcsin(gaf[target_row_idx] )+pivot_value #x  =  arcsin(val) +pivot value
+    e = int(np.argmax(np.abs(row_means)))
+    phi_e = np.arccos(alpha) if row_means[e] > 0 else np.arccos(-alpha)
+    return e, phi_e
 
-    
-    X_normalized=np.cos(phi)
-    
 
-    MAX=dictionary[0] 
-    MIN=dictionary[1]
-    print("MAX",MAX)
-    print("MIN",MIN)
+def GADF_to_TS(gaf, i, dictionary, method='difference', n_pivots=5, alpha=0.7):
+    """Restricted-branch GADF inverse for one axis.
 
-    #x=np.interp(X_normalized,(np.min(X_normalized),np.max(X_normalized)),(MIN[i],MAX[i]))
-    x=X_normalized
-       
-     
+    Recovers the absolute angular trajectory from the off-diagonal entries and
+    the boundary anchor, then maps it back to physical units with the stored
+    (max, min) calibration.
 
-    # Transformar los puntos
-     #posi =min_b + n * (max_b - min_b)
-    x=np.interp(x,(np.min(x),np.max(x)),(MIN[i], MAX[i])) 
+    Convention: tabulate()/meshgrid store the transposed GADF,
+    ``gaf[r][j] = sin(phi_j - phi_r)`` (not ``sin(phi_r - phi_j)``), so every
+    arcsin step below ADDS rather than subtracts. Encoder and decoder must stay
+    in this same convention.
+
+    The reconstruction is the exact inverse of ``gramian_angular_diff_field``
+    under the restricted ``alpha<1/sqrt(2)`` protocol; up to 8-bit PNG
+    quantisation the round-trip error is at the resolution of the stored image.
+    """
+    row_means = np.mean(gaf, axis=1)
+
+    # --- Absolute anchor: the extreme row fixes the free global angular offset.
+    e, phi_e = gadf_anchor(gaf, alpha)
+
+    # --- Pivot rows: those with mean closest to zero (near the angular centre).
+    # Averaging several reconstructions reduces the noise of relying on a single
+    # row. Every pivot is anchored back to the boundary row e:
+    #   gaf[e][p] = sin(phi_p - phi_e)  ->  phi_p = phi_e + arcsin(gaf[e][p])
+    #   gaf[p][j] = sin(phi_j - phi_p)  ->  phi_j = phi_p + arcsin(gaf[p][j])
+    order = np.argsort(np.abs(row_means))
+    n_pivots = max(1, min(n_pivots, gaf.shape[0]))
+    pivots = order[:n_pivots]
+
+    phi_estimates = []
+    for p in pivots:
+        phi_p = phi_e + np.arcsin(np.clip(gaf[e][p], -1.0, 1.0))
+        phi_j = phi_p + np.arcsin(np.clip(gaf[p], -1.0, 1.0))
+        phi_estimates.append(phi_j)
+    phi = np.mean(phi_estimates, axis=0)
+
+    # Normalised amplitude in [-alpha, alpha] (= the encoder's normalize_series07).
+    scaled = np.cos(phi)
+
+    # --- Denormalisation: exact inverse of normalize_series07, using the stored
+    # per-axis (max, min) calibration rather than a min-max rescale of the
+    # reconstruction (which would re-anchor on the recovered extremes).
+    MAX = dictionary[0]
+    MIN = dictionary[1]
+    x = MIN[i] + (scaled + alpha) / (2.0 * alpha) * (MAX[i] - MIN[i])
 
     return x

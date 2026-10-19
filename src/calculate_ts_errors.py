@@ -34,7 +34,28 @@ def stderror(valores_verdaderos, valores_aproximados):
     error=np.std(error,ddof=1)
     return error
 
-##Calculates all different error measures for each channel returning them in n-channel tuples   
+def pointwise_global(orig, rec):
+    """Global pointwise metrics (MAE, MRE, MSE, Pearson) between originals and
+    reconstructions, both shaped ``(N, T, C)``.
+
+    Single source of truth for the paper's error-table numbers: both
+    ``scripts/_verify_error_tables.py`` and ``scripts/search_rp_rho.py`` call
+    this so the reported errors and the rho search measure identically.
+    """
+    diff = orig - rec
+    mae = float(np.abs(diff).mean())
+    mse = float((diff ** 2).mean())
+    safe = np.where(np.abs(orig) < 1.0, 1.0, np.abs(orig))
+    mre = float((np.abs(diff) / safe).mean())
+    oc = orig - orig.mean(axis=1, keepdims=True)
+    rc = rec - rec.mean(axis=1, keepdims=True)
+    num = (oc * rc).sum(axis=1)
+    den = np.linalg.norm(oc, axis=1) * np.linalg.norm(rc, axis=1)
+    pe = np.where(den > 1e-12, num / np.maximum(den, 1e-12), 0.0).mean()
+    return mae, mre, mse, float(pe)
+
+
+##Calculates all different error measures for each channel returning them in n-channel tuples
 def ts_error(original,creada,flag=True):
     errores_absolutos=[]
     errores_relativos=[]
