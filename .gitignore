@@ -198,3 +198,6 @@ results/_baseline_grid720/*
 !doc/images/mtf_sample_0_z_comp.png
 !doc/images/rp_gadf_structure_collage.png
 !doc/images/rp_sample_0_global.png
+
+# Obsolete experiment snapshot, superseded by the live results/ tree.
+.results_snapshot/
