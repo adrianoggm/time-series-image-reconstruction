@@ -1,0 +1,31 @@
+\begin{table}[!htbp]
+\centering
+\caption{Robustness block: reconstruction NMAE as increasing Gaussian pixel noise (std, out of 255) is added to the 8-bit image before decoding. Values are mean$\pm$std across 150 activity-balanced windows, averaging 2 independent noise draws per nonzero level.}
+\label{tab:robustness}
+\begin{tabular}{lccccc}
+\toprule
+Method & $\sigma=0$ & $\sigma=2$ & $\sigma=4$ & $\sigma=8$ & $\sigma=16$ \\
+\midrule
+RP & 0.0010$\pm$0.0007 & 0.0044$\pm$0.0031 & 0.0083$\pm$0.0049 & 0.0167$\pm$0.0088 & 0.0340$\pm$0.0143 \\
+GASF & 0.0015$\pm$0.0003 & 0.0130$\pm$0.0043 & 0.0214$\pm$0.0053 & 0.0358$\pm$0.0061 & 0.0634$\pm$0.0084 \\
+GADF & 0.0012$\pm$0.0004 & 0.0074$\pm$0.0018 & 0.0147$\pm$0.0031 & 0.0315$\pm$0.0079 & 0.0669$\pm$0.0161 \\
+MTF & 0.2812$\pm$0.0836 & 0.2845$\pm$0.0850 & 0.2868$\pm$0.0818 & 0.2838$\pm$0.0787 & 0.2797$\pm$0.0751 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[!htbp]
+\centering
+\caption{Reconstruction error by source (NMAE, 150 windows): native float operator, clean 8-bit PNG round trip, and perturbed PNG at $\sigma=8$. Quantisation is the dominant clean-round-trip source for the near-original methods; MTF loss is already present in float.}
+\label{tab:error_sources}
+\begin{tabular}{lccc}
+\toprule
+Method & Float (algorithm) & 8-bit PNG & Perturbed ($\sigma=8$) \\
+\midrule
+RP & $9.1\times10^{-17}$ & 0.0010 & 0.0167 \\
+GASF & $4.3\times10^{-17}$ & 0.0015 & 0.0358 \\
+GADF & $7.0\times10^{-17}$ & 0.0012 & 0.0315 \\
+MTF & 0.2819 & 0.2812 & 0.2838 \\
+\bottomrule
+\end{tabular}
+\end{table}

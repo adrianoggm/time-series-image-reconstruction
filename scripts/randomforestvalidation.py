@@ -11,6 +11,7 @@ from sklearn.ensemble import RandomForestClassifier
 from src.config import DEFAULT_DATA_DIR
 from src.evaluator import ClassifierAdapter, evaluate_run
 from src.paths import ALL_STYPES
+from src.seeding import DEFAULT_SEED
 
 CLASSIFIER_NAME = "randomforest"
 
@@ -19,7 +20,7 @@ def _adapter(n_estimators: int) -> ClassifierAdapter:
     return ClassifierAdapter(
         name=CLASSIFIER_NAME,
         build=lambda _shape: RandomForestClassifier(n_estimators=n_estimators,
-                                                    random_state=42, n_jobs=-1),
+                                                    random_state=DEFAULT_SEED, n_jobs=-1),
         fit=lambda m, X, y: m.fit(X, y),
         predict_labels=lambda m, X: m.predict(X),
         save=lambda m, p: joblib.dump(m, p),

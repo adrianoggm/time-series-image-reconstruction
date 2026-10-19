@@ -1,0 +1,19 @@
+\begin{table}[!htbp]
+\centering
+\caption{RP orientation search: grid baseline versus closed-form solution, on 150 activity-balanced windows (450 axis-series) from 51 subjects. Both variants use the metadata-free diagonal inversion, so only the orientation step differs. NMAE is the range-normalised mean absolute error. Overlap res. is the normalised diagnostic returned after translation alignment; the closed form minimises its unnormalised quadratic numerator. Cycle res. is reported separately. Times are total decode times per axis-series, including MDS.}
+\label{tab:rp_orientation_ablation}
+\begin{tabular}{llccccc}
+\toprule
+Condition & Orientation & NMAE (mean$\pm$std) & NMAE p95 & Overlap res. & Cycle res. & decode s/axis \\
+\midrule
+Native float & Closed form & 0.00000$\pm$0.00000 & 0.00000 & 3.21e-31 & 0.0194 & 0.283 \\
+ & Grid ($n_\theta{=}720$) & 0.00035$\pm$0.00043 & 0.00123 & 1.58e-05 & 0.0419 & 0.601 \\
+\midrule
+Clean 8-bit PNG & Closed form & 0.00101$\pm$0.00104 & 0.00192 & 8.26e-05 & 0.0533 & 0.274 \\
+ & Grid ($n_\theta{=}720$) & 0.00120$\pm$0.00111 & 0.00241 & 1.14e-04 & 0.0512 & 0.605 \\
+\midrule
+PNG $\sigma=8$ & Closed form & 0.01709$\pm$0.01311 & 0.04087 & 1.42e-02 & 0.1627 & 0.277 \\
+ & Grid ($n_\theta{=}720$) & 0.01716$\pm$0.01318 & 0.04161 & 1.43e-02 & 0.1596 & 0.603 \\
+\bottomrule
+\end{tabular}
+\end{table}

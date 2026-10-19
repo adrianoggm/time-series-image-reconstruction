@@ -1,0 +1,67 @@
+% ====== LOSO 3-fold headline summary ======
+\begin{table}[H]
+\centering
+\caption{Headline accuracies under the LOSO 3-fold protocol (leave-one-subject-out; mean $\pm$ std across folds 0, 1, 2; $\sim$2\,742 test windows per fold drawn from 16--18 held-out subjects). $\Delta$acc is the accuracy of the reconstructed signal minus the accuracy of the original signal under the same classifier, averaged over the same three folds.}
+\label{tab:gadf_summary_loso}
+\setlength{\tabcolsep}{3pt}
+\footnotesize
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Classifier} & \textbf{Orig.} & \textbf{GASF} & \textbf{GADF} & \textbf{RP} & \textbf{MTF} \\
+\midrule
+GRU & $0.811 \pm 0.026$ & $0.811 \pm 0.026$ (+0.000) & $0.811 \pm 0.026$ (+0.000) & $0.811 \pm 0.026$ (+0.000) & $0.702 \pm 0.025$ ($-$0.109) \\
+KNN & $0.504 \pm 0.035$ & $0.504 \pm 0.034$ ($-$0.000) & $0.505 \pm 0.034$ (+0.000) & $0.504 \pm 0.035$ (+0.000) & $0.465 \pm 0.039$ ($-$0.040) \\
+CNN & $0.796 \pm 0.036$ & $0.796 \pm 0.036$ ($-$0.000) & $0.796 \pm 0.036$ ($-$0.000) & $0.796 \pm 0.035$ ($-$0.000) & $0.686 \pm 0.035$ ($-$0.110) \\
+Random Forest & $0.786 \pm 0.039$ & $0.787 \pm 0.039$ (+0.001) & $0.787 \pm 0.039$ (+0.000) & $0.786 \pm 0.039$ ($-$0.000) & $0.689 \pm 0.026$ ($-$0.098) \\
+Support Vector Machine & $0.738 \pm 0.020$ & $0.738 \pm 0.020$ (+0.000) & $0.738 \pm 0.020$ ($-$0.001) & $0.738 \pm 0.020$ ($-$0.000) & $0.665 \pm 0.026$ ($-$0.073) \\
+LSTM & $0.744 \pm 0.029$ & $0.744 \pm 0.029$ (+0.000) & $0.744 \pm 0.028$ ($-$0.000) & $0.744 \pm 0.028$ ($-$0.000) & $0.672 \pm 0.035$ ($-$0.072) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% ====== LOSO per-fold breakdown ======
+\begin{table}[H]
+\centering
+\caption{Per-fold accuracies on the LOSO 3-fold protocol. Folds split the 51 WISDM subjects into disjoint groups of 17, 18 and 16 test subjects respectively; the test set of one fold never shares a subject with either of its training folds.}
+\label{tab:gadf_summary_perfold_loso}
+\setlength{\tabcolsep}{3pt}
+\footnotesize
+\begin{tabular}{l|ccc|ccc|ccc|ccc|ccc}
+\toprule
+ & \multicolumn{3}{c|}{\textbf{Orig.}} & \multicolumn{3}{c|}{\textbf{GASF}} & \multicolumn{3}{c|}{\textbf{GADF}} & \multicolumn{3}{c|}{\textbf{RP}} & \multicolumn{3}{c}{\textbf{MTF}} \\
+\textbf{Classifier} & f0 & f1 & f2 & f0 & f1 & f2 & f0 & f1 & f2 & f0 & f1 & f2 & f0 & f1 & f2 \\
+\midrule
+GRU & 0.848 & 0.791 & 0.794 & 0.848 & 0.791 & 0.794 & 0.847 & 0.791 & 0.794 & 0.848 & 0.791 & 0.795 & 0.732 & 0.671 & 0.702 \\
+KNN & 0.551 & 0.495 & 0.467 & 0.550 & 0.494 & 0.468 & 0.550 & 0.496 & 0.467 & 0.551 & 0.495 & 0.467 & 0.515 & 0.458 & 0.421 \\
+CNN & 0.847 & 0.779 & 0.764 & 0.847 & 0.778 & 0.764 & 0.847 & 0.778 & 0.764 & 0.845 & 0.779 & 0.764 & 0.735 & 0.670 & 0.654 \\
+Random Forest & 0.842 & 0.753 & 0.764 & 0.841 & 0.754 & 0.766 & 0.842 & 0.754 & 0.765 & 0.841 & 0.752 & 0.766 & 0.726 & 0.666 & 0.674 \\
+Support Vector Machine & 0.757 & 0.711 & 0.748 & 0.757 & 0.710 & 0.748 & 0.756 & 0.709 & 0.747 & 0.756 & 0.711 & 0.747 & 0.701 & 0.639 & 0.654 \\
+LSTM & 0.779 & 0.708 & 0.745 & 0.779 & 0.708 & 0.745 & 0.778 & 0.709 & 0.745 & 0.778 & 0.708 & 0.745 & 0.719 & 0.633 & 0.664 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% ====== LOTO vs LOSO side-by-side ======
+\begin{table}[H]
+\centering
+\caption{LOTO vs LOSO accuracies (mean across 3 folds). LOSO holds out 16--18 subjects per fold with zero overlap, so it is the stricter subject-out generalisation test. The ranking $\text{GASF}\succ\text{GADF}\succ\text{RP}\succ\text{MTF}$ is preserved under both sampling schemes; absolute accuracies are lower under LOSO because the model has not seen any window from the test subjects.}
+\label{tab:loto_vs_loso}
+\setlength{\tabcolsep}{3pt}
+\footnotesize
+\begin{tabular}{ll|cc|cc|cc|cc|cc}
+\toprule
+ & & \multicolumn{2}{c|}{\textbf{Orig.}} & \multicolumn{2}{c|}{\textbf{GASF}} & \multicolumn{2}{c|}{\textbf{GADF}} & \multicolumn{2}{c|}{\textbf{RP}} & \multicolumn{2}{c}{\textbf{MTF}} \\
+\textbf{Classifier} & & LOTO & LOSO & LOTO & LOSO & LOTO & LOSO & LOTO & LOSO & LOTO & LOSO \\
+\midrule
+GRU &  & 0.923 & 0.811 & 0.923 & 0.811 & 0.923 & 0.811 & 0.923 & 0.811 & 0.765 & 0.702 \\
+KNN &  & 0.642 & 0.504 & 0.642 & 0.504 & 0.643 & 0.505 & 0.642 & 0.504 & 0.559 & 0.465 \\
+CNN &  & 0.907 & 0.796 & 0.907 & 0.796 & 0.907 & 0.796 & 0.906 & 0.796 & 0.773 & 0.686 \\
+Random Forest &  & 0.891 & 0.786 & 0.891 & 0.787 & 0.892 & 0.787 & 0.891 & 0.786 & 0.757 & 0.689 \\
+Support Vector Machine &  & 0.801 & 0.738 & 0.801 & 0.738 & 0.801 & 0.738 & 0.801 & 0.738 & 0.697 & 0.665 \\
+LSTM &  & 0.869 & 0.744 & 0.868 & 0.744 & 0.869 & 0.744 & 0.868 & 0.744 & 0.757 & 0.672 \\
+\bottomrule
+\end{tabular}
+\end{table}
+

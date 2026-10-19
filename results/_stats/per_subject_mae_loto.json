@@ -1,0 +1,74 @@
+{
+  "design": {
+    "sampling": "loto",
+    "folds": [
+      0,
+      1,
+      2
+    ],
+    "n_subjects": 51,
+    "n_windows": 8172,
+    "unit": "per-subject mean of the per-window MAE (m/s^2)",
+    "family": "6 pairwise encoder comparisons, Holm-corrected"
+  },
+  "per_subject_mean_mae": {
+    "GASF": {
+      "mean": 0.01994562963617544,
+      "median": 0.01895267021048081,
+      "std": 0.004205025276305457
+    },
+    "GADF": {
+      "mean": 0.014775627431884762,
+      "median": 0.013658759509279517,
+      "std": 0.004066321528355292
+    },
+    "RP": {
+      "mean": 0.01369731537262079,
+      "median": 0.012916416980921358,
+      "std": 0.0036973352252985944
+    },
+    "MTF": {
+      "mean": 3.7114992348223392,
+      "median": 3.439610299798303,
+      "std": 0.9822564216765837
+    }
+  },
+  "wilcoxon_pairwise_holm": {
+    "GASF-vs-GADF": {
+      "p_raw": 7.349853257469353e-10,
+      "p_holm": 3.0871656310305934e-09,
+      "better": "GADF",
+      "reject_0.05": true
+    },
+    "GASF-vs-RP": {
+      "p_raw": 5.461520578031993e-10,
+      "p_holm": 3.0871656310305934e-09,
+      "better": "RP",
+      "reject_0.05": true
+    },
+    "GASF-vs-MTF": {
+      "p_raw": 5.145276051717656e-10,
+      "p_holm": 3.0871656310305934e-09,
+      "better": "GASF",
+      "reject_0.05": true
+    },
+    "GADF-vs-RP": {
+      "p_raw": 8.583962266482285e-05,
+      "p_holm": 8.583962266482285e-05,
+      "better": "RP",
+      "reject_0.05": true
+    },
+    "GADF-vs-MTF": {
+      "p_raw": 5.145276051717656e-10,
+      "p_holm": 3.0871656310305934e-09,
+      "better": "GADF",
+      "reject_0.05": true
+    },
+    "RP-vs-MTF": {
+      "p_raw": 5.145276051717656e-10,
+      "p_holm": 3.0871656310305934e-09,
+      "better": "RP",
+      "reject_0.05": true
+    }
+  }
+}

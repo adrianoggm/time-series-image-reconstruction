@@ -115,7 +115,25 @@ def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_
 
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
-def _process_sample(i, fold, dataset_folder, dictionary, training_data, y_data, sj_train, sampling, FOLDS_N, data_type):
+
+def _build_rp_range(data, TIME_STEPS):
+    """Per-window per-channel (Rmin, Rmax) of the signed RP (NormalizeMatrix
+    nonzero-min/max convention) — the metadata needed to invert the PNG to the
+    RP's own range. Computed from the same in-memory windows already used to
+    build the signal min/max dictionary."""
+    from src.recurrence_plots import varRP2
+    out = {}
+    for k in range(data.shape[0]):
+        chans = []
+        for c in range(3):
+            Rc = varRP2(data[k][:, c].astype(float), TIME_STEPS=TIME_STEPS)
+            nz = Rc[Rc != 0]
+            chans.append((float(nz.min()), float(Rc.max())))
+        out[k] = chans
+    return out
+
+
+def _process_sample(i, fold, dataset_folder, dictionary, training_data, y_data, sj_train, sampling, FOLDS_N, data_type, rp_range=None):
     """Reconstruct one window's RP image and persist it under tseries/.
 
     Returns ``(i, rp, a)`` — the index is carried back explicitly so the
@@ -136,7 +154,7 @@ def _process_sample(i, fold, dataset_folder, dictionary, training_data, y_data, 
         raise FileNotFoundError(f"No se encontró la imagen: {path_img}")
     imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB)
 
-    rp, a = rpts.Reconstruct_RP(imagen, dictionary, i)
+    rp, a = rpts.Reconstruct_RP(imagen, dictionary, i, method="direct2ds", rp_range=rp_range)
 
     path_npy = (
         f"{dataset_folder}tseries/recurrence_plot/sampling_{sampling}/"
@@ -149,7 +167,8 @@ def _process_sample(i, fold, dataset_folder, dictionary, training_data, y_data, 
 
 def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_data, sj_train,
                                            dictionary, TIME_STEPS=128, data_type="train",
-                                           single_axis=False, FOLDS_N=3, sampling="loso"):
+                                           single_axis=False, FOLDS_N=3, sampling="loso",
+                                           rp_range=None):
     """
     Genera y guarda series temporales a partir de RP, calculando además métricas como el
     número total de inversiones. Se procesa cada muestra en paralelo.
@@ -166,7 +185,8 @@ def generate_and_save_time_series_fromRP(fold, dataset_folder, training_data, y_
     with ProcessPoolExecutor() as executor:
         futures = [
             executor.submit(_process_sample, i, fold, dataset_folder, dictionary,
-                            training_data, y_data, sj_train, sampling, FOLDS_N, data_type)
+                            training_data, y_data, sj_train, sampling, FOLDS_N, data_type,
+                            rp_range)
             for i in range(n_samples)
         ]
         for future in tqdm(as_completed(futures), total=n_samples, desc="Procesando muestras"):
@@ -408,7 +428,11 @@ def generate_all_time_series(X_train, y_train, sj_train, dataset_folder=DEFAULT_
         serie = validation_data[k]
         maximos = [np.max(serie[:,0]), np.max(serie[:,1]), np.max(serie[:,2])]
         minimos = [np.min(serie[:,0]), np.min(serie[:,1]), np.min(serie[:,2])]
-        dictionary_val[k] = [maximos, minimos]     
+        dictionary_val[k] = [maximos, minimos]
+
+    # Production DIRECT-2D-S is metadata-free: the PNG diagonal locates R=0, so no
+    # per-window (Rmin,Rmax) is built here. _build_rp_range stays available for the
+    # operator-range oracle ablation (scripts/_check_rp_production.py).
 
     print("training_data.shape", training_data.shape, "y_training_data.shape", y_training_data.shape, "sj_training_data.shape", sj_training_data.shape)
     print("validation_data.shape", validation_data.shape, "y_validation_data.shape", y_validation_data.shape, "sj_validation_data.shape", sj_validation_data.shape)
