@@ -4,7 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-Reference implementation of a TFG on reconstructing triaxial accelerometer time series (WISDM) from four image-based encodings — **RP, GASF, GADF, MTF** — and benchmarking the reconstructions against the original signals with six classifiers (KNN, SVM, RandomForest, LSTM, GRU, CNN). The paper draft (`doc/main2.tex`, Elsevier build) plus `doc/supplementary.tex` are part of the deliverable and are updated alongside the code. Build `main2.tex` first: the supplement resolves cross-references through `\externaldocument{main2}`.
+Reference implementation of a TFG on reconstructing triaxial accelerometer time series (WISDM) from four image-based encodings — **RP, GASF, GADF, MTF** — and benchmarking the reconstructions against the original signals with six classifiers (KNN, SVM, RandomForest, LSTM, GRU, CNN). The manuscripts are part of the deliverable and are updated alongside the code.
+
+**`doc/main3.tex` is the submission manuscript** (`elsarticle`, `[preprint,12pt]`). `doc/main2.tex` is the earlier two-column `[5p]` build, kept for reference only — it is no longer derived from the same source, so the two are edited independently. Build `main3.tex` first: the supplement resolves cross-references through `\externaldocument{main3}`, which needs `main3.aux`. The `.aux`/`.fls`/`.fdb_latexmk`/`.spl` intermediates are gitignored; only the PDFs are tracked.
+
+No generative model is trained anywhere in this repo. Every decoder is analytic. The k-diffusion training stack, its configs and the Hugging Face / W&B upload helpers were removed; `torch` is not a dependency.
 
 ## Setup
 
@@ -12,7 +16,7 @@ The dependency manifest is `pyproject.toml`. Python is pinned to **>=3.10,<3.12*
 
 ```bash
 bash scripts/setup.sh                # Linux/macOS/WSL, core deps
-bash scripts/setup.sh hf diffusion   # + optional extras
+bash scripts/setup.sh dev            # + ruff and pre-commit
 .\scripts\setup.ps1                  # Windows PowerShell equivalent
 ```
 
@@ -105,7 +109,7 @@ python scripts/_check_refs.py            # broken/unused \label/\ref in doc/main
 python scripts/_verify_error_tables.py   # pointwise tables vs .npy reconstructions (runs in WSL)
 ```
 
-`scripts/_verify_paper_tables.py` and `scripts/_make_accuracy_tables.py` are **obsolete**: they read the deleted `doc/main.tex` and the stale `.results_snapshot/`. Use [scripts/_emit_main2_numbers.py](scripts/_emit_main2_numbers.py) instead — it emits the classification and equivalence table rows straight from the live `results/` tree and the regenerated stat reports. `_make_loso_tables.py` reads the live tree too.
+The table generators that read the deleted `doc/main.tex` and the deleted `.results_snapshot/` are gone. Use [scripts/_emit_main2_numbers.py](scripts/_emit_main2_numbers.py) — it emits the classification and equivalence table rows straight from the live `results/` tree and the regenerated stat reports. `_make_loso_tables.py` reads the live tree too.
 
 ### Every printed number needs a stored source
 
@@ -145,11 +149,47 @@ ruff check .
 ruff format .
 ```
 
-There is no pytest suite — `src/test_unitarios.py` is a collection of utility helpers used inline by the reconstruction code, not actual tests. Don't add `pytest` to a workflow expecting tests to exist; the only automated check is the smoke import.
+There is no pytest suite and `pytest` is not a dependency. Don't add it to a workflow expecting tests to exist; the only automated check is the smoke import in `.github/workflows/smoke.yml`, which imports every `src/` and `scripts/` module.
 
 ## Calling code in WSL from a Windows checkout
 
 The maintainer keeps the repo on Windows (`C:\Users\...\TFG-Tratamiento-de-Series-Temporales`) but runs the pipeline in WSL2 (`/home/adrianogarcia/tfg/`). Sync with `rsync -a /mnt/c/Users/.../scripts/<file> /home/adrianogarcia/tfg/scripts/`. Avoid piping long commands through `wsl.exe -- bash -lc "..."` — PowerShell mangles quotes; write the command to a `.sh` file in `scripts/` and execute it via `bash /tmp/<copy>.sh` (strip CRs with `sed 's/\r$//'` first).
+
+## Every tracked entry point
+
+The repo was pruned to what the paper actually uses: anything not reachable from
+this list was removed. If you add a module, add it here or it will look dead to
+the next person.
+
+**Pipeline** — `python -m scripts.<name>`: `run_pipeline`, `generate_images`,
+`generate_time_series`, and the six validators (`knnvalidation`, `Validation`
+for SVM, `randomforestvalidation`, `lstmvalidation`, `gruvalidation`,
+`cnnvalidation`).
+
+**Results** — `summarize_results`, `emit_classifier_tables`,
+`_apply_classifier_tables`, `_emit_main2_numbers`, `_make_error_tables`,
+`_make_loso_tables`, `_make_fidelity_tables`, `_make_robustness_tables`,
+`audit_manuscripts`.
+
+**Statistics and ablations** — `_stat_tests`, `_stat_per_subject`,
+`_gadf_pivot_stats`, `_mtf_controlled_ablation`, `_ablation_rp_2d`,
+`_ablation_rp_metadata`, `_ablation_rp_orientation`.
+
+**Figures** — `_make_paper_figures`, `_regen_reconstruction_figs`, and the
+supplementary RP/GADF diagnostic trio `rp_gadf_structure_overlap`,
+`rp_gadf_structure_null_boundary`, `plot_rp_gadf_structure_figures` (the last
+writes `doc/images/rp_gadf_structure_collage.png`). These three are CLI-only —
+nothing imports them, which does not make them dead.
+
+**Gates** — `_check_refs.py`, `_check_rp_decoders`, `_check_rp_production`, and
+the shell scripts `_check_build.sh` (strict LaTeX gate; it forces a `latexmk -g`
+pass, because grepping a cached no-op run reported clean builds that carried
+overfull boxes), `_check_rp_cycle.sh`, `_compile_papers.sh`,
+`_persist_paper_sources.sh`, `_run_audit_manuscripts.sh`, `_run_recon_grid.sh`.
+
+Note `scripts/_*.py` and `scripts/_*.sh` are gitignored by default; a reproduction
+script is kept by adding a `!` whitelist line to `.gitignore`. A helper that is
+not whitelisted is scratch and nobody else will see it.
 
 ## Conventions worth knowing
 
