@@ -32,7 +32,7 @@
 
 \begin{frontmatter}
 
-\title{On the Invertibility of Image-Based Time-Series Representations: Geometric Reconstruction of Signed Recurrence Plots and Gramian Angular Fields}
+\title{How Much of a Time Series Survives Its Image? A Cross-Domain Comparative Analysis of the Reconstruction Capacity of Image-Based Representations}
 
 \author[mydass]{Adriano García-Giralda Milena}
 \author[cls]{Francisco García Moreno}
@@ -44,13 +44,13 @@
 \affiliation[alg]{organization={Department of Algebra, University of Granada}, country={Spain}}
 
 \begin{abstract}
-% <= 200 words. Numbers are filled in from the M10 artefacts.
-Image-based representations expose the structure of a time series to image-domain models, but generating or restoring signals through them requires the image to map back to the time domain. We study when such a representation is invertible and how to invert it. For the continuous signed recurrence plot (RP) we propose a decoder that recovers the two-dimensional state geometry by classical multidimensional scaling, fixes its orientation in closed form from the sign, and rebuilds the series from overlapping states, with no per-window metadata. We state the conditions under which recurrence plots, Gramian angular fields, Markov transition fields and the extended intertemporal return plot are exactly, approximately or only partially invertible, and separate algorithmic error from 8-bit storage error. On seven datasets from five domains (human activity, audio, electrocardiography, geomagnetism and seismology) and windows of 64 to 256 samples, the decoder is exact in floating point and its 8-bit error is \pending{range} whenever the adjacent states are not nearly collinear; on the same signed RP the classical reconstruction of Hirata et al.\ is \pending{factor} less accurate, and the unsigned RP loses orientation. Classifiers trained on original windows retain their accuracy on the reconstructions within \pending{margin}.
+% <= 200 words. Findings in red are filled in from the M10 artefacts.
+Image-based representations of time series are widely used as classifier inputs and, increasingly, as the space in which signals are generated or restored, which requires mapping an image back to a series. We present a comparative analysis of how much of a time series each representation retains and can return. We study the most widely used representations, namely the recurrence plot (RP) in its binary, unsigned and signed forms, the Gramian angular summation and difference fields and the Markov transition field, together with the recently proposed extended intertemporal return plot (XIRP), whose diagonal stores the series itself. Each is decoded from its stored 8-bit image alone, with the published inverse where one exists and an operational decoder where none does, and decoding the floating-point matrix separates the loss of the representation from that of storage. On seven datasets from five domains and windows of 64 to 256 samples we measure temporal and spectral fidelity, computational cost, the conditions under which reconstruction is exact, and whether classifiers trained on original windows keep their accuracy on the reconstructions. \pending{key findings}
 \end{abstract}
 
 \begin{keyword}
 % 1-7 keywords
-Time-series reconstruction \sep Recurrence plots \sep Gramian angular fields \sep Invertibility \sep Multidimensional scaling \sep Image encoding \sep Time-series imaging
+Time-series imaging \sep Reconstruction \sep Recurrence plots \sep Gramian angular fields \sep Markov transition fields \sep Invertibility \sep Comparative analysis
 \end{keyword}
 
 \end{frontmatter}
@@ -58,17 +58,29 @@ Time-series reconstruction \sep Recurrence plots \sep Gramian angular fields \se
 % ============================================================================================
 \section{Introduction}\label{sec:introduction}
 
-Image-based time-series representations such as recurrence plots (RP), Gramian angular fields (GAF) and Markov transition fields (MTF) turn a sequence into a matrix whose entries record a relationship between two temporal positions, so that distances, angular relations and transition patterns become explicit spatial structure~\cite{wang2015encoding,wang2015encoding2}. They are now used both as inputs to discriminative models and as the substrate of image-domain generative models whose outputs are mapped back to the time domain~\cite{huang2023tsdigan,hellermann2026imagegan}.
+Turning a time series into an image has become a common way of giving image-domain models access to temporal data. Recurrence plots (RP), Gramian angular fields (GAF) and Markov transition fields (MTF) place a relation between every pair of time instants in a matrix, and convolutional and other image models then learn from that matrix~\cite{wang2015encoding,wang2015encoding2,eckmann1987recurrence,marwan2007recurrence}. The same representations are now also used in the opposite direction: a generative or restoration model works on images, and its output has to be turned back into a series~\cite{huang2023tsdigan,hellermann2026imagegan}.
 
-The second use rests on a question that the first one never asks: how much of the original waveform survives the round trip through the image, and under which conditions can it be recovered at all? A representation can support accurate classification while discarding the amplitude, phase or ordering information that reconstruction requires. Conversely, a synthetic or restored image is useful only if it maps back to a valid signal. This paper addresses that question for the controlled case, in which every image is the deterministic output of a known encoder stored as an 8-bit image, because only once it is settled can image-domain generation be evaluated meaningfully.
+That second use depends on a property the first never needed. A classifier only has to separate classes, and it can do so from an image that has discarded amplitude, phase or temporal order. A model that produces images is useful only if those images can be decoded into the signal they stand for. Whether, and how well, each representation allows this has not been compared: reconstruction is usually studied for one representation at a time, on one kind of signal, and is often judged only through the accuracy of a downstream classifier.
 
-The representations retain different information and therefore lead to different inverse problems. The Gramian angular summation field (GASF) has a known diagonal inverse. The difference field (GADF) stores only angular differences and needs a branch restriction and an image-derived anchor. A thresholded, binary recurrence plot keeps only the neighbourhood structure of the states, which the classical reconstruction of Hirata et al.\ turns into an approximate geometry through graph distances~\cite{hirata2008reproduction}. A continuous signed RP~\cite{lu2019robust} keeps the full Euclidean geometry of the states and, through its sign, a directional distinction that no unsigned RP carries. MTF discards within-state amplitudes and is many-to-one. The extended intertemporal return plot (XIRP) stores the series on its diagonal by design~\cite{hellermann2026imagegan}.
+This paper is a comparative analysis of the reconstruction capacity of image-based time-series representations. We take the most widely used ones, the recurrence plot, the Gramian angular summation and difference fields (GASF, GADF) and the Markov transition field, and add the extended intertemporal return plot (XIRP) of Hellermann and Lessmann~\cite{hellermann2026imagegan}, a recent representation proposed for image-based generation that stores the series itself on its diagonal and is therefore recoverable by construction. For the recurrence plot we separate the encoding from the decoder: we compare the binary RP of the classical literature, the continuous unsigned RP and the signed RP of Lu and Tong~\cite{lu2019robust}, decoded both with the classical reconstruction of Hirata et al.~\cite{hirata2008reproduction} and with a geometric decoder.
 
-This paper makes three contributions.
+The setting is controlled. Every image is the deterministic output of a known encoder, stored with 8 bits per pixel, and every decoder works from the stored image alone. Where a representation has a published inverse we use it; where it has none that can be applied to a stored image, as for the signed RP and GADF, we provide one, since otherwise the comparison could not be made. Decoding the floating-point matrix as well as the 8-bit image separates what the representation loses from what storage loses.
+
+The analysis answers five questions:
 \begin{itemize}
-\item \textbf{Invertibility conditions.} For each representation we state what the image determines and under which hypotheses the series is recoverable exactly, approximately or only up to a lossy representative. For the signed RP we identify the conditioning of the two-dimensional state cloud as the quantity that governs the error after 8-bit storage (Section~\ref{sec:formulation}).
-\item \textbf{A geometric decoder for the signed RP} that recovers the states by two-dimensional classical multidimensional scaling (MDS), fixes the orthogonal ambiguity in closed form from the adjacent-state overlap and the sign, and needs no per-window metadata, with a restricted-branch decoder for GADF (Section~\ref{sec:methods}).
-\item \textbf{A cross-domain evaluation} on seven public datasets from five domains and three window lengths, crossing the two RP decoders (Hirata's and ours) with the unsigned and signed encodings, and comparing GASF, GADF, MTF and XIRP under one protocol of temporal and spectral fidelity, computational cost and preservation of classification utility (Sections~\ref{sec:protocol} and~\ref{sec:results}).
+\item \emph{RQ1.} How much of the signal can be recovered from each representation, in time and in frequency, and how much of the loss is due to 8-bit storage?
+\item \emph{RQ2.} For recurrence plots, what do the encoding and the decoder each contribute?
+\item \emph{RQ3.} Under which conditions is reconstruction exact, and how does it vary with the domain, the sampling rate and the window length?
+\item \emph{RQ4.} Do reconstructions preserve what classifiers trained on the original signals need?
+\item \emph{RQ5.} What does each reconstruction cost in time and memory?
+\end{itemize}
+
+The contributions are:
+\begin{itemize}
+\item A comparative analysis of the reconstruction capacity of five image representations, eight encoding--decoder combinations in total, on seven public datasets from five domains (human activity, environmental audio, electrocardiography, geomagnetism and seismology) and three window lengths, under one protocol of fidelity, cost and classification utility.
+\item A separation of the two ingredients of RP reconstruction, encoding and decoder, which shows what the sign of the signed RP adds and what the decoder adds.
+\item A statement of what each image determines and of the conditions under which it is exactly, approximately or only partially invertible, with the conditioning of the recurrence-plot states identified as the quantity that governs reconstruction from the signed RP after storage.
+\item Operational, metadata-free decoders for the two representations that lacked one, the signed RP and GADF, and the code and derived data needed to reproduce every result.
 \end{itemize}
 
 \begin{figure}[t]
@@ -92,19 +104,16 @@ This paper makes three contributions.
 \end{figure}
 
 % ============================================================================================
-\section{Background and related work}\label{sec:related}
+\section{Related work}\label{sec:related}
 
-\subsection{Time-series imaging}
-Wang and Oates introduced GAF and MTF images for classification and imputation with convolutional networks~\cite{wang2015encoding,wang2015encoding2}; recurrence plots predate that line as a tool for visualising when a dynamical system returns to a previously visited region of its state space~\cite{eckmann1987recurrence,marwan2007recurrence}, and were later adopted as image inputs for the same reason. The family has been applied to human activity recognition from inertial signals~\cite{ahmad2021inertial}, to multivariate anomaly detection~\cite{ma2024anomaly} and to missing-value imputation~\cite{huamin2020reconstruction}, and more recently as the substrate of image-domain generative models that invert back to the time domain, such as GASF-based traffic imputation~\cite{huang2023tsdigan} and the XIRP representation designed for generation with generative adversarial networks followed by inversion~\cite{hellermann2026imagegan}. These applications establish that two-dimensional encodings are useful model inputs; they do not establish that the waveform is preserved.
+\subsection{Image representations of time series}
+Recurrence plots were introduced to visualise when a dynamical system revisits a region of its state space~\cite{eckmann1987recurrence} and have since been developed into a family of quantitative tools~\cite{marwan2007recurrence}. In their conventional form they are binary: a pixel marks whether two embedded states lie within a threshold of each other. Continuous variants keep the distance itself, and the signed variant of Lu and Tong also keeps whether the displacement between two states follows a reference direction, which they used for activity recognition from a single accelerometer~\cite{lu2019robust}. Wang and Oates proposed the Gramian angular fields, which map each sample to an angle and store the cosine of their sum or the sine of their difference, and the Markov transition field, which stores transition probabilities between quantile states, as image inputs to convolutional networks~\cite{wang2015encoding,wang2015encoding2}. These representations have been applied to human activity recognition~\cite{ahmad2021inertial}, anomaly detection~\cite{ma2024anomaly} and imputation~\cite{huamin2020reconstruction}. Hellermann and Lessmann recently introduced XIRP for time-series generation with image-based generative adversarial networks; it stores log-returns between instants off the diagonal and the series on the diagonal, so that generated images can be inverted~\cite{hellermann2026imagegan}.
 
-\subsection{Reconstruction from recurrence plots}
-Two routes exist. Hirata et al.\ start from a thresholded recurrence plot, convert it into a weighted graph whose edge lengths come from the overlap of recurrence neighbourhoods, estimate distances along shortest paths and apply MDS to reproduce the shape of the trajectory~\cite{hirata2008reproduction}\citetodo{Hirata et al.\ 2016, Sci.\ Rep.\ 6:34982, restatement of the algorithm}. Sipers et al.\ study unthresholded recurrence plots of time-delay embeddings, characterise when the scalar signal is identifiable up to its mean and sign, and reconstruct it by minimisation~\cite{sipers2011unique}, later under disturbances and for multi-level plots~\cite{sipers2017robust}. Neither is a decoder for the continuous signed operator of Lu and Tong~\cite{lu2019robust}. There, the magnitude already supplies the dense Euclidean distances between two-dimensional states, so no graph approximation is needed; what remains is the orthogonal ambiguity of MDS and the passage from states to samples, which the overlap of consecutive states and the sign resolve.
+\subsection{Recovering a series from its image}
+Inversion has been studied separately for each representation. For binary recurrence plots, Hirata et al.\ build a graph from the recurrence neighbourhoods, approximate the distances between states by shortest paths and recover the state geometry by multidimensional scaling~\cite{hirata2008reproduction}\citetodo{Hirata et al.\ 2016, Sci.\ Rep.\ 6:34982}. For unthresholded recurrence plots of delay embeddings, Sipers et al.\ characterise when the signal is identifiable up to its mean and sign and reconstruct it by optimisation~\cite{sipers2011unique,sipers2017robust}. For GASF, Wang and Oates read the series from the diagonal, and restore damaged images with a denoising autoencoder before doing so~\cite{wang2015encoding}; Tao et al.\ follow a similar route for RP and GAF images~\cite{huamin2020reconstruction}. For GADF no decoder that resolves its branch ambiguity and its lost global offset has been specified, and for MTF even approximate recovery has been reported to be difficult~\cite{wang2015encoding}. XIRP is inverted from its diagonal or by averaging the proposals of all its columns~\cite{hellermann2026imagegan}.
 
-\subsection{Reconstruction from Gramian angular fields, MTF and XIRP}
-For GASF on $[0,1]$-scaled data Wang and Oates give a direct inverse from the main diagonal~\cite{wang2015encoding}. GADF has an identically zero diagonal, and no operational decoder resolving its inverse-sine branch and the global angular offset removed by the differences has been specified. Wang and Oates report that even approximate recovery from MTF is difficult~\cite{wang2015encoding}, which follows from the operator: quantile assignment is many-to-one. XIRP stores the series on its diagonal and log-returns off it, and Hellermann and Lessmann invert it by averaging the proposals of every column~\cite{hellermann2026imagegan}.
-
-\subsection{Research gap}
-The literature provides neither a decoder for the continuous signed RP nor a statement of the conditions under which it, or the angular fields, are invertible after finite-precision storage; and it provides no comparison of the RP decoders crossed with the RP encodings, nor of the image representations, under a common protocol across domains. This work addresses both.
+\subsection{Gap}
+Each of these works evaluates one representation, usually on one kind of signal, and several evaluate reconstruction only through classification. No study has compared the reconstruction capacity of the representations under a common protocol, separated what a representation loses from what image storage loses, or distinguished, for recurrence plots, the contribution of the encoding from that of the decoder.
 
 % ============================================================================================
 \section{Mathematical formulation}\label{sec:formulation}
@@ -165,6 +174,28 @@ XIRP & Series on the diagonal & Exact \\
 % ============================================================================================
 \section{Reconstruction methods}\label{sec:methods}
 
+Table~\ref{tab:decoders} lists the decoder used for each representation in the comparison. Published inverses are used as described by their authors, with only the adaptations needed to decode a stored 8-bit image; the signed-RP and GADF decoders are ours, because neither representation had a decoder that could be applied to a stored image.
+
+\begin{table}[t]
+\centering
+\caption{Encoding and decoder of every compared combination.}\label{tab:decoders}
+\small
+\begin{tabular}{@{}L{0.22\textwidth}L{0.36\textwidth}L{0.30\textwidth}@{}}
+\toprule
+Encoding & Decoder & Origin of the decoder \\
+\midrule
+Binary RP & Graph geodesics and MDS & Hirata et al.~\cite{hirata2008reproduction} \\
+Signed RP & Hirata, sign used for the reflection & Hirata et al., adapted \\
+Unsigned RP & Two-dimensional MDS and overlap & This work \\
+Signed RP & Two-dimensional MDS, overlap and sign & This work \\
+GASF & Diagonal inverse & Wang and Oates~\cite{wang2015encoding} \\
+GADF & Restricted branch and boundary anchor & This work \\
+MTF & Fiedler-ordered representative & This work (lossy) \\
+XIRP & Inversion by mean & Hellermann and Lessmann~\cite{hellermann2026imagegan} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \subsection{Storage protocol}
 Each matrix is written to $[0,255]$ by a fixed or per-window affine map. GASF and GADF are read back with the fixed operator range $[-1,1]$, MTF with $[0,1]$, and XIRP with the fixed ranges of its diagonal and off-diagonal parts after the series is mapped to $[1,2]$. The signed RP keeps a per-window map; its zero-valued diagonal locates $R=0$, so subtracting the median diagonal pixel recovers the signed matrix up to a positive scale that MDS and the final range map absorb. No decoder uses per-window metadata.
 
@@ -212,7 +243,7 @@ EMG gestures & 100 & 8 & 6 gestures & 880 & subject (36) \\
 \end{table}
 
 \subsection{Windows and splits}
-Each recording is cut into non-overlapping windows of $T\in\{64,128,256\}$ samples that never cross a label change or a time gap. For fidelity, 500 windows per dataset and length are drawn with a fixed seed. For classification, up to 6\,000 windows per dataset and length are drawn, and three grouped folds keep every subject, patient, event, station or source recording on one side; folds are stratified by class for single-label data. Blocks with fewer than 200 windows (EMG at $T=256$, where a gesture lasts about three seconds) are not reported. ESC-50 at 128 samples spans 16\,ms of sound; audio is therefore also evaluated on the official ESC-10 subset at 2, 4 and 8\,kHz with windows of 512 and 1\,024 samples, silent windows removed and accuracy also scored per clip.
+Every channel is encoded, stored and decoded independently, as its own single-channel 8-bit image with its own calibration, whatever the number of channels: one image for ESC-50, three for WISDM, Swarm and STEAD, and eight, nine and twelve for EMG, PAMAP2 and PTB-XL. Channels are neither packed into colour planes nor combined, so results are comparable across datasets and cost grows linearly with the number of channels; representations that couple channels are outside the scope of this study. Each recording is cut into non-overlapping windows of $T\in\{64,128,256\}$ samples that never cross a label change or a time gap. For fidelity, 500 windows per dataset and length are drawn with a fixed seed. For classification, up to 6\,000 windows per dataset and length are drawn, and three grouped folds keep every subject, patient, event, station or source recording on one side; folds are stratified by class for single-label data. Blocks with fewer than 200 windows (EMG at $T=256$, where a gesture lasts about three seconds) are not reported. ESC-50 at 128 samples spans 16\,ms of sound; audio is therefore also evaluated on the official ESC-10 subset at 2, 4 and 8\,kHz with windows of 512 and 1\,024 samples, silent windows removed and accuracy also scored per clip.
 
 \subsection{Fidelity, cost and utility}
 Fidelity is measured per channel series with range-normalised errors, writing $r=\max_ix_i-\min_ix_i$:
