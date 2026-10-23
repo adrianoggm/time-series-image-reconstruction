@@ -181,7 +181,10 @@ supplementary RP/GADF diagnostic trio `rp_gadf_structure_overlap`,
 writes `doc/images/rp_gadf_structure_collage.png`). These three are CLI-only —
 nothing imports them, which does not make them dead.
 
-**Gates** — `_check_refs.py`, `_check_rp_decoders`, `_check_rp_production`, and
+**Gates** — `_check_refs.py`, `_check_rp_decoders`, `_check_rp_production`,
+`_check_baseline` and `_freeze_baseline` (the M0 reference: golden decoder
+outputs and a hash manifest of every result, under `results/_baseline/`; the
+audit behind them is `docs/audit/m0_baseline.md`), and
 the shell scripts `_check_build.sh` (strict LaTeX gate; it forces a `latexmk -g`
 pass, because grepping a cached no-op run reported clean builds that carried
 overfull boxes), `_check_rp_cycle.sh`, `_compile_papers.sh`,
