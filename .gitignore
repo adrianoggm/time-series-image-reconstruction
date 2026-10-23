@@ -149,6 +149,8 @@ scripts/_*.py
 !scripts/_persist_paper_sources.sh
 !scripts/_regen_reconstruction_figs.py
 !scripts/_rp_encodings.py
+!scripts/_rp_conditions.py
+!scripts/_cost_scaling.py
 !scripts/_rp_matrix.py
 !scripts/_rp_sign_information.py
 !scripts/_run_recon_grid.sh
@@ -176,6 +178,10 @@ results/_stats/*
 !results/_stats/RP_CLOSED_FORM_PROVENANCE.md
 !results/_stats/rp_geometry_ablation.json
 !results/_stats/rp_geometry_ablation.md
+!results/_stats/rp_conditions.json
+!results/_stats/rp_conditions.md
+!results/_stats/cost_scaling.json
+!results/_stats/cost_scaling.md
 !results/_stats/rp_geometry_ablation.tex
 !results/_stats/rp_metadata_ablation.json
 !results/_stats/rp_metadata_ablation.tex
