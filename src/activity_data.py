@@ -20,6 +20,25 @@ from src.config import DEFAULT_DATA_DIR
 #     else:
 #         !tar -xvf WISDM_ar_latest.tar.gz -C /content/drive/MyDrive/Databases/diffusion/ORIGINAL_WISDM/
 
+def fold_groups(sj_train, y_train, sampling):
+    """Group id per window for StratifiedGroupKFold; no group ever spans train and test.
+
+    * ``"loso"``: the subject, so whole people are held out.
+    * ``"loto"``: the trial, i.e. one subject performing one activity. WISDM has
+      253 of them (about 28 windows each); grouping on (subject, activity) rather
+      than on contiguous runs keeps the five trials that were recorded in two
+      pieces on one side of the split.
+    """
+    subjects = np.asarray(sj_train).ravel().astype(int)
+    if sampling == "loso":
+        return subjects
+    if sampling == "loto":
+        y = np.asarray(y_train)
+        labels = y.argmax(axis=1) if y.ndim == 2 and y.shape[1] > 1 else y.ravel().astype(int)
+        return subjects * 100 + labels
+    raise ValueError(f"unknown sampling {sampling!r}")
+
+
 def get_time_setup(DATASET_NAME="WISDM"):
     # In WISDM, since sampling rate is 20Hz: 20Hz * seconds of duration
     if DATASET_NAME == "WISDM" or DATASET_NAME == "ORIGINAL_WISDM":
