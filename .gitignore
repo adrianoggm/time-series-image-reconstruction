@@ -121,6 +121,8 @@ scripts/_*.py
 !scripts/_check_build.sh
 !scripts/_check_datasets.py
 !scripts/_check_encoder_parity.py
+!scripts/_check_esc50.py
+!scripts/_check_m5_datasets.py
 !scripts/_check_pamap2.py
 !scripts/_check_rp_hirata.py
 !scripts/_check_rp_legacy.py
@@ -147,6 +149,7 @@ scripts/_*.py
 !scripts/_run_audit_manuscripts.sh
 !scripts/_stat_per_subject.py
 !scripts/_stat_tests.py
+!scripts/_swarm_download.py
 
 !results/
 results/*
