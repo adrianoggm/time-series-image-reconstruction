@@ -39,17 +39,9 @@ def RGBfromMTFMatrix_of_XYZ(X,Y,Z):
     if X.shape != Y.shape or X.shape != Z.shape or Y.shape != Z.shape:
         print('XYZ should be in same shape!')
         return 0
-    #print(X.shape)
-    dimImage = X.shape[0]
-    newImage = np.zeros((dimImage,dimImage,3))
-    for i in range(dimImage):
-        for j in range(dimImage):
-            _pixel = []
-            _pixel.append(X[i][j])
-            _pixel.append(Y[i][j])
-            _pixel.append(Z[i][j])
-            newImage[i][j] = _pixel
-    return newImage
+    # One channel per axis; was a per-pixel Python loop with identical values.
+    return np.stack([np.asarray(X, dtype=float), np.asarray(Y, dtype=float), np.asarray(Z, dtype=float)], axis=-1)
+
 def varMTF(data, dim,TIME_STEPS):
     
     x = []
@@ -366,10 +358,7 @@ def _legacy_MTF_to_TS(mtf, dictionary, index=0, numstates=4, TIMESTEPS=128):
     serie=np.interp(serie,(min_a,max_a),(MIN[index], MAX[index]))
     return serie
 def generate_all_markov_transition_field(X_train, y_train, sj_train, dataset_folder=DEFAULT_DATA_DIR, TIME_STEPS=128,  FOLDS_N=3, sampling="loso"):
-  groups = sj_train 
-  if sampling == "loto":
-    #TODO change 100 for an automatic extracted number greater than the max subject ID: max(sj_train)*10
-    groups = [[int(sj[0])+i*100+np.argmax(y_train[i])+1] for i,sj in enumerate(sj_train)]
+  groups = act.fold_groups(sj_train, y_train, sampling)
 
   # if DATASET_NAME == "WISDM": #since wisdm is quite balanced
   sgkf = StratifiedGroupKFold(n_splits=FOLDS_N)

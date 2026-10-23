@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from keras.utils import to_categorical
+import src.activity_data as act
 import src.recurrence_plots as rec
 import src.GAF as gaf
 import src.GADF as gadf
@@ -77,10 +78,7 @@ def generate_all_images(X_train, y_train, sj_train, dataset_folder=DEFAULT_DATA_
   name=imagetype
   if(name=="RP"):
      name="recurrence_plot"
-  groups = sj_train 
-  if sampling == "loto":
-    #TODO change 100 for an automatic extracted number greater than the max subject ID: max(sj_train)*10
-    groups = [[int(sj[0])+i*100+np.argmax(y_train[i])+1] for i,sj in enumerate(sj_train)]
+  groups = act.fold_groups(sj_train, y_train, sampling)
 
   # if DATASET_NAME == "WISDM": #since wisdm is quite balanced
   sgkf = StratifiedGroupKFold(n_splits=FOLDS_N)

@@ -90,6 +90,8 @@ def register(cls: type[DatasetAdapter]) -> type[DatasetAdapter]:
 
 
 def get(name: str, **kwargs) -> DatasetAdapter:
+    import src.adapters  # noqa: F401  (registers the real datasets; imported late to avoid a cycle)
+
     if name not in REGISTRY:
         raise KeyError(f"unknown dataset {name!r}; registered: {sorted(REGISTRY)}")
     return REGISTRY[name](**kwargs)
@@ -125,7 +127,8 @@ def _runs(rec: Recording, spec: DatasetSpec) -> list[tuple[int, int]]:
     breaks = np.zeros(n, dtype=bool)
     breaks[0] = True
     if rec.labels is not None:
-        breaks[1:] |= (rec.labels[1:] != rec.labels[:-1]).reshape(n - 1, -1).any(axis=1)
+        diff = rec.labels[1:] != rec.labels[:-1]
+        breaks[1:] |= diff.any(axis=1) if diff.ndim > 1 else diff
     if rec.t is not None:
         dt = np.diff(rec.t)
         breaks[1:] |= (dt <= 0) | (dt > GAP_FACTOR / spec.fs)
@@ -186,21 +189,35 @@ def make_windows(adapter: DatasetAdapter, length: int, step: int | None = None,
     return Windows(np.stack(X), np.asarray(y), np.array(groups), np.array(rec_ids), np.array(starts), meta)
 
 
-def group_kfold(w: Windows, n_folds: int) -> list[tuple[np.ndarray, np.ndarray]]:
-    """Deterministic folds that never put one group on both sides.
+def split_units(w: Windows, by: str = "group") -> np.ndarray:
+    """The unit a split keeps whole: ``"group"`` (subject/event: LOSO) or ``"trial"`` (group x label: LOTO)."""
+    if by == "group":
+        return w.groups
+    if by == "trial":
+        if w.y.ndim != 1:
+            raise ValueError("trial units need one class label per window")
+        # Zero-padded label keeps lexicographic order equal to (group, label) order, which is what
+        # StratifiedGroupKFold's assignment depends on.
+        return np.char.add(np.char.add(w.groups.astype(str), "|"), np.char.zfill(w.y.astype(str), 4))
+    raise ValueError(f"unknown split unit {by!r}")
+
+
+def group_kfold(w: Windows, n_folds: int, by: str = "group") -> list[tuple[np.ndarray, np.ndarray]]:
+    """Deterministic folds that never put one unit (see ``split_units``) on both sides.
 
     Stratified by class for multiclass data; plain group folds for multilabel
     and unlabelled data. No shuffling, so the same windows always give the same
     folds (as the current WISDM pipeline does).
     """
     # ponytail: multilabel folds are not label-stratified; add iterative stratification if PTB-XL folds come out skewed.
+    units = split_units(w, by)
     stratify = w.meta.get("task") == "multiclass" and w.y.ndim == 1 and (w.y != UNLABELLED).all()
     splitter = StratifiedGroupKFold(n_splits=n_folds) if stratify else GroupKFold(n_splits=n_folds)
-    folds = list(splitter.split(w.X, w.y if stratify else None, groups=w.groups))
+    folds = list(splitter.split(w.X, w.y if stratify else None, groups=units))
     for train, test in folds:
-        leaked = set(w.groups[train]) & set(w.groups[test])
+        leaked = set(units[train]) & set(units[test])
         if leaked:
-            raise AssertionError(f"groups on both sides of a fold: {sorted(leaked)[:5]}")
+            raise AssertionError(f"{by} units on both sides of a fold: {sorted(leaked)[:5]}")
     return folds
 
 

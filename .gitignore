@@ -112,6 +112,7 @@ scripts/_*.py
 
 # Reproducibility sources and compact paper artefacts.  The broad rules above
 # continue to exclude scratch scripts, raw predictions and large experiment dumps.
+!scripts/_ablation_mtf_q_full.py
 !scripts/_ablation_rp_2d.py
 !scripts/_ablation_rp_metadata.py
 !scripts/_ablation_rp_orientation.py
@@ -119,6 +120,13 @@ scripts/_*.py
 !scripts/_check_baseline.py
 !scripts/_check_build.sh
 !scripts/_check_datasets.py
+!scripts/_check_encoder_parity.py
+!scripts/_check_pamap2.py
+!scripts/_check_rp_hirata.py
+!scripts/_check_rp_legacy.py
+!scripts/_check_varrp2.py
+!scripts/_check_wisdm_parity.py
+!scripts/_check_xirp.py
 !scripts/_check_refs.py
 !scripts/_check_rp_cycle.sh
 !scripts/_compile_papers.sh
@@ -133,6 +141,8 @@ scripts/_*.py
 !scripts/_mtf_controlled_ablation.py
 !scripts/_persist_paper_sources.sh
 !scripts/_regen_reconstruction_figs.py
+!scripts/_rp_matrix.py
+!scripts/_rp_sign_information.py
 !scripts/_run_recon_grid.sh
 !scripts/_run_audit_manuscripts.sh
 !scripts/_stat_per_subject.py
@@ -149,6 +159,7 @@ results/_stats/*
 !results/_stats/gadf_pivot_sweep.tex
 !results/_stats/loso_tables.tex
 !results/_stats/mtf_decoder_ablation.json
+!results/_stats/mtf_q_ablation.csv
 !results/_stats/per_subject_mae_loto.json
 !results/_stats/robustness.json
 !results/_stats/robustness_tables.tex
@@ -162,6 +173,7 @@ results/_stats/*
 !results/_stats/rp_orientation_ablation.md
 !results/_stats/rp_orientation_ablation.tex
 !results/_stats/rp_orientation_ablation_summary.json
+!results/_stats/rp_sign_information.json
 !results/_stats/stat_report_loso.json
 !results/_stats/stat_report_loso.md
 !results/_stats/stat_report_loto.json

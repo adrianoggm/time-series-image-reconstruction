@@ -37,7 +37,7 @@ The pipeline materialises three nested artefact trees under `data/WISDM/`:
 
 ### Dataset interface (multi-dataset roadmap, M1)
 
-[src/datasets.py](src/datasets.py) is the dataset-agnostic layer the new datasets plug into: an adapter yields `Recording`s (`(T, C)` data, a `group` that splits must never break, a unique `rec_id`, optional per-sample labels and timestamps); `make_windows` segments them without crossing a label change or a timestamp gap and records provenance (`rec_id`, `start`) plus a transform log; `group_kfold` gives deterministic folds and asserts that no group straddles one. Labels follow `DatasetSpec.task`: `(T,)` class indices for `multiclass` (stratified folds), `(T, K)` multi-hot for `multilabel` and `None` for `none` (plain group folds). File-backed adapters must override `fingerprint()` (usually `files_fingerprint(...)`) or `cached_windows` will serve stale windows after a re-download; pass `dtype=np.float32` for the large datasets. WISDM still runs through `src/activity_data.py` until M2 migrates it. Note that the existing LOTO split gives every window its own group (`sj + 100·i + y + 1` never collides for 16xx subject IDs), so it is window-level stratified CV; reproducing it bit-for-bit needs that same group formula, because `StratifiedGroupKFold` depends on group-ID order.
+[src/datasets.py](src/datasets.py) is the dataset-agnostic layer the new datasets plug into: an adapter yields `Recording`s (`(T, C)` data, a `group` that splits must never break, a unique `rec_id`, optional per-sample labels and timestamps); `make_windows` segments them without crossing a label change or a timestamp gap and records provenance (`rec_id`, `start`) plus a transform log; `group_kfold` gives deterministic folds and asserts that no group straddles one. Labels follow `DatasetSpec.task`: `(T,)` class indices for `multiclass` (stratified folds), `(T, K)` multi-hot for `multilabel` and `None` for `none` (plain group folds). File-backed adapters must override `fingerprint()` (usually `files_fingerprint(...)`) or `cached_windows` will serve stale windows after a re-download; pass `dtype=np.float32` for the large datasets. WISDM still runs through `src/activity_data.py` until M2 migrates it. Fold groups come from `src/activity_data.py::fold_groups`: LOSO groups by subject, LOTO by trial (subject × activity; 253 trials in WISDM). Until October 2026 LOTO used `sj + 100·i + y + 1`, unique per window, i.e. a window-level split that put every trial on both sides of every fold; all LOTO artefacts were regenerated after the fix and the old ones are in `~/tfg_backup_window_loto` in WSL.
 
 ## Pipeline
 
@@ -176,7 +176,7 @@ for SVM, `randomforestvalidation`, `lstmvalidation`, `gruvalidation`,
 `audit_manuscripts`.
 
 **Statistics and ablations** — `_stat_tests`, `_stat_per_subject`,
-`_gadf_pivot_stats`, `_mtf_controlled_ablation`, `_ablation_rp_2d`,
+`_gadf_pivot_stats`, `_mtf_controlled_ablation`, `_ablation_mtf_q_full`, `_ablation_rp_2d`,
 `_ablation_rp_metadata`, `_ablation_rp_orientation`.
 
 **Figures** — `_make_paper_figures`, `_regen_reconstruction_figs`, and the
