@@ -49,6 +49,7 @@ DATASETS = {
     "emg_gestures": {},
 }
 OUT = Path("results/_benchmark")
+MIN_WINDOWS = 200     # blocks with fewer windows stay in summary.json but out of the tables and statistics
 
 
 def series_metrics(x: np.ndarray, r: np.ndarray) -> list[float]:
@@ -178,11 +179,15 @@ def write_markdown(summary: dict) -> None:
     for key, s in summary.items():
         if key.startswith("_"):
             continue
+        if s["windows_used"] < MIN_WINDOWS:
+            continue
         ds, L = key.split("/")
         nm = [f"{s[f'{r}/png8']['nmae']['mean']:.4f}" if "nmae" in s[f"{r}/png8"] else "—" for r in REPS]
         ms = [f"{s[f'{r}/png8']['dec_ms']['mean']:.1f}" if "dec_ms" in s[f"{r}/png8"] else "—" for r in REPS]
         rows.append(f"| {ds} | {L[1:]} | " + " | ".join(nm) + " | " + " | ".join(ms) + " |")
-    (OUT / "summary.md").write_text("# M7 benchmark: mean NMAE (8-bit) and decode time per series\n\n"
+    small = [k for k, s in summary.items() if not k.startswith("_") and s["windows_used"] < MIN_WINDOWS]
+    note = f"Not reported (fewer than {MIN_WINDOWS} windows): {', '.join(small)}.\n\n" if small else ""
+    (OUT / "summary.md").write_text("# M7 benchmark: mean NMAE (8-bit) and decode time per series\n\n" + note
                                     + "\n".join(rows) + "\n")
 
 

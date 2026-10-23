@@ -1,5 +1,7 @@
 # M7 benchmark: mean NMAE (8-bit) and decode time per series
 
+Not reported (fewer than 200 windows): emg_gestures/L256.
+
 | Dataset | L | Hirata · RP sin signo 8-bit | Hirata · Signed RP 8-bit | RP nueva · RP sin signo 8-bit | RP nueva · Signed RP 8-bit | GASF 8-bit | GADF 8-bit | MTF 8-bit | XIRP 8-bit | Hirata · RP sin signo ms | Hirata · Signed RP ms | RP nueva · RP sin signo ms | RP nueva · Signed RP ms | GASF ms | GADF ms | MTF ms | XIRP ms |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | wisdm | 64 | 0.2647 | 0.1171 | 0.2039 | 0.0012 | 0.0016 | 0.0011 | 0.2930 | 0.0003 | 3.6 | 4.5 | 1.1 | 2.9 | 0.1 | 0.2 | 0.8 | 0.1 |
@@ -22,4 +24,3 @@
 | stead | 256 | 0.1723 | 0.0789 | 0.1552 | 0.0012 | 0.0014 | 0.0011 | 0.2592 | 0.0001 | 128.8 | 140.1 | 19.7 | 41.2 | 0.5 | 0.7 | 2.2 | 0.9 |
 | emg_gestures | 64 | 0.2300 | 0.1365 | 0.1947 | 0.0010 | 0.0014 | 0.0020 | 0.2982 | 0.0006 | 3.8 | 4.7 | 1.1 | 2.8 | 0.1 | 0.2 | 0.8 | 0.1 |
 | emg_gestures | 128 | 0.1979 | 0.1205 | 0.1680 | 0.0009 | 0.0013 | 0.0022 | 0.2834 | 0.0006 | 20.2 | 23.2 | 3.5 | 9.2 | 0.2 | 0.3 | 1.2 | 0.3 |
-| emg_gestures | 256 | 0.1749 | 0.1096 | 0.1451 | 0.0008 | 0.0013 | 0.0022 | 0.2760 | 0.0005 | 92.8 | 103.3 | 12.2 | 26.3 | 0.3 | 0.5 | 1.7 | 0.6 |

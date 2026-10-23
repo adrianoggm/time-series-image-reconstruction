@@ -22,7 +22,7 @@ from pathlib import Path
 import numpy as np
 from scipy.stats import wilcoxon
 
-from scripts._benchmark import CONDS, LABELS, METRICS, REPS
+from scripts._benchmark import CONDS, LABELS, METRICS, MIN_WINDOWS, REPS
 
 OUT = Path("results/_benchmark")
 B = 2000
@@ -64,6 +64,9 @@ def main():
     for f in sorted(OUT.glob("*_L*.npz")):
         z = np.load(f, allow_pickle=False)
         vals, groups = z["values"], z["group"]                    # (n, reps, conds, C, metrics), (n,)
+        if len(vals) < MIN_WINDOWS:                               # EMG at L = 256: 20 windows, gestures last ~3 s
+            stats.setdefault("_not_reported", []).append(f.stem)
+            continue
         C = vals.shape[3]
         g_series = np.repeat(groups, C)
         key = f.stem.replace("_L", "/L")
