@@ -123,6 +123,7 @@ scripts/_*.py
 !scripts/_check_pamap2.py
 !scripts/_check_rp_hirata.py
 !scripts/_check_rp_legacy.py
+!scripts/_check_varrp2.py
 !scripts/_check_wisdm_parity.py
 !scripts/_check_xirp.py
 !scripts/_check_refs.py
@@ -139,6 +140,7 @@ scripts/_*.py
 !scripts/_mtf_controlled_ablation.py
 !scripts/_persist_paper_sources.sh
 !scripts/_regen_reconstruction_figs.py
+!scripts/_rp_matrix.py
 !scripts/_rp_sign_information.py
 !scripts/_run_recon_grid.sh
 !scripts/_run_audit_manuscripts.sh
