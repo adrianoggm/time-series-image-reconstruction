@@ -115,47 +115,9 @@ def varRP_axis(data, axis,  TIME_STEPS=128):#dim:=x,y,z
             R[i][j] = sign*Distance2dim(s[i],s[j])
     return R
 def varRP(data, dim, TIME_STEPS=128):#dim:=x,y,z
-    x = []
-    if dim == 'x':
-        for j in range(TIME_STEPS):
-            # print("dato:", data[j][0])
-            x.append(data[j][0])
-    elif dim == 'y':
-        for j in range(TIME_STEPS):
-            x.append(data[j][1])
-    elif dim == 'z':
-        for j in range(TIME_STEPS):
-            x.append(data[j][2])
-    
-    s = []
-    for i in range(len(x)-1):
-    # for i in range(len(x)):
+    # Same as the original per-pixel loop: the signed RP of one axis of the first TIME_STEPS samples.
+    return varRP2(np.asarray(data, dtype=float)[:TIME_STEPS, {"x": 0, "y": 1, "z": 2}[dim]], TIME_STEPS)
 
-        _s = []
-        _s.append(x[i])
-        _s.append(x[i+1])
-        s.append(_s)
-    
-        
-    #print s
-    # dimR = len(x)-1
-    dimR = len(s)
-
-    #R = np.zeros((dimR,dimR))
-    R = np.eye(dimR)
-    for i in range(dimR):
-        for j in range(dimR):
-            # if i==0 and j==0:
-              # print("s[i]", s[i], "s[j]", s[j])
-              # print(list(zip(s[i], s[j])))
-              # print(list(map(lambda x:x[0]-x[1], zip(s[i], s[j]))))
-            if Cosin2vec(list(map(lambda x:x[0]-x[1], zip(s[i], s[j]))), [1,1]) >= pow(2, 0.5)/2:
-                sign =1.0
-            else:
-                sign =-1.0
-            R[i][j] = sign*Distance2dim(s[i],s[j])
-            # R[i][j] = Distance2dim(s[i],s[j])
-    return R
 def RP(data, dim, TIME_STEPS=128):#dim:=x,y,z
     x = []
     if dim == 'x':
@@ -232,39 +194,19 @@ def RemoveZero(l):
 #a = [0,-1,0.02,3]
 #print RemoveZero(a)
 def NormalizeMatrix(_r):
-    dimR = _r.shape[0]
-    #print(_r)
-    h_max = []
-    for i in range(dimR):
-        h_max.append(max(_r[i]))
-    _max =  max(h_max)
-    h_min = []
-    for i in range(dimR):
-        #print _r[i]
-        h_min.append(min(RemoveZero(_r[i])))
-    
-    _min =  min(h_min)
-    _max_min = _max - _min
-    _normalizedRP = np.zeros((dimR,dimR))
-    for i in range(dimR):
-        for j in range(dimR):
-            _normalizedRP[i][j] = (_r[i][j]-_min)/_max_min
-    return _normalizedRP
+    """Min-max scaling with the minimum taken over the non-zero entries (as the original loop did)."""
+    _r = np.asarray(_r, dtype=float)
+    _max = _r.max()
+    _min = _r[_r != 0.0].min()
+    return (_r - _min) / (_max - _min)
+
 def RGBfromRPMatrix_of_XYZ(X,Y,Z):
     if X.shape != Y.shape or X.shape != Z.shape or Y.shape != Z.shape:
         print('XYZ should be in same shape!')
         return 0
-    
-    dimImage = X.shape[0]
-    newImage = np.zeros((dimImage,dimImage,3))
-    for i in range(dimImage):
-        for j in range(dimImage):
-            _pixel = []
-            _pixel.append(X[i][j])
-            _pixel.append(Y[i][j])
-            _pixel.append(Z[i][j])
-            newImage[i][j] = _pixel
-    return newImage
+    # One channel per axis; was a per-pixel Python loop with identical values.
+    return np.stack([np.asarray(X, dtype=float), np.asarray(Y, dtype=float), np.asarray(Z, dtype=float)], axis=-1)
+
 def RGBfromRPMatrix_of_single_axis(X):   
     dimImage = X.shape[0]
     newImage = np.zeros((dimImage,dimImage,3))
@@ -595,7 +537,7 @@ def Reconstruct_RP(img,dictionary,valor,percentile=75.0,method="1d",rp_range=Non
         rr = "diagonal" if rp_range is None else rp_range[valor]
         rec_tc, _ = decode_window(img, dictionary[valor], source="direct", dims=2,
                                   recover="overlap", signed=True, rho=percentile / 100.0,
-                                  rp_range=rr)
+                                  rp_range=rr, with_metrics=False)
         return rec_tc.T, 0   # (C, T) to match the stacking convention; 0 = inversions n/a
     _r= img[:,:,0].astype('float')
     _g= img[:,:,1].astype('float')
