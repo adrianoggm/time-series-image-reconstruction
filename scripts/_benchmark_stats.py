@@ -22,7 +22,7 @@ from pathlib import Path
 import numpy as np
 from scipy.stats import wilcoxon
 
-from scripts._benchmark import CONDS, METRICS, REPS
+from scripts._benchmark import CONDS, LABELS, METRICS, REPS
 
 OUT = Path("results/_benchmark")
 B = 2000
@@ -89,7 +89,7 @@ def main():
 
     rows = [f"# M7 paired statistics: {args.metric} ({args.cond}), other minus RP\n",
             "Positive = RP better. Interval: 95% cluster bootstrap over groups. p: Wilcoxon, Holm within dataset x length.\n",
-            "| Dataset | L | " + " | ".join(others) + " |", "|---|---|" + "---|" * len(others)]
+            "| Dataset | L | " + " | ".join(LABELS[o] for o in others) + " |", "|---|---|" + "---|" * len(others)]
     for key, e in stats.items():
         if key.startswith("_"):
             continue
@@ -98,7 +98,7 @@ def main():
                  f"({100 * e[o]['rp_better_share']:.0f}%, p={e[o]['wilcoxon_p_holm']:.1g})" for o in others]
         rows.append(f"| {ds} | {L[1:]} | " + " | ".join(cells) + " |")
     rows += ["", "Macro average of per-dataset median differences (each dataset weighs the same):", "",
-             "| L | " + " | ".join(others) + " | datasets |", "|---|" + "---|" * (len(others) + 1)]
+             "| L | " + " | ".join(LABELS[o] for o in others) + " | datasets |", "|---|" + "---|" * (len(others) + 1)]
     for L, m in stats["_macro"].items():
         rows.append(f"| {L[1:]} | " + " | ".join(f"{m[o]:+.4f}" for o in others) + f" | {m['datasets']} |")
     (OUT / "stats.md").write_text("\n".join(rows) + "\n")

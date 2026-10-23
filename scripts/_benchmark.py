@@ -1,8 +1,10 @@
-"""M7 benchmark: every representation on the seven datasets at 64, 128 and 256 samples.
+"""M7 benchmark: every representation and RP decoder on the seven datasets at 64, 128 and 256 samples.
 
 For each dataset and window length the same seeded sample of windows goes
-through RP, GASF, GADF, MTF and XIRP (src/representations.py), each decoded
-from the float operator and from its 8-bit image. Per channel series it
+through the classical RP reconstruction (Hirata, on the conventional unsigned RP),
+our previous RP decoder, our Direct-2D RP decoder, GASF, GADF, MTF and XIRP
+(src/representations.py), each decoded from the float operator and from its
+8-bit image. Per channel series it
 stores dimensionless fidelity and spectral metrics plus encode/decode time:
 
   nmae, nrmse        |r - x| and RMSE over the series' own range
@@ -30,8 +32,10 @@ from pathlib import Path
 
 import numpy as np
 
-REPS = ("RP", "GASF", "GADF", "MTF", "XIRP")
+REPS = ("RP_HIRATA", "RP_LEGACY", "RP", "GASF", "GADF", "MTF", "XIRP")   # RP = our Direct-2D decoder
 CONDS = ("float", "png8")
+LABELS = {"RP_HIRATA": "RP clásica (Hirata)", "RP_LEGACY": "RP anterior", "RP": "RP nueva (Direct-2D)",
+          "GASF": "GASF", "GADF": "GADF", "MTF": "MTF", "XIRP": "XIRP"}
 METRICS = ("nmae", "nrmse", "pearson", "dnmae", "psd_shape", "fdom_err", "energy_err", "enc_ms", "dec_ms")
 # Dataset-specific settings live here and nowhere else.
 DATASETS = {
@@ -168,7 +172,7 @@ def main():
 
 
 def write_markdown(summary: dict) -> None:
-    rows = ["| Dataset | L | " + " | ".join(f"{r} 8-bit" for r in REPS) + " | " + " | ".join(f"{r} ms" for r in REPS) + " |",
+    rows = ["| Dataset | L | " + " | ".join(f"{LABELS[r]} 8-bit" for r in REPS) + " | " + " | ".join(f"{LABELS[r]} ms" for r in REPS) + " |",
             "|---|---|" + "---|" * (2 * len(REPS))]
     for key, s in summary.items():
         if key.startswith("_"):

@@ -147,6 +147,33 @@ def _xirp_decode(R, mm):
     return from_positive(invert(R, "im"), mm[1], mm[0])
 
 
+# ---- RP reference decoders for the comparison (docs/experiments/rp_signed_comparison.md) ------
+def _rp_unsigned_to_uint8(R):
+    D = np.abs(np.asarray(R, dtype=float))
+    return _u8(D / D.max()) if D.max() > 0 else np.zeros(D.shape, np.uint8)
+
+
+def _rp_unsigned_from_uint8(img):
+    return np.asarray(img, dtype=float)                 # distances up to a positive scale
+
+
+def _rp_hirata_decode(R, mm):
+    """Hirata et al. on the conventional (unsigned) RP: binary RP at recurrence rate 0.75, RPR, our
+    leading-coordinate post-processing; orientation as returned (a binary RP has no sign)."""
+    from src.rp_hirata import binary_rp, eps_for_rate, states, to_series
+
+    D = np.abs(np.asarray(R, dtype=float))
+    Y, _ = states(binary_rp(D, eps_for_rate(D, 0.75)))
+    return to_series(Y, mm, "as_is")
+
+
+def _rp_legacy_decode(R, mm):
+    """Our previous decoder, faithful to the first manuscript (src/rp_legacy.py), on the same signed RP."""
+    from src.rp_legacy import decode_channel
+
+    return decode_channel(np.asarray(R, dtype=float), mm, scale_invariant=True, n_out=np.asarray(R).shape[0] + 1)[0]
+
+
 REPRESENTATIONS: dict[str, Representation] = {
     r.name: r for r in (
         Representation("RP", _rp_encode, _rp_to_uint8, _rp_from_uint8, _rp_decode),
@@ -154,6 +181,9 @@ REPRESENTATIONS: dict[str, Representation] = {
         Representation("GADF", _gadf_encode, _gaf_to_uint8, _signed_from_uint8, _gadf_decode),
         Representation("MTF", _mtf_encode, _u8, _mtf_from_uint8, _mtf_decode),
         Representation("XIRP", _xirp_encode, _xirp_to_uint8, _xirp_from_uint8, _xirp_decode),
+        # RP reference decoders: the classical method on the conventional RP and our previous decoder.
+        Representation("RP_HIRATA", _rp_encode, _rp_unsigned_to_uint8, _rp_unsigned_from_uint8, _rp_hirata_decode),
+        Representation("RP_LEGACY", _rp_encode, _rp_to_uint8, _rp_from_uint8, _rp_legacy_decode),
     )
 }
 
