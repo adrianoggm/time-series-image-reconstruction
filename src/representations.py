@@ -167,6 +167,25 @@ def _rp_hirata_decode(R, mm):
     return to_series(Y, mm, "as_is")
 
 
+def _rp_hirata_signed_decode(R, mm):
+    """Hirata on the signed RP: the graph only sees the thresholded |R|, so the sign cannot change the
+    geometry; it is used, as in our decoder, to pick the reflection whose signed RP is closer."""
+    from src.rp_decoders import signed_rp_error
+
+    R = np.asarray(R, dtype=float)
+    x = _rp_hirata_decode(R, mm)
+    mirrored = mm[0] + mm[1] - x
+    return mirrored if signed_rp_error(R, mirrored, True) < signed_rp_error(R, x, True) else x
+
+
+def _rp_unsigned_decode(D, mm):
+    """Our Direct-2D decoder on distances only (no sign): exact shape, reflection as returned."""
+    from src.rp_decoders import decode_channel
+
+    return decode_channel(np.abs(np.asarray(D, dtype=float)), mm, source="direct", dims=2, recover="overlap",
+                          signed=False, orientation_method="closed_form")
+
+
 
 REPRESENTATIONS: dict[str, Representation] = {
     r.name: r for r in (
@@ -175,8 +194,11 @@ REPRESENTATIONS: dict[str, Representation] = {
         Representation("GADF", _gadf_encode, _gaf_to_uint8, _signed_from_uint8, _gadf_decode),
         Representation("MTF", _mtf_encode, _u8, _mtf_from_uint8, _mtf_decode),
         Representation("XIRP", _xirp_encode, _xirp_to_uint8, _xirp_from_uint8, _xirp_decode),
-        # RP reference: the classical method on the conventional (unsigned, binary) RP.
+        # RP decoder x encoding grid: Hirata or our Direct-2D, on the unsigned or the signed RP ("RP" above
+        # is Direct-2D on the signed RP). Hirata on the signed RP uses the sign only to pick the reflection.
         Representation("RP_HIRATA", _rp_encode, _rp_unsigned_to_uint8, _rp_unsigned_from_uint8, _rp_hirata_decode),
+        Representation("RP_HIRATA_SIGNED", _rp_encode, _rp_to_uint8, _rp_from_uint8, _rp_hirata_signed_decode),
+        Representation("RP_UNSIGNED", _rp_encode, _rp_unsigned_to_uint8, _rp_unsigned_from_uint8, _rp_unsigned_decode),
     )
 }
 

@@ -1,8 +1,8 @@
 """M7 benchmark: every representation and RP decoder on the seven datasets at 64, 128 and 256 samples.
 
 For each dataset and window length the same seeded sample of windows goes
-through the classical RP reconstruction (Hirata, on the conventional unsigned RP),
-our Direct-2D RP decoder, GASF, GADF, MTF and XIRP
+through the RP decoder x encoding grid (Hirata's classical reconstruction and our
+Direct-2D decoder, each on the unsigned and on the signed RP), GASF, GADF, MTF and XIRP
 (src/representations.py), each decoded from the float operator and from its
 8-bit image. Per channel series it
 stores dimensionless fidelity and spectral metrics plus encode/decode time:
@@ -32,9 +32,10 @@ from pathlib import Path
 
 import numpy as np
 
-REPS = ("RP_HIRATA", "RP", "GASF", "GADF", "MTF", "XIRP")   # RP = our Direct-2D decoder
+REPS = ("RP_HIRATA", "RP_HIRATA_SIGNED", "RP_UNSIGNED", "RP", "GASF", "GADF", "MTF", "XIRP")   # RP = Direct-2D, signed
 CONDS = ("float", "png8")
-LABELS = {"RP_HIRATA": "RP clásica (Hirata)", "RP": "RP nueva (Direct-2D)",
+LABELS = {"RP_HIRATA": "Hirata · RP sin signo", "RP_HIRATA_SIGNED": "Hirata · Signed RP",
+          "RP_UNSIGNED": "RP nueva · RP sin signo", "RP": "RP nueva · Signed RP",
           "GASF": "GASF", "GADF": "GADF", "MTF": "MTF", "XIRP": "XIRP"}
 METRICS = ("nmae", "nrmse", "pearson", "dnmae", "psd_shape", "fdom_err", "energy_err", "enc_ms", "dec_ms")
 # Dataset-specific settings live here and nowhere else.
