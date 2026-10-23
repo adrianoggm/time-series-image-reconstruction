@@ -115,3 +115,49 @@ class PAMAP2Adapter(DatasetAdapter):
                     continue
                 yield Recording(data=X[a:b], group=subject, rec_id=f"{subject}/{path.parent.name}/{a}",
                                 labels=np.full(b - a, label_of[act[a]]), t=t[a:b])
+
+
+@register
+class ESC50Adapter(DatasetAdapter):
+    """ESC-50 (Piczak, 2015): 2000 five-second clips, 50 environmental-sound classes, CC BY-NC 3.0.
+
+    One recording per clip, mono 16-bit PCM scaled to [-1, 1]. The group is the
+    Freesound source recording (``src_file``), so clips cut from the same
+    recording never straddle a split. Native rate 44.1 kHz; ``target_fs``
+    resamples with SciPy's polyphase filter (anti-aliased), since a 128-sample
+    window at 44.1 kHz spans only 2.9 ms. The dataset's own 5 folds are in the
+    ``fold`` column of meta/esc50.csv if a run must match published splits.
+    """
+
+    NATIVE_FS = 44100
+
+    def __init__(self, root: str | Path = "~/datasets/ESC-50/ESC-50-master", target_fs: int | None = None):
+        self.root = str(Path(root).expanduser())
+        self.target_fs = target_fs
+        meta = pd.read_csv(Path(self.root) / "meta" / "esc50.csv")
+        classes = meta.drop_duplicates("target").sort_values("target").category.tolist()
+        self.spec = DatasetSpec(name="esc50", fs=float(target_fs or self.NATIVE_FS), channels=("audio",),
+                                units=("a.u.",), classes=tuple(classes))
+        self._meta = meta
+
+    spec = DatasetSpec(name="esc50", fs=44100.0, channels=("audio",), units=("a.u.",))
+
+    def fingerprint(self) -> str:
+        return files_fingerprint([Path(self.root) / "meta" / "esc50.csv"])
+
+    def recordings(self) -> Iterator[Recording]:
+        from math import gcd
+
+        from scipy.io import wavfile
+        from scipy.signal import resample_poly
+
+        for row in self._meta.itertuples():
+            fs, pcm = wavfile.read(Path(self.root) / "audio" / row.filename)
+            if fs != self.NATIVE_FS or pcm.ndim != 1:
+                raise ValueError(f"{row.filename}: expected mono {self.NATIVE_FS} Hz, got {fs} Hz {pcm.shape}")
+            x = pcm.astype(float) / 32768.0
+            if self.target_fs and self.target_fs != fs:
+                g = gcd(self.target_fs, fs)
+                x = resample_poly(x, self.target_fs // g, fs // g)
+            yield Recording(data=x[:, None], group=str(row.src_file), rec_id=row.filename,
+                            labels=np.full(len(x), row.target))
