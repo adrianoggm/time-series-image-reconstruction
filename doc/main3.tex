@@ -126,7 +126,7 @@ The evaluation follows the same hierarchy for all methods: fidelity, robustness,
     \item \emph{(RQ2) stability}: how does the reconstruction degrade as the stored image is perturbed?
     \item \emph{(RQ3) equivalence}: is downstream subject-level accuracy equivalent to the original within a pre-set margin?
 \end{itemize}
-Both stratified window-level and grouped subject-out three-fold splits are reported on the WISDM smartwatch accelerometer data.
+Both grouped trial-out and grouped subject-out three-fold splits are reported on the WISDM smartwatch accelerometer data.
 
 The main contributions are:
 \begin{itemize}
@@ -492,7 +492,7 @@ We use the 20\,Hz smartwatch accelerometer stream of the WISDM Smartphone and Sm
 
 This produces 8,172 labelled triaxial windows from 51 subjects, or 24,516 one-axis reconstructions. GASF, GADF, and MTF images are \(128\times128\); the adjacent-state RP is \(127\times127\), and its overlap reconstruction returns 128 samples.
 
-Two complementary three-fold protocols are evaluated. The \emph{window-level} split is class-stratified and may place windows from the same subject in train and test, so it measures reconstruction-induced distribution shift within the observed population. The \emph{grouped subject-out} split keeps all windows of a subject in one fold, holding out complete individuals, and is our \emph{primary} protocol because it estimates generalisation to unseen people; the window-level split is reported only as an optimistic within-distribution reference. In either protocol the union of the three test folds is the same 8,172 windows, so pooled reconstruction errors are protocol-independent for these deterministic, untrained decoders; classifier performance differs because a new model is trained per fold. Fold composition and the full window-level comparison are in the Supplementary Material.
+Two complementary three-fold protocols are evaluated, both class-stratified and both grouped so that no recording unit is split between train and test. The \emph{trial-out} split keeps every trial --- one subject performing one activity, 253 trials in total --- in a single fold, so adjacent windows of the same recording never straddle the split; a subject may still contribute other activities to training, so this protocol measures reconstruction-induced distribution shift within the observed population. The \emph{grouped subject-out} split keeps all windows of a subject in one fold, holding out complete individuals, and is our \emph{primary} protocol because it estimates generalisation to unseen people; the trial-out split is reported as a within-population reference. In either protocol the union of the three test folds is the same 8,172 windows, so pooled reconstruction errors are protocol-independent for these deterministic, untrained decoders; classifier performance differs because a new model is trained per fold. Fold composition and the full trial-out comparison are in the Supplementary Material.
 
 \subsection{Evaluation design}
 
@@ -535,13 +535,13 @@ Six classifiers are trained once per fold on original triaxial windows; three re
 
 All comparisons are paired. The primary utility inference uses the per-subject accuracy difference, Original minus reconstruction: we jointly resample the 51 subjects \(10^4\) times and build simultaneous \(95\%\) max-deviation bootstrap intervals over one family of 18 subject-out comparisons, six classifiers by RP/GASF/GADF~\cite{DavisonHinkley1997,Hall1987}, with the six MTF negative controls forming a separate family. Equivalence requires the entire classifier-specific interval to lie within \(\pm0.01\). That one-percentage-point margin was set as the largest degradation considered operationally negligible when replacing an original window with its reconstruction, and margin choice remains a substantive judgement~\cite{Lakens2017}.
 
-Secondary analyses support rather than establish that result: Wilcoxon signed-rank tests on per-window and per-subject MAE~\cite{Wilcoxon1945}, continuity-corrected McNemar tests on window-wise correctness~\cite{McNemar1947}, and paired two one-sided tests~\cite{Schuirmann1987}, each under Holm--Bonferroni control within its own family~\cite{Holm1979}. Their full tables, the \(\pm0.02\) sensitivity analysis, and the separately corrected window-level families are in the Supplementary Material. No test or interval is pooled across protocols.
+Secondary analyses support rather than establish that result: Wilcoxon signed-rank tests on per-window and per-subject MAE~\cite{Wilcoxon1945}, continuity-corrected McNemar tests on window-wise correctness~\cite{McNemar1947}, and paired two one-sided tests~\cite{Schuirmann1987}, each under Holm--Bonferroni control within its own family~\cite{Holm1979}. Their full tables, the \(\pm0.02\) sensitivity analysis, and the separately corrected trial-out families are in the Supplementary Material. No test or interval is pooled across protocols.
 
 \paragraph{Configuration and internal validity.}
 Every setting supporting the primary RP/GASF/GADF claims was fixed before the grouped subject-out evaluation and never selected using an outer-fold test prediction: no classifier hyperparameter search was run, \(\alpha=0.7\) follows from the analytic bound \(\alpha<1/\sqrt2\), \(n_p=5\) is held fixed, and the RP orientation step has no tunable parameter at all. The exception is MTF's \(Q=4\), chosen in an exploratory pooled-test sweep, which is why MTF is reported only as a descriptive lossy control; that choice cannot affect the confirmatory conclusions for the other three methods. Complete configurations, including the classifier architectures and training budget, are in the Supplementary Material.
 
 \subsection{Reproducibility and provenance}\label{sec:reproducibility}
-Classical MDS is deterministic, reconstructed windows retain explicit indices during parallel execution, and both fold assignments use fixed seeds. Code, decoder implementations, evaluation and table-generation scripts, fold assignments, and complete configurations accompany the paper and the Supplementary Material; the large reconstruction arrays remain external artefacts identified by provenance hashes.
+Classical MDS is deterministic, reconstructed windows retain explicit indices during parallel execution, and both fold assignments are deterministic (unshuffled stratified group folds). Code, decoder implementations, evaluation and table-generation scripts, fold assignments, and complete configurations accompany the paper and the Supplementary Material; the large reconstruction arrays remain external artefacts identified by provenance hashes.
 
 \section{Results}\label{sec:results}
 
@@ -557,7 +557,7 @@ Figure~\ref{fig:qualitative_main} compares the four reconstructions for the same
 
 \subsection{Reconstruction fidelity}
 
-Table~\ref{tab:pointwise_pooled} reports pooled fidelity over all 8,172 windows. Each deterministic decoder scores every window exactly once, so these values are identical under the window-level and subject-out partitions.
+Table~\ref{tab:pointwise_pooled} reports pooled fidelity over all 8,172 windows. Each deterministic decoder scores every window exactly once, so these values are identical under the trial-out and subject-out partitions.
 
 \begin{table}[H]
 \centering
@@ -582,9 +582,9 @@ Paired window-level Wilcoxon tests distinguish every encoder pair after Holm cor
 
 \subsection{Robustness to image perturbation}\label{sec:results_robustness}
 
-The implementation follows the local-stability protocol defined above. The activity-balanced sample contains 30 windows per class and covers all 51 subjects. The self-consistency objects are the newly decoded clean reconstruction \(\hat x^{(0)}_{m,w}\) and its cached pipeline counterpart \(\hat x^{\mathrm{cache}}_{m,w}\); all four methods passed the per-window gate.
+The implementation follows the local-stability protocol defined above. The activity-balanced sample contains 30 windows per class and covers 39 of the 51 subjects. The self-consistency objects are the newly decoded clean reconstruction \(\hat x^{(0)}_{m,w}\) and its cached pipeline counterpart \(\hat x^{\mathrm{cache}}_{m,w}\); all four methods passed the per-window gate.
 
-Table~\ref{tab:robustness} and Figure~\ref{fig:robustness_curves} show increasing error for the three near-original decoders, but no catastrophic failure within the tested range: at \(\sigma=16\) (about \(6\%\) of the intensity range), their mean NMAE remains below \(0.07\). RP has the lowest descriptive mean at every nonzero level, \(0.034\) at \(\sigma=16\). The second position depends on the level: GADF lies between RP and GASF for \(\sigma\le8\), whereas at \(\sigma=16\) GASF (\(0.063\)) overtakes GADF (\(0.067\)). This experiment was not designed as a pairwise superiority test, so we do not infer a population-level robustness ranking from those means alone. MTF stays near \(0.28\) across the curve because its representative reconstruction is already dominated by intrinsic quantisation loss. Subject-cluster intervals and cycle residuals are reported in the Supplementary Material. These results quantify local stability only; they do not cover the coherent structural defects of generated images.
+Table~\ref{tab:robustness} and Figure~\ref{fig:robustness_curves} show increasing error for the three near-original decoders, but no catastrophic failure within the tested range: at \(\sigma=16\) (about \(6\%\) of the intensity range), their mean NMAE remains below \(0.07\). RP has the lowest descriptive mean at every nonzero level, \(0.033\) at \(\sigma=16\). The second position depends on the level: GADF lies between RP and GASF for \(\sigma\le8\), whereas at \(\sigma=16\) GASF (\(0.064\)) overtakes GADF (\(0.065\)). This experiment was not designed as a pairwise superiority test, so we do not infer a population-level robustness ranking from those means alone. MTF stays near \(0.27\) across the curve because its representative reconstruction is already dominated by intrinsic quantisation loss. Subject-cluster intervals and cycle residuals are reported in the Supplementary Material. These results quantify local stability only; they do not cover the coherent structural defects of generated images.
 
 \begin{table}[H]
 \centering
@@ -595,10 +595,10 @@ Table~\ref{tab:robustness} and Figure~\ref{fig:robustness_curves} show increasin
 \toprule
 Method & \(\sigma=0\) & \(\sigma=2\) & \(\sigma=4\) & \(\sigma=8\) & \(\sigma=16\) \\
 \midrule
-RP   & $1.0\pm0.7$     & $4.4\pm3.1$     & $8.3\pm4.9$     & $16.7\pm8.8$    & $34.0\pm14.3$   \\
-GASF & $1.5\pm0.3$     & $13.0\pm4.3$    & $21.4\pm5.3$    & $35.8\pm6.1$    & $63.4\pm8.4$    \\
-GADF & $1.2\pm0.4$     & $7.4\pm1.8$     & $14.7\pm3.1$    & $31.5\pm7.9$    & $66.9\pm16.1$   \\
-MTF  & $281.2\pm83.6$  & $284.5\pm85.0$  & $286.8\pm81.8$  & $283.8\pm78.7$  & $279.7\pm75.1$  \\
+RP   & $1.1\pm1.4$     & $4.4\pm3.5$     & $8.2\pm5.0$     & $16.0\pm8.3$    & $32.7\pm13.3$   \\
+GASF & $1.6\pm0.9$     & $14.0\pm5.3$    & $21.7\pm5.9$    & $36.7\pm6.9$    & $63.6\pm10.1$   \\
+GADF & $1.3\pm0.6$     & $7.8\pm2.2$     & $15.4\pm3.7$    & $32.8\pm8.8$    & $64.9\pm12.6$   \\
+MTF  & $270.1\pm81.4$  & $272.2\pm84.5$  & $273.0\pm83.0$  & $273.0\pm82.4$  & $270.0\pm83.1$  \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -613,11 +613,11 @@ Decoding the same 150 windows from the native floating-point operators separates
 
 \subsection{Downstream classification}\label{sec:subject_out_results}
 
-Table~\ref{tab:subject_out_acc} is the main classification result, under the primary grouped subject-out protocol. RP, GASF, and GADF track the original signal on every classifier, while MTF degrades all of them. The corresponding within-distribution window-level accuracies --- uniformly higher, as expected --- and all six classifiers are reported in the Supplementary Material; both protocols preserve this grouping, although the near-original methods exchange tiny descriptive positions across classifiers.
+Table~\ref{tab:subject_out_acc} is the main classification result, under the primary grouped subject-out protocol. RP, GASF, and GADF track the original signal on every classifier, while MTF degrades all of them. The corresponding within-population trial-out accuracies and all six classifiers are reported in the Supplementary Material; both protocols preserve this grouping, although the near-original methods exchange tiny descriptive positions across classifiers.
 
 \begin{table}[H]
 \centering
-\caption{Grouped subject-out three-fold accuracy (primary protocol) for three representative classifiers spanning the families (convolutional, recurrent, classical). Accuracies are rounded to three decimals; the sub-$0.001$ per-method differences are quantified per subject in Table~\ref{tab:equivalence_ci}. All six classifiers and the window-level comparison are in the Supplementary Material.}\label{tab:subject_out_acc}
+\caption{Grouped subject-out three-fold accuracy (primary protocol) for three representative classifiers spanning the families (convolutional, recurrent, classical). Accuracies are rounded to three decimals; the sub-$0.001$ per-method differences are quantified per subject in Table~\ref{tab:equivalence_ci}. All six classifiers and the trial-out comparison are in the Supplementary Material.}\label{tab:subject_out_acc}
 \begin{tabular}{lccccc}
 \toprule
 Classifier & Original & RP & GASF & GADF & MTF \\
@@ -660,7 +660,7 @@ MTF  & \([+0.0474,+0.1144]\) & \([+0.0212,+0.0736]\) & KNN & 0/6 & 0/6 \\
 
 These ablations probe the mechanisms behind the headline RP and GADF decoders; none of them was selected on an outer-fold test set. Table~\ref{tab:ablation_summary} reports the decision-changing comparisons, with the sample and the controlled factors for each row stated in the Supplementary Material.
 
-The orientation step is isolated separately, on 150 activity-balanced windows with the same metadata-free inversion in both arms, and yields three results. The closed form is exact on the unquantised operator, where the 720-angle grid retains its discretisation error. It stays slightly ahead after 8-bit storage, until pixel noise comes to dominate the orientation term. And it more than halves the measured decoding time while never mis-selecting among its four candidates on clean input. The values behind those statements, together with the GADF pivot sweep, the controlled MTF decoder comparison, the bin-count sensitivity analysis, and the historical regression against the earlier production snapshot, are in the Supplementary Material.
+The orientation step is isolated separately, on 150 activity-balanced windows with the same metadata-free inversion in both arms, and yields three results. The closed form is exact on the unquantised operator, where the 720-angle grid retains its discretisation error. It stays slightly ahead after 8-bit storage, until pixel noise comes to dominate the orientation term. And it more than halves the measured decoding time; among its four candidates it never mis-selects in floating point and does so for 2 of 450 axis-series after clean 8-bit storage. The values behind those statements, together with the GADF pivot sweep, the controlled MTF decoder comparison, the bin-count sensitivity analysis, and the historical regression against the earlier production snapshot, are in the Supplementary Material.
 
 \begin{table}[H]
 \centering
@@ -671,9 +671,9 @@ The orientation step is isolated separately, on 150 activity-balanced windows wi
 \toprule
 Method & Used variant (MAE) & Degraded alternative (MAE) & Interpretation \\
 \midrule
-RP geometry & diagonal-centred + signed (0.009) & signal-range inversion (1.259) & same 100 windows; closed form in both 2-D arms \\
+RP geometry & diagonal-centred + signed (0.011) & signal-range inversion (1.691) & same 100 windows; closed form in both 2-D arms \\
 GADF & five pivots (0.0158) & one pivot (0.0353) & averaging suppresses PNG noise \\
-MTF & Fiedler ordering (5.07) & cosine pivot (6.46) & spectral ordering helps; still quantisation-lossy \\
+MTF & Fiedler ordering (3.95) & cosine pivot (5.39) & spectral ordering helps; still quantisation-lossy \\
 \bottomrule
 \end{tabular}}
 \end{table}
