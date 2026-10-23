@@ -221,6 +221,12 @@ def decode_channel(R_obs, minmax_c, source, dims=2, recover="overlap",
     The output has N = M + 1 samples for an (M, M) matrix, so any window length works.
     """
     n_out = np.asarray(R_obs).shape[0] + 1
+    # The decoder is scale-equivariant (the output is rescaled to the channel range), but EPS and the
+    # flatness checks below are absolute. Bring matrices of tiny magnitude (e.g. a dead seismometer
+    # channel spanning 1e-12) to O(1) first; ordinary inputs never take this branch and are unchanged.
+    scale = float(np.max(np.abs(R_obs)))
+    if 0.0 < scale < 1e-6:
+        R_obs = np.asarray(R_obs, dtype=float) / scale
     if source == "jaccard_legacy":
         from src.rp_legacy import decode_channel as legacy_decode
 
