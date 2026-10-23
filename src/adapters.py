@@ -53,3 +53,65 @@ class WISDMAdapter(DatasetAdapter):
             seen[key] = seen.get(key, -1) + 1
             yield Recording(data=X[a:b], group=str(key[0]), rec_id=f"{key[0]}/{order[key[1]]}/{seen[key]}",
                             labels=y[a:b])
+
+
+# PAMAP2 activity ids (readme.pdf). 0 = transient between activities, never a class.
+PAMAP2_PROTOCOL = {1: "lying", 2: "sitting", 3: "standing", 4: "walking", 5: "running", 6: "cycling",
+                   7: "nordic_walking", 12: "ascending_stairs", 13: "descending_stairs", 16: "vacuum_cleaning",
+                   17: "ironing", 24: "rope_jumping"}
+PAMAP2_OPTIONAL = {9: "watching_tv", 10: "computer_work", 11: "car_driving", 18: "folding_laundry",
+                   19: "house_cleaning", 20: "playing_soccer"}
+# Column layout of the 54-column .dat rows: 0 timestamp (s), 1 activity id, 2 heart rate, then 17 columns
+# per IMU (hand 3-19, chest 20-36, ankle 37-53): temperature, acc +-16 g (3), acc +-6 g (3), gyro, mag, orientation.
+PAMAP2_ACC16 = {"hand": 4, "chest": 21, "ankle": 38}
+
+
+def _pamap2_spec(include_optional: bool) -> DatasetSpec:
+    acts = PAMAP2_PROTOCOL | (PAMAP2_OPTIONAL if include_optional else {})
+    return DatasetSpec(name="pamap2", fs=100.0,
+                       channels=tuple(f"{imu}_acc_{ax}" for imu in PAMAP2_ACC16 for ax in "xyz"),
+                       units=("m/s^2",) * 9, classes=tuple(acts[k] for k in sorted(acts)))
+
+
+@register
+class PAMAP2Adapter(DatasetAdapter):
+    """PAMAP2 (UCI 231): 9 subjects, three IMUs at 100 Hz; the +-16 g accelerometer of each IMU.
+
+    One recording per maximal run of a constant non-zero activity inside a
+    subject file, so transients (activity 0) are excluded and windows never span
+    two activities. Heart rate (about 9 Hz) and the saturating +-6 g
+    accelerometer are not used. Isolated NaN gaps from wireless drop-outs of up
+    to ``max_gap`` samples are filled by linear interpolation; longer gaps stay
+    NaN, so ``make_windows`` drops and counts the windows that contain them.
+    """
+
+    spec = _pamap2_spec(include_optional=False)
+
+    def __init__(self, root: str | Path = "~/datasets/PAMAP2/PAMAP2_Dataset", include_optional: bool = False,
+                 max_gap: int = 10):
+        self.root = str(Path(root).expanduser())
+        self.include_optional, self.max_gap = include_optional, max_gap
+        self.spec = _pamap2_spec(include_optional)
+
+    def _files(self) -> list[Path]:
+        dirs = ["Protocol"] + (["Optional"] if self.include_optional else [])
+        return sorted(p for d in dirs for p in (Path(self.root) / d).glob("subject*.dat"))
+
+    def fingerprint(self) -> str:
+        return files_fingerprint(self._files())
+
+    def recordings(self) -> Iterator[Recording]:
+        label_of = {aid: i for i, aid in enumerate(sorted(PAMAP2_PROTOCOL | (PAMAP2_OPTIONAL if self.include_optional else {})))}
+        cols = [c + k for c in PAMAP2_ACC16.values() for k in range(3)]
+        for path in self._files():
+            raw = np.loadtxt(path)
+            t, act = raw[:, 0], raw[:, 1].astype(int)
+            X = pd.DataFrame(raw[:, cols]).interpolate(limit=self.max_gap, limit_area="inside").to_numpy()
+            subject = path.stem.removeprefix("subject")
+            change = np.flatnonzero(act[1:] != act[:-1]) + 1
+            bounds = np.concatenate([[0], change, [len(act)]])
+            for a, b in zip(bounds[:-1], bounds[1:], strict=True):
+                if act[a] not in label_of:          # 0 = transient (and optional ids when excluded)
+                    continue
+                yield Recording(data=X[a:b], group=subject, rec_id=f"{subject}/{path.parent.name}/{a}",
+                                labels=np.full(b - a, label_of[act[a]]), t=t[a:b])
