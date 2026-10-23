@@ -39,17 +39,9 @@ def RGBfromMTFMatrix_of_XYZ(X,Y,Z):
     if X.shape != Y.shape or X.shape != Z.shape or Y.shape != Z.shape:
         print('XYZ should be in same shape!')
         return 0
-    #print(X.shape)
-    dimImage = X.shape[0]
-    newImage = np.zeros((dimImage,dimImage,3))
-    for i in range(dimImage):
-        for j in range(dimImage):
-            _pixel = []
-            _pixel.append(X[i][j])
-            _pixel.append(Y[i][j])
-            _pixel.append(Z[i][j])
-            newImage[i][j] = _pixel
-    return newImage
+    # One channel per axis; was a per-pixel Python loop with identical values.
+    return np.stack([np.asarray(X, dtype=float), np.asarray(Y, dtype=float), np.asarray(Z, dtype=float)], axis=-1)
+
 def varMTF(data, dim,TIME_STEPS):
     
     x = []
