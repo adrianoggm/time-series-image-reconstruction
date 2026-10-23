@@ -302,7 +302,7 @@ MTF  & $55.43\pm113.46$   & $0.326\pm0.091$   & $2.199\pm8.844$   & $0.05624\pm0
 \section{Robustness details and error attribution}
 \label{sec:supp_robustness}
 
-The local-stability sample is selected deterministically from window-level fold~0 (seed 0): 30 windows from each of the five activities, using round-robin sampling over the available subjects within each activity. The resulting 150 windows cover all 51 subjects. Fold~0 is only a reproducible sampling frame here: the decoders are untrained and no configuration is selected on this sample. For every nonzero noise level, two independent arrays are sampled over all pixels and channels, clipped to $[0,255]$, rounded to the 8-bit grid, and decoded; replicate errors are averaged within each window. These two draws reduce replicate-specific variation but are not sufficient to characterise the full noise distribution at an individual window. Accordingly, the reported standard deviations and intervals summarise variability \emph{across} windows, and the number of draws is exposed as \texttt{TFG\_ROBUST\_REPS} so the curve can be recomputed with more realizations. The subject-cluster intervals in Table~\ref{tab:supp_robustness_ci} resample the 51 represented subjects as whole clusters. The MTF encoder emitted tied-quantile warnings for some axis-series; allowing fewer distinct bins in those cases is part of the evaluated quantisation behaviour.
+The local-stability sample is selected deterministically from trial-out fold~0 (seed 0): 30 windows from each of the five activities, using round-robin sampling over the available subjects within each activity. The resulting 150 windows cover 39 of the 51 subjects. Fold~0 is only a reproducible sampling frame here: the decoders are untrained and no configuration is selected on this sample. For every nonzero noise level, two independent arrays are sampled over all pixels and channels, clipped to $[0,255]$, rounded to the 8-bit grid, and decoded; replicate errors are averaged within each window. These two draws reduce replicate-specific variation but are not sufficient to characterise the full noise distribution at an individual window. Accordingly, the reported standard deviations and intervals summarise variability \emph{across} windows, and the number of draws is exposed as \texttt{TFG\_ROBUST\_REPS} so the curve can be recomputed with more realizations. The subject-cluster intervals in Table~\ref{tab:supp_robustness_ci} resample the 39 represented subjects as whole clusters. The MTF encoder emitted tied-quantile warnings for some axis-series; allowing fewer distinct bins in those cases is part of the evaluated quantisation behaviour.
 
 \begin{table}[H]
 \centering
@@ -314,10 +314,10 @@ The local-stability sample is selected deterministically from window-level fold~
 \toprule
 Method & $\sigma=0$ & $\sigma=2$ & $\sigma=4$ & $\sigma=8$ & $\sigma=16$ \\
 \midrule
-RP   & $[0.0009,0.0011]$ & $[0.0039,0.0049]$ & $[0.0075,0.0091]$ & $[0.0153,0.0183]$ & $[0.0316,0.0364]$ \\
-GASF & $[0.0014,0.0015]$ & $[0.0124,0.0137]$ & $[0.0207,0.0222]$ & $[0.0349,0.0368]$ & $[0.0621,0.0647]$ \\
-GADF & $[0.0011,0.0013]$ & $[0.0071,0.0077]$ & $[0.0142,0.0153]$ & $[0.0304,0.0327]$ & $[0.0644,0.0696]$ \\
-MTF  & $[0.2686,0.2950]$ & $[0.2733,0.2963]$ & $[0.2752,0.2991]$ & $[0.2726,0.2956]$ & $[0.2694,0.2903]$ \\
+RP   & $[0.0009,0.0013]$ & $[0.0039,0.0049]$ & $[0.0075,0.0089]$ & $[0.0148,0.0172]$ & $[0.0308,0.0347]$ \\
+GASF & $[0.0015,0.0017]$ & $[0.0132,0.0148]$ & $[0.0208,0.0226]$ & $[0.0357,0.0376]$ & $[0.0621,0.0652]$ \\
+GADF & $[0.0012,0.0014]$ & $[0.0076,0.0081]$ & $[0.0148,0.0160]$ & $[0.0316,0.0339]$ & $[0.0633,0.0666]$ \\
+MTF  & $[0.2589,0.2803]$ & $[0.2595,0.2848]$ & $[0.2604,0.2851]$ & $[0.2604,0.2848]$ & $[0.2580,0.2804]$ \\
 \bottomrule
 \end{tabular}
 }
@@ -333,15 +333,15 @@ The cycle residual is the relative Frobenius error defined in the main article a
 \toprule
 Method & Maximum gate NMAE & Cycle residual & Cycle 95\% interval \\
 \midrule
-RP   & $<10^{-8}$ & $0.0533\pm0.0286$ & $[0.0497,0.0569]$ \\
-GASF & $<10^{-8}$ & $0.0046\pm0.0012$ & $[0.0045,0.0048]$ \\
-GADF & $<10^{-8}$ & $0.0044\pm0.0016$ & $[0.0042,0.0046]$ \\
-MTF  & $<10^{-8}$ & $0.1242\pm0.1955$ & $[0.0946,0.1556]$ \\
+RP   & $<10^{-8}$ & $0.0538\pm0.0295$ & $[0.0491,0.0595]$ \\
+GASF & $<10^{-8}$ & $0.0048\pm0.0013$ & $[0.0046,0.0050]$ \\
+GADF & $<10^{-8}$ & $0.0045\pm0.0018$ & $[0.0041,0.0049]$ \\
+MTF  & $<10^{-8}$ & $0.1035\pm0.1678$ & $[0.0736,0.1342]$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-For the signed RP the cycle residual must not be read as a reconstruction-error measure. The Lu--Tong sign $\sigma(i,j)$ is a threshold on $\hat u_{ij}\cdot v$ at $\cos(\pi/4)$, so a pair whose displacement direction lies on that boundary flips sign under a perturbation of the order of double-precision rounding, and its entry then changes by $2|R_{ij}|$. Decoding the three axes of three windows directly from the native float operator reproduces the source signal to $\max_i|x_i-\hat x_i|\le7\times10^{-15}\,\mathrm{m/s^2}$, and yet the per-channel cycle residual ranges from exactly $0$, for channels in which no pair flips, to $0.036$. The RP row of Table~\ref{tab:supp_cycle_gate} is therefore dominated by boundary flips, and it is not comparable with the GASF, GADF and MTF rows, whose operators are continuous in the signal.
+For the signed RP the cycle residual must not be read as a reconstruction-error measure. The Lu--Tong sign $\sigma(i,j)$ is a threshold on $\hat u_{ij}\cdot v$ at $\cos(\pi/4)$, so a pair whose displacement direction lies on that boundary flips sign under a perturbation of the order of double-precision rounding, and its entry then changes by $2|R_{ij}|$. Decoding the three axes of three windows directly from the native float operator reproduces the source signal to $\max_i|x_i-\hat x_i|\le3\times10^{-14}\,\mathrm{m/s^2}$, and yet the per-channel cycle residual ranges from $0.006$ to $0.165$. The RP row of Table~\ref{tab:supp_cycle_gate} is therefore dominated by boundary flips, and it is not comparable with the GASF, GADF and MTF rows, whose operators are continuous in the signal.
 
 Table~\ref{tab:error_sources} decomposes the error of those same 150 windows across the three storage conditions, which is the evidence behind the main article's statement that the clean round-trip error of the near-original trio is attributable to 8-bit quantisation. RP, GASF, and GADF are all exact in floating point, whereas MTF is already lossy before storage. RP's earlier residual float term came from the angular orientation grid and disappears with the closed-form orientation (Section~\ref{sec:supp_rp_orientation}).
 
@@ -353,10 +353,10 @@ Table~\ref{tab:error_sources} decomposes the error of those same 150 windows acr
 \toprule
 Method & Native float operator & 8-bit PNG & Perturbed ($\sigma=8$) \\
 \midrule
-RP   & $9.1\times10^{-17}$ & $0.0010\pm0.0007$ & $0.0167\pm0.0088$ \\
-GASF & $4.3\times10^{-17}$ & $0.0015\pm0.0003$ & $0.0358\pm0.0061$ \\
-GADF & $7.0\times10^{-17}$ & $0.0012\pm0.0004$ & $0.0315\pm0.0079$ \\
-MTF  & $0.2819\pm0.0830$   & $0.2812\pm0.0836$ & $0.2838\pm0.0787$ \\
+RP   & $9.7\times10^{-17}$ & $0.0011\pm0.0014$ & $0.0160\pm0.0083$ \\
+GASF & $4.3\times10^{-17}$ & $0.0016\pm0.0009$ & $0.0367\pm0.0069$ \\
+GADF & $7.1\times10^{-17}$ & $0.0013\pm0.0006$ & $0.0328\pm0.0088$ \\
+MTF  & $0.2698\pm0.0826$   & $0.2701\pm0.0814$ & $0.2730\pm0.0824$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -364,30 +364,30 @@ MTF  & $0.2819\pm0.0830$   & $0.2812\pm0.0836$ & $0.2838\pm0.0787$ \\
 \section{Complete reconstruction results by fold}
 \begin{table}[H]
 \centering
-\caption{Per-fold reconstruction error for both 3-fold protocols (physical units, m/s$^2$). Each cell is the per-window global metric (averaged over the three axes) averaged over that fold's test windows. Because the decoders are deterministic and untrained, a window reconstructs identically in any fold; the two protocols only repartition the same $8172$ windows, so the Pooled column is identical for both and equals the full-dataset value of Table~\ref{tab:pointwise_pooled}. The window-level folds are near-identical stratified partitions (negligible fold-to-fold spread), whereas the subject-out folds vary more because different subjects are held out.}
+\caption{Per-fold reconstruction error for both 3-fold protocols (physical units, m/s$^2$). Each cell is the per-window global metric (averaged over the three axes) averaged over that fold's test windows. Because the decoders are deterministic and untrained, a window reconstructs identically in any fold; the two protocols only repartition the same $8172$ windows, so the Pooled column is identical for both and equals the full-dataset value of Table~\ref{tab:pointwise_pooled}. Both protocols hold out whole groups (trials or subjects), so the fold-to-fold spread reflects which recordings are held out.}
 \label{tab:pointwise_perfold}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{ll ccc ccc c}
 \toprule
- & & \multicolumn{3}{c}{\textbf{Window-level 3-fold}} & \multicolumn{3}{c}{\textbf{Subject-out 3-fold}} & \\
+ & & \multicolumn{3}{c}{\textbf{Trial-out 3-fold}} & \multicolumn{3}{c}{\textbf{Subject-out 3-fold}} & \\
 \cmidrule(lr){3-5}\cmidrule(lr){6-8}
 \textbf{Encoder} & \textbf{Metric} & F0 & F1 & F2 & F0 & F1 & F2 & \textbf{Pooled} \\
 \midrule
-\textbf{RP} & MAE & $0.0141$ & $0.0143$ & $0.0143$ & $0.0133$ & $0.0151$ & $0.0143$ & $0.0142$ \\
- & MSE & $0.0007$ & $0.0009$ & $0.0009$ & $0.0007$ & $0.0010$ & $0.0008$ & $0.0008$ \\
- & Pearson & $0.99998$ & $0.99998$ & $0.99998$ & $0.99999$ & $0.99998$ & $0.99998$ & $0.99998$ \\
+\textbf{RP} & MAE & $0.0145$ & $0.0129$ & $0.0153$ & $0.0133$ & $0.0151$ & $0.0143$ & $0.0142$ \\
+ & MSE & $0.0009$ & $0.0005$ & $0.0010$ & $0.0007$ & $0.0010$ & $0.0008$ & $0.0008$ \\
+ & Pearson & $0.99998$ & $0.99999$ & $0.99998$ & $0.99999$ & $0.99998$ & $0.99998$ & $0.99998$ \\
 \midrule
-\textbf{GASF} & MAE & $0.0202$ & $0.0205$ & $0.0207$ & $0.0189$ & $0.0211$ & $0.0214$ & $0.0205$ \\
- & MSE & $0.0042$ & $0.0043$ & $0.0044$ & $0.0037$ & $0.0041$ & $0.0051$ & $0.0043$ \\
+\textbf{GASF} & MAE & $0.0198$ & $0.0195$ & $0.0220$ & $0.0189$ & $0.0211$ & $0.0214$ & $0.0205$ \\
+ & MSE & $0.0038$ & $0.0038$ & $0.0053$ & $0.0037$ & $0.0041$ & $0.0051$ & $0.0043$ \\
  & Pearson & $0.99988$ & $0.99988$ & $0.99988$ & $0.99988$ & $0.99988$ & $0.99988$ & $0.99988$ \\
 \midrule
-\textbf{GADF} & MAE & $0.0156$ & $0.0157$ & $0.0159$ & $0.0147$ & $0.0162$ & $0.0163$ & $0.0157$ \\
- & MSE & $0.0008$ & $0.0008$ & $0.0008$ & $0.0007$ & $0.0008$ & $0.0009$ & $0.0008$ \\
+\textbf{GADF} & MAE & $0.0156$ & $0.0150$ & $0.0165$ & $0.0147$ & $0.0162$ & $0.0163$ & $0.0157$ \\
+ & MSE & $0.0008$ & $0.0007$ & $0.0009$ & $0.0007$ & $0.0008$ & $0.0009$ & $0.0008$ \\
  & Pearson & $0.99999$ & $0.99999$ & $0.99999$ & $0.99999$ & $0.99999$ & $0.99999$ & $0.99999$ \\
 \midrule
-\textbf{MTF} & MAE & $3.98$ & $3.94$ & $3.91$ & $3.71$ & $4.04$ & $4.07$ & $3.94$ \\
- & MSE & $56.42$ & $55.25$ & $54.62$ & $48.13$ & $52.54$ & $65.43$ & $55.43$ \\
- & Pearson & $0.00289$ & $0.02089$ & $0.01689$ & $0.00977$ & $0.00116$ & $0.02982$ & $0.01356$ \\
+\textbf{MTF} & MAE & $3.90$ & $3.75$ & $4.18$ & $3.71$ & $4.04$ & $4.07$ & $3.94$ \\
+ & MSE & $53.16$ & $48.43$ & $64.52$ & $48.13$ & $52.54$ & $65.43$ & $55.43$ \\
+ & Pearson & $0.02529$ & $0.01183$ & $0.00355$ & $0.00977$ & $0.00116$ & $0.02982$ & $0.01355$ \\
 \bottomrule
 \end{tabular}
 }
@@ -414,23 +414,23 @@ CNN  & $0.796\pm0.036$ & $0.796\pm0.035$ & $0.796\pm0.036$ & $0.796\pm0.036$ & $
 \end{tabular}
 \end{table}
 
-\section{Window-level vs subject-out accuracy}
+\section{Trial-out vs subject-out accuracy}
 \label{sec:supp_window_vs_subject}
-Table~\ref{tab:window_vs_subject_out} places the window-level (W, within-distribution) and grouped subject-out (S, primary) accuracies side by side for the three representative classifiers reported in the main text. Absolute accuracy is higher under the window-level split, as expected when windows of a test subject may also appear in training, but the encoder ranking is identical under both protocols: RP, GASF and GADF track the original signal, while MTF degrades every classifier. The main text reports the subject-out column only.
+Table~\ref{tab:window_vs_subject_out} places the grouped trial-out (T, within-population) and grouped subject-out (S, primary) accuracies side by side for the three representative classifiers reported in the main text. Once whole trials are held out, absolute accuracy stays within 0.025 of the subject-out level for every classifier, higher for GRU, LSTM and KNN and lower for CNN, RF and SVM; a split that let windows of the same trial fall on both sides of a fold gave 0.89--0.92 for these three classifiers, so that gap reflected adjacent-window leakage rather than within-population generalisation. The encoder ranking is identical under both protocols: RP, GASF and GADF track the original signal, while MTF degrades every classifier. The main text reports the subject-out column only.
 
 \begin{table}[H]
 \centering
-\caption{Window-level (W) vs grouped subject-out (S) three-fold accuracy (mean across folds) for three representative classifiers. The encoder ranking is identical under both protocols.}
+\caption{Grouped trial-out (T) vs grouped subject-out (S) three-fold accuracy (mean across folds) for three representative classifiers. The encoder ranking is identical under both protocols.}
 \label{tab:window_vs_subject_out}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{l|cc|cc|cc|cc|cc}
 \toprule
  & \multicolumn{2}{c|}{Original} & \multicolumn{2}{c|}{RP} & \multicolumn{2}{c|}{GASF} & \multicolumn{2}{c|}{GADF} & \multicolumn{2}{c}{MTF} \\
-Classifier & W & S & W & S & W & S & W & S & W & S \\
+Classifier & T & S & T & S & T & S & T & S & T & S \\
 \midrule
-CNN  & 0.907 & 0.796 & 0.906 & 0.796 & 0.907 & 0.796 & 0.907 & 0.796 & 0.773 & 0.686 \\
-GRU  & 0.923 & 0.811 & 0.923 & 0.811 & 0.923 & 0.811 & 0.923 & 0.811 & 0.765 & 0.702 \\
-RF   & 0.891 & 0.786 & 0.891 & 0.786 & 0.891 & 0.787 & 0.892 & 0.787 & 0.757 & 0.689 \\
+CNN  & 0.793 & 0.796 & 0.793 & 0.796 & 0.793 & 0.796 & 0.794 & 0.796 & 0.685 & 0.686 \\
+GRU  & 0.825 & 0.811 & 0.825 & 0.811 & 0.825 & 0.811 & 0.825 & 0.811 & 0.708 & 0.702 \\
+RF   & 0.772 & 0.786 & 0.773 & 0.786 & 0.773 & 0.787 & 0.772 & 0.787 & 0.679 & 0.689 \\
 \bottomrule
 \end{tabular}}
 \end{table}
@@ -447,7 +447,7 @@ The central equivalence result is a joint subject-cluster bootstrap. Because it 
 \item \textbf{Family-wise critical value.} Centre each resampled mean on its point estimate, $d^{(b)}_c=\hat\mu^{(b)}_c-\hat\mu_c$ (raw accuracy units; the deviations are \emph{not} studentised or divided by a bootstrap standard error), take the family maximum $D^{(b)}=\max_c|d^{(b)}_c|$, and set the single critical value $\kappa$ to the $95$th percentile of $\{D^{(b)}\}_{b=1}^{B}$. One $\kappa$ is shared by all comparisons in the family, which is what makes the coverage simultaneous rather than pointwise.
 \item \textbf{Intervals and decision.} The simultaneous interval for comparison $c$ is $[\hat\mu_c-\kappa,\;\hat\mu_c+\kappa]$. Equivalence at margin $m$ is declared iff that whole interval lies inside $[-m,+m]$; the main text uses $m=0.01$ with $m=0.02$ as a less stringent sensitivity check.
 \end{enumerate}
-Each family uses an independent random seed and its own $\kappa$; no resamples or critical values are shared between the primary and MTF families, and none are pooled across the subject-out and window-level protocols. The compact main-text table reports, for each method, the single classifier-specific interval whose endpoint lies closest to the equivalence margin. The wider ``interval spans'' used later in Table~\ref{tab:supp_equivalence_protocols} are unions of the classifier-specific intervals and are descriptive only. This is the \texttt{\_cluster\_bootstrap\_simultaneous} routine in \texttt{scripts/\_stat\_tests.py}; the confirmatory paired TOST uses the same per-subject $\Delta_{c,s}$ but a Student-$t$ interval at the bilateral $90\%$ level, so the simultaneous $95\%$ bootstrap is the stricter headline rule.
+Each family uses an independent random seed and its own $\kappa$; no resamples or critical values are shared between the primary and MTF families, and none are pooled across the subject-out and trial-out protocols. The compact main-text table reports, for each method, the single classifier-specific interval whose endpoint lies closest to the equivalence margin. The wider ``interval spans'' used later in Table~\ref{tab:supp_equivalence_protocols} are unions of the classifier-specific intervals and are descriptive only. This is the \texttt{\_cluster\_bootstrap\_simultaneous} routine in \texttt{scripts/\_stat\_tests.py}; the confirmatory paired TOST uses the same per-subject $\Delta_{c,s}$ but a Student-$t$ interval at the bilateral $90\%$ level, so the simultaneous $95\%$ bootstrap is the stricter headline rule.
 
 Table~\ref{tab:supp_equivalence_individual} exposes all classifier-specific simultaneous intervals behind the compact worst-case summary in the main article. The primary family contains the 18 RP/GASF/GADF comparisons; MTF's six negative-control comparisons form a separate family. Within each family, all classifiers share the same $10^4$ subject resamples and the same bootstrap maximum-deviation critical value. Thus these are simultaneous intervals, not six unadjusted pointwise intervals and not an ``envelope CI.''
 
@@ -475,7 +475,7 @@ CNN & $\mathbf{+0.0003\ [-0.0019,+0.0024]}$ & $\mathbf{+0.0003\ [-0.0019,+0.0025
 
 The Holm-adjusted paired TOST analysis gives the same method-level decision at the $\pm0.01$ margin: equivalence is established for 6/6 classifiers with RP, GASF, and GADF, and for 0/6 with MTF. This confirmation is secondary to the simultaneous subject-cluster intervals above.
 
-For completeness, Table~\ref{tab:supp_equivalence_protocols} applies the same simultaneous procedure to a separate 18-comparison family under the secondary window-level protocol (and a separate six-comparison MTF family). No interval is pooled across protocols. Both protocols yield the same equivalence decisions.
+For completeness, Table~\ref{tab:supp_equivalence_protocols} applies the same simultaneous procedure to a separate 18-comparison family under the secondary trial-out protocol (and a separate six-comparison MTF family). No interval is pooled across protocols. Both protocols yield the same equivalence decisions.
 
 \begin{table}[H]
 \centering
@@ -485,21 +485,21 @@ For completeness, Table~\ref{tab:supp_equivalence_protocols} applies the same si
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{lccc ccc}
 \toprule
- & \multicolumn{3}{c}{Window-level (secondary)} & \multicolumn{3}{c}{Subject-out (primary)} \\
+ & \multicolumn{3}{c}{Trial-out (secondary)} & \multicolumn{3}{c}{Subject-out (primary)} \\
 \cmidrule(lr){2-4}\cmidrule(lr){5-7}
 Method & Mean $\Delta$ range & Interval span & Eq.\,$\pm0.01$ & Mean $\Delta$ range & Interval span & Eq.\,$\pm0.01$ \\
 \midrule
-RP   & $[-0.0000,+0.0004]$ & $[-0.0023,+0.0027]$ & 6/6 & $[-0.0004,+0.0006]$ & $[-0.0025,+0.0027]$ & 6/6 \\
-GASF & $[-0.0003,+0.0004]$ & $[-0.0026,+0.0027]$ & 6/6 & $[-0.0006,+0.0003]$ & $[-0.0027,+0.0025]$ & 6/6 \\
-GADF & $[-0.0006,+0.0002]$ & $[-0.0029,+0.0025]$ & 6/6 & $[-0.0005,+0.0008]$ & $[-0.0027,+0.0030]$ & 6/6 \\
-MTF  & $[+0.0819,+0.1542]$ & $[+0.0550,+0.1811]$ & 0/6 & $[+0.0474,+0.1144]$ & $[+0.0212,+0.1405]$ & 0/6 \\
+RP   & $[-0.0006,+0.0005]$ & $[-0.0028,+0.0027]$ & 6/6 & $[-0.0004,+0.0006]$ & $[-0.0025,+0.0027]$ & 6/6 \\
+GASF & $[-0.0011,+0.0001]$ & $[-0.0033,+0.0023]$ & 6/6 & $[-0.0006,+0.0003]$ & $[-0.0027,+0.0025]$ & 6/6 \\
+GADF & $[-0.0007,+0.0011]$ & $[-0.0028,+0.0032]$ & 6/6 & $[-0.0005,+0.0008]$ & $[-0.0027,+0.0030]$ & 6/6 \\
+MTF  & $[+0.0496,+0.1249]$ & $[+0.0235,+0.1510]$ & 0/6 & $[+0.0474,+0.1144]$ & $[+0.0212,+0.1405]$ & 0/6 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \section{Extended RP ablation}
 
-Table~\ref{tab:supp_rp_ablation} isolates the RP decoder's geometric choices under the current metadata-free diagonal-centred inversion. All two-dimensional arms use the closed-form orientation, so the rows differ only in the stated geometric choice. On this sample, diagonal centring restores a predominantly two-dimensional Euclidean spectrum ($\mathrm{EVR}_2\approx0.94$). Both the full state geometry and signed selection are necessary for near-lossless reconstruction, whereas inverting the PNG with the signal range instead of centring on the zero diagonal applies an affine shift that destroys the Euclidean structure.
+Table~\ref{tab:supp_rp_ablation} isolates the RP decoder's geometric choices under the current metadata-free diagonal-centred inversion. All two-dimensional arms use the closed-form orientation, so the rows differ only in the stated geometric choice. On this sample, diagonal centring restores a predominantly two-dimensional Euclidean spectrum ($\mathrm{EVR}_2\approx0.95$). Both the full state geometry and signed selection are necessary for near-lossless reconstruction, whereas inverting the PNG with the signal range instead of centring on the zero diagonal applies an affine shift that destroys the Euclidean structure.
 
 \begin{table}[H]
 \centering
@@ -509,10 +509,10 @@ Table~\ref{tab:supp_rp_ablation} isolates the RP decoder's geometric choices und
 \toprule
 Variant & MAE & Pearson & $\mathrm{EVR}_2$ \\
 \midrule
-Metadata-free diagonal + signed selection & \textbf{0.009} & \textbf{1.000} & 0.944 \\
-Incorrect signal-range inversion & 1.259 & 0.941 & 0.218 \\
-Without signed selection & 2.033 & 0.789 & 0.944 \\
-Legacy Jaccard one-dimensional baseline & 2.160 & 0.919 & 0.729 \\
+Metadata-free diagonal + signed selection & \textbf{0.011} & \textbf{1.000} & 0.947 \\
+Incorrect signal-range inversion & 1.691 & 0.931 & 0.219 \\
+Without signed selection & 2.940 & 0.745 & 0.947 \\
+Legacy Jaccard one-dimensional baseline & 1.935 & 0.936 & 0.760 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -524,11 +524,11 @@ The legacy graph-based row denotes an earlier internal one-dimensional heuristic
 
 The orientation step of Section~\ref{sec:rp_reconstruction_method} was previously a search over a grid of $n_\theta=720$ rotation angles crossed with the two reflections, keeping the eight lowest-overlap candidates for the signed comparison. It is now solved exactly: for each reflection parity the translation-corrected overlap residual is linear in $(\cos\theta,\sin\theta)$, so the minimiser is an eigenvector of a symmetric $2\times2$ matrix, giving four exact candidates. Table~\ref{tab:supp_rp_orientation} compares the two on the same 150 activity-balanced windows (450 axis-series) used by the robustness block, with the metadata-free inversion in both arms so that only the orientation differs.
 
-Three points follow. First, on the native float operator the closed form is exact to double precision (mean NMAE $9.1\times10^{-17}$; mean normalised squared-overlap diagnostic $3.2\times10^{-31}$), whereas the grid retains $3.5\times10^{-4}$ --- the discretisation error of a $0.5^\circ$ spacing. This is the term the main text previously attributed to the RP algorithm. Second, the advantage survives 8-bit storage (0.00101 versus 0.00120) but is progressively masked by pixel noise, the two arms differing by under $3\times10^{-4}$ from $\sigma=2$ onwards. Third, total decoding takes 0.27 versus 0.60\,s per axis-series in this finite-$N$ Python implementation. Although MDS remains the asymptotically dominant $O(N^3)$ step, at $N=127$ the interpreted loop over 1,440 grid/reflection candidates dominates wall-clock time; the closed form removes that loop.
+Three points follow. First, on the native float operator the closed form is exact to double precision (mean NMAE $9.7\times10^{-17}$; mean normalised squared-overlap diagnostic $3.8\times10^{-31}$), whereas the grid retains $3.4\times10^{-4}$ --- the discretisation error of a $0.5^\circ$ spacing. This is the term the main text previously attributed to the RP algorithm. Second, the advantage survives 8-bit storage (0.00110 versus 0.00127) but is progressively masked by pixel noise, the two arms differing by under $2\times10^{-4}$ from $\sigma=2$ onwards. Third, total decoding takes 0.27 versus 0.60\,s per axis-series in this finite-$N$ Python implementation. Although MDS remains the asymptotically dominant $O(N^3)$ step, at $N=127$ the interpreted loop over 1,440 grid/reflection candidates dominates wall-clock time; the closed form removes that loop.
 
-The cycle residual is 0.0533 against 0.0512 on clean PNG and 0.1627 against 0.1596 at $\sigma=8$ (closed form versus grid). These differences do not measure reconstruction quality: as shown in Section~\ref{sec:supp_robustness}, the signed-RP cycle residual is governed by sign flips at the $\cos(\pi/4)$ threshold, which a float-exact reconstruction also produces. The column is reported for completeness and no comparison is drawn from it.
+The cycle residual is 0.0538 against 0.0520 on clean PNG and 0.1593 against 0.1564 at $\sigma=8$ (closed form versus grid). These differences do not measure reconstruction quality: as shown in Section~\ref{sec:supp_robustness}, the signed-RP cycle residual is governed by sign flips at the $\cos(\pi/4)$ threshold, which a float-exact reconstruction also produces. The column is reported for completeness and no comparison is drawn from it.
 
-The last column counts axis-series where the signed-RP criterion did not select the candidate with the lowest NMAE against the ground truth. The closed form never mis-selects on clean input, float or 8-bit. The grid's counts are large but not comparable in kind: its eight-candidate shortlist contains near-identical angles, so a different pick costs a mean NMAE regret of only $2.0\times10^{-4}$ on clean 8-bit input rather than a wrong reflection or sign.
+The last column counts axis-series where the signed-RP criterion did not select the candidate with the lowest NMAE against the ground truth. The closed form never mis-selects in float and does so on 2 of 450 axis-series on clean 8-bit input, at a mean NMAE regret of $2.2\times10^{-5}$. The grid's counts are large but not comparable in kind: its eight-candidate shortlist contains near-identical angles, so a different pick costs a mean NMAE regret of only $1.7\times10^{-4}$ on clean 8-bit input rather than a wrong reflection or sign.
 
 \begin{table}[H]
 \centering
@@ -539,32 +539,32 @@ The last column counts axis-series where the signed-RP criterion did not select 
 \toprule
 Condition & Orientation & NMAE mean & NMAE median & NMAE p95 & NMAE max & Overlap res. & decode s/axis & Sel.\ fails \\
 \midrule
-Native float & closed form & $9.1\times10^{-17}$ & $6.9\times10^{-17}$ & $2.2\times10^{-16}$ & $6.7\times10^{-16}$ & $3.2\times10^{-31}$ & 0.283 & 0/450 \\
-             & grid, $n_\theta=720$ & $0.000352$ & $0.000208$ & $0.001230$ & $0.003187$ & $1.6\times10^{-5}$ & 0.601 & 98/450 \\
+Native float & closed form & $9.7\times10^{-17}$ & $7.9\times10^{-17}$ & $2.3\times10^{-16}$ & $3.5\times10^{-15}$ & $3.8\times10^{-31}$ & 0.273 & 0/450 \\
+             & grid, $n_\theta=720$ & $0.000340$ & $0.000197$ & $0.001147$ & $0.002261$ & $1.7\times10^{-5}$ & 0.594 & 105/450 \\
 \midrule
-Clean 8-bit PNG & closed form & $0.001014$ & $0.000826$ & $0.001920$ & $0.016522$ & $8.3\times10^{-5}$ & 0.274 & 0/450 \\
-                & grid, $n_\theta=720$ & $0.001201$ & $0.000941$ & $0.002411$ & $0.016506$ & $1.1\times10^{-4}$ & 0.605 & 189/450 \\
+Clean 8-bit PNG & closed form & $0.001098$ & $0.000819$ & $0.001886$ & $0.025865$ & $1.1\times10^{-4}$ & 0.277 & 2/450 \\
+                & grid, $n_\theta=720$ & $0.001271$ & $0.000905$ & $0.002523$ & $0.023820$ & $1.3\times10^{-4}$ & 0.599 & 178/450 \\
 \midrule
-PNG $\sigma=2$ & closed form & $0.004203$ & $0.003300$ & $0.008603$ & $0.042689$ & $9.0\times10^{-4}$ & 0.270 & 3/900 \\
-               & grid, $n_\theta=720$ & $0.004366$ & $0.003484$ & $0.008684$ & $0.043733$ & $9.8\times10^{-4}$ & 0.582 & 628/900 \\
+PNG $\sigma=2$ & closed form & $0.004375$ & $0.003297$ & $0.008674$ & $0.049212$ & $1.0\times10^{-3}$ & 0.273 & 9/900 \\
+               & grid, $n_\theta=720$ & $0.004554$ & $0.003391$ & $0.009231$ & $0.055159$ & $1.1\times10^{-3}$ & 0.600 & 613/900 \\
 \midrule
-PNG $\sigma=4$ & closed form & $0.008333$ & $0.006407$ & $0.017153$ & $0.086463$ & $3.5\times10^{-3}$ & 0.271 & 6/900 \\
-               & grid, $n_\theta=720$ & $0.008473$ & $0.006576$ & $0.016629$ & $0.095938$ & $3.6\times10^{-3}$ & 0.595 & 631/900 \\
+PNG $\sigma=4$ & closed form & $0.008225$ & $0.006257$ & $0.017634$ & $0.069255$ & $3.3\times10^{-3}$ & 0.267 & 9/900 \\
+               & grid, $n_\theta=720$ & $0.008357$ & $0.006373$ & $0.017880$ & $0.067395$ & $3.4\times10^{-3}$ & 0.586 & 627/900 \\
 \midrule
-PNG $\sigma=8$ & closed form & $0.017094$ & $0.013117$ & $0.040865$ & $0.110892$ & $1.42\times10^{-2}$ & 0.277 & 26/900 \\
-               & grid, $n_\theta=720$ & $0.017165$ & $0.013152$ & $0.041611$ & $0.111118$ & $1.43\times10^{-2}$ & 0.603 & 627/900 \\
+PNG $\sigma=8$ & closed form & $0.016220$ & $0.013091$ & $0.040097$ & $0.100176$ & $1.25\times10^{-2}$ & 0.271 & 18/900 \\
+               & grid, $n_\theta=720$ & $0.016336$ & $0.013256$ & $0.040608$ & $0.090065$ & $1.26\times10^{-2}$ & 0.590 & 639/900 \\
 \midrule
-PNG $\sigma=16$ & closed form & $0.034036$ & $0.027319$ & $0.073409$ & $0.172416$ & $5.41\times10^{-2}$ & 0.277 & 48/900 \\
-                & grid, $n_\theta=720$ & $0.034296$ & $0.027582$ & $0.074347$ & $0.176806$ & $5.31\times10^{-2}$ & 0.603 & 631/900 \\
+PNG $\sigma=16$ & closed form & $0.033225$ & $0.026907$ & $0.075235$ & $0.161946$ & $4.91\times10^{-2}$ & 0.277 & 58/900 \\
+                & grid, $n_\theta=720$ & $0.033093$ & $0.026974$ & $0.073581$ & $0.160802$ & $4.87\times10^{-2}$ & 0.604 & 617/900 \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
-The historical full-corpus snapshot changes from MAE $0.0148$ and MSE $0.0010$ to $0.0142$\,m/s$^2$ and $0.0008$\,m$^2$/s$^4$, with Pearson unchanged at $0.99998$. This is a regression check rather than a pure orientation ablation: the earlier snapshot also used operator-range metadata and a scale-dependent selector, whereas the refreshed run uses the production metadata-free path. The causal orientation comparison is therefore the controlled 150-window experiment above. Classification is insensitive at reporting precision: across the six classifiers and both protocols the largest reconstructed-accuracy change is below $0.001$, and the regenerated per-class tables and equivalence verdicts of Table~\ref{tab:equivalence_ci} are unaffected.
+The historical full-corpus snapshot changes from MAE $0.0148$ and MSE $0.0010$ to $0.0142$\,m/s$^2$ and $0.0008$\,m$^2$/s$^4$, with Pearson unchanged at $0.99998$. This is a regression check rather than a pure orientation ablation: the earlier snapshot also used operator-range metadata and a scale-dependent selector, whereas the refreshed run uses the production metadata-free path. The causal orientation comparison is therefore the controlled 150-window experiment above. Classification is insensitive at reporting precision: across the six classifiers under the subject-out protocol the largest reconstructed-accuracy change is below $0.001$, and the regenerated per-class tables and equivalence verdicts of Table~\ref{tab:equivalence_ci} are unaffected.
 
 \section{Metadata-free RP decoding}
 \label{sec:supp_rp_metadata_free}
-The RP diagonal is identically zero, so under min--max storage the constant diagonal pixel level marks where $R=0$; centring on it ($R=\mathrm{PNG}-\operatorname{median}_i\mathrm{PNG}_{ii}$) recovers the signed matrix up to a positive scale that classical MDS and the final range rescale absorb (Section~\ref{sec:rp_reconstruction_method}). Table~\ref{tab:supp_rp_metadatafree} compares, on 150 activity-balanced fold-0 windows and with the closed-form orientation in both arms, this metadata-free decoder with an operator-range oracle that inverts the PNG using the true per-window $(R_{\min},R_{\max})$. The two methods receive the same two noise realisations per window, and those replicates are averaged within each window before summarisation. Their range-normalised errors and correlations are descriptively similar in both the clean and $\sigma=8$ conditions. The metadata-free path has a slightly higher clean physical MAE ($0.0135$ vs $0.0109$\,m/s$^2$); the gap is the price of not storing the operator range, and it is smaller than the pooled RP MAE of $0.0142$\,m/s$^2$ reported for the adopted decoder over all 8,172 windows. No inferential equality claim is made from this ablation. The two arms share their noise draws with each other but not with the perturbation curve of Table~\ref{tab:robustness}, which is why the metadata-free entry here ($0.0166$) and the RP entry there ($0.0167$) differ in the fourth decimal.
+The RP diagonal is identically zero, so under min--max storage the constant diagonal pixel level marks where $R=0$; centring on it ($R=\mathrm{PNG}-\operatorname{median}_i\mathrm{PNG}_{ii}$) recovers the signed matrix up to a positive scale that classical MDS and the final range rescale absorb (Section~\ref{sec:rp_reconstruction_method}). Table~\ref{tab:supp_rp_metadatafree} compares, on 150 activity-balanced fold-0 windows and with the closed-form orientation in both arms, this metadata-free decoder with an operator-range oracle that inverts the PNG using the true per-window $(R_{\min},R_{\max})$. The two methods receive the same two noise realisations per window, and those replicates are averaged within each window before summarisation. Their range-normalised errors and correlations are descriptively similar in both the clean and $\sigma=8$ conditions. The metadata-free path has a slightly higher clean physical MAE ($0.0145$ vs $0.0121$\,m/s$^2$); the gap is the price of not storing the operator range, and it is smaller than the pooled RP MAE of $0.0142$\,m/s$^2$ reported for the adopted decoder over all 8,172 windows. No inferential equality claim is made from this ablation. The two arms share their noise draws with each other but not with the perturbation curve of Table~\ref{tab:robustness}, which is why the metadata-free entry here ($0.0161$) and the RP entry there ($0.0160$) differ in the fourth decimal.
 
 \begin{table}[H]
 \centering
@@ -575,10 +575,10 @@ The RP diagonal is identically zero, so under min--max storage the constant diag
 \toprule
 Noise & Decoder & NMAE & MAE (m/s$^2$) & Pearson \\
 \midrule
-$\sigma=0$ & operator-range oracle           & $0.0008$ & $0.0109$ & $0.99999$ \\
-           & metadata-free (diagonal)      & $0.0010$ & $0.0135$ & $0.99998$ \\
-$\sigma=8$ & operator-range oracle           & $0.0167$ & $0.2272$ & $0.99604$ \\
-           & metadata-free (diagonal)      & $0.0166$ & $0.2256$ & $0.99616$ \\
+$\sigma=0$ & operator-range oracle           & $0.0009$ & $0.0121$ & $0.99998$ \\
+           & metadata-free (diagonal)      & $0.0011$ & $0.0145$ & $0.99998$ \\
+$\sigma=8$ & operator-range oracle           & $0.0163$ & $0.2133$ & $0.99642$ \\
+           & metadata-free (diagonal)      & $0.0161$ & $0.2128$ & $0.99652$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -618,7 +618,7 @@ Time (ms/axis)  & $1.82$ & $1.75$ & $2.03$ & $1.95$ & $1.83$ \\
 \paragraph*{Controlled decoder comparison at fixed $Q=4$.}
 Table~\ref{tab:supp_mtf_ablation} compares the earlier cosine-pivot decoder, the Fiedler-ordering decoder, and two variants supplied with additional source-derived information. Every variant decodes the \emph{identical} 8-bit image (the same uint8 PNG round trip), so the differences reflect the decoding algorithm alone and not storage precision. The stored values associated with the quantile bins are midpoints of the quantile boundaries, not within-bin sample medians. The optional sign bit records whether the first source sample lies above or below the source midrange and is used only to choose between the two global amplitude orientations. Neither form of side information is part of the headline MTF decoder contract.
 
-Because all variants read the same stored image, the reduction from the cosine-pivot decoder (MAE $6.46$) to Fiedler ordering (MAE $5.07$) isolates the effect of spectral ordering: it is a genuine algorithmic improvement, not a storage-precision artefact. Adding source-derived within-bin information reduces the error further, but even with a per-bin midpoint and a sign bit the many-to-one quantisation loss keeps MTF (MAE $2.60$) far above the continuous decoders (RP/GASF/GADF at $\sim 0.01$--$0.02$).
+Because all variants read the same stored image, the reduction from the cosine-pivot decoder (MAE $5.39$) to Fiedler ordering (MAE $3.95$) isolates the effect of spectral ordering: it is a genuine algorithmic improvement, not a storage-precision artefact. Adding source-derived within-bin information reduces the error further, but even with a per-bin midpoint and a sign bit the many-to-one quantisation loss keeps MTF (MAE $1.99$) far above the continuous decoders (RP/GASF/GADF at $\sim 0.01$--$0.02$).
 
 \begin{table}[H]
 \centering
@@ -630,10 +630,10 @@ Because all variants read the same stored image, the reduction from the cosine-p
 \toprule
 Decoder variant & MAE & Pearson \\
 \midrule
-Cosine-pivot heuristic               & 6.459 & $+0.036$ \\
-Fiedler ordering                      & 5.070 & $-0.002$ \\
-Fiedler + boundary-midpoint metadata  & 3.942 & $+0.019$ \\
-Fiedler + midpoint + sign bit         & 2.602 & $+0.465$ \\
+Cosine-pivot heuristic               & 5.385 & $-0.020$ \\
+Fiedler ordering                      & 3.949 & $+0.033$ \\
+Fiedler + boundary-midpoint metadata  & 3.132 & $+0.044$ \\
+Fiedler + midpoint + sign bit         & 1.986 & $+0.483$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -641,11 +641,11 @@ Fiedler + midpoint + sign bit         & 2.602 & $+0.465$ \\
 The reductions after adding midpoint and orientation information illustrate which ambiguities these metadata can remove. They are not lower bounds on the error attainable by every possible MTF decoder, and the many-to-one loss within each quantile state remains. All headline MTF results use Fiedler ordering without midpoint or sign-bit metadata.
 
 \paragraph*{Bin-count sensitivity across $Q$.}
-Table~\ref{tab:mtf_ablation_q} sweeps $Q$ over all $8{,}172$ pooled windows. The pointwise MAE and Pearson are decoder-only, because every deterministic decoder reconstructs a given window identically regardless of its cross-validation assignment. The six right-hand columns add the regenerated downstream classifier sensitivity across $Q$: the mean accuracy on the MTF reconstructions at each $Q$, obtained by predicting with the fixed original-trained models under the window-level 3-fold protocol.
+Table~\ref{tab:mtf_ablation_q} sweeps $Q$ over all $8{,}172$ pooled windows. The pointwise MAE and Pearson are decoder-only, because every deterministic decoder reconstructs a given window identically regardless of its cross-validation assignment. The six right-hand columns add the regenerated downstream classifier sensitivity across $Q$: the mean accuracy on the MTF reconstructions at each $Q$, obtained by predicting with the fixed original-trained models under the trial-out 3-fold protocol.
 
 \begin{table}[!htbp]
 \centering
-\caption{MTF bin-count sensitivity over all pooled windows ($N=8\,172$). Pointwise MAE (m/s$^2$) and Pearson are decoder-only (each window reconstructs identically regardless of fold); the KNN--CNN columns are mean downstream accuracy on the MTF reconstructions at each $Q$ under the window-level 3-fold protocol, using the fixed original-trained models. Highlighting marks the headline $Q=4$ and is descriptive, not nested model selection. Each row re-encodes and re-decodes every window at that $Q$, so the $Q=4$ row is an independent recomputation and reproduces Table~\ref{tab:pointwise_pooled} to within $0.01$\,m/s$^2$ rather than exactly.}
+\caption{MTF bin-count sensitivity over all pooled windows ($N=8\,172$). Pointwise MAE (m/s$^2$) and Pearson are decoder-only (each window reconstructs identically regardless of fold); the KNN--CNN columns are mean downstream accuracy on the MTF reconstructions at each $Q$ under the trial-out 3-fold protocol, using the fixed original-trained models. Highlighting marks the headline $Q=4$ and is descriptive, not nested model selection. Each row re-encodes and re-decodes every window at that $Q$, so the $Q=4$ row is an independent recomputation and reproduces Table~\ref{tab:pointwise_pooled} to within $0.01$\,m/s$^2$ rather than exactly.}
 \label{tab:mtf_ablation_q}
 \setlength{\tabcolsep}{6pt}
 \small
@@ -653,17 +653,17 @@ Table~\ref{tab:mtf_ablation_q} sweeps $Q$ over all $8{,}172$ pooled windows. The
 \toprule
 $Q$ & MAE & Pearson & KNN & SVM & RF & LSTM & GRU & CNN \\
 \midrule
-2  & 4.11 & $+0.002$ & 0.490 & 0.705 & 0.762 & 0.756 & 0.771 & 0.774 \\
-\textbf{4}  & \textbf{3.95} & $\mathbf{+0.013}$ & 0.559 & 0.697 & 0.757 & 0.757 & 0.765 & 0.773 \\
-6  & 4.01 & $+0.004$ & 0.556 & 0.697 & 0.757 & 0.755 & 0.761 & 0.770 \\
-8  & 4.03 & $-0.001$ & 0.539 & 0.695 & 0.753 & 0.757 & 0.764 & 0.765 \\
-10 & 4.07 & $+0.000$ & 0.527 & 0.693 & 0.754 & 0.756 & 0.762 & 0.758 \\
-16 & 4.13 & $-0.014$ & 0.520 & 0.697 & 0.755 & 0.757 & 0.762 & 0.753 \\
+2  & 4.11 & $+0.002$ & 0.415 & 0.673 & 0.685 & 0.698 & 0.703 & 0.689 \\
+\textbf{4}  & \textbf{3.95} & $\mathbf{+0.013}$ & 0.471 & 0.667 & 0.679 & 0.701 & 0.708 & 0.685 \\
+6  & 4.01 & $+0.004$ & 0.463 & 0.665 & 0.674 & 0.695 & 0.701 & 0.682 \\
+8  & 4.03 & $-0.001$ & 0.450 & 0.664 & 0.676 & 0.701 & 0.704 & 0.685 \\
+10 & 4.07 & $+0.000$ & 0.443 & 0.660 & 0.668 & 0.699 & 0.702 & 0.678 \\
+16 & 4.13 & $-0.014$ & 0.435 & 0.664 & 0.675 & 0.700 & 0.704 & 0.675 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Both the pointwise error and the downstream accuracy vary little across $Q$: MAE stays within $3.95$--$4.13$ and every classifier moves by at most a few points (KNN, the most $Q$-sensitive, drifts from $0.49$ at $Q=2$ to $0.52$ at $Q=16$; the neural models stay near $0.77$). $Q=4$ attains the lowest pointwise MAE and is at or near the best accuracy for most classifiers, so the headline choice is not a cherry-picked optimum. Because the sweep reuses the evaluation windows it is a sensitivity check rather than a nested selection, so we do not claim $Q=4$ is optimal for unseen subjects; MTF remains a descriptive lossy control.
+Both the pointwise error and the downstream accuracy vary little across $Q$: MAE stays within $3.95$--$4.13$ and every classifier moves by at most a few points (KNN, the most $Q$-sensitive, ranges from $0.42$ at $Q=2$ to $0.47$ at $Q=4$; the neural models stay between $0.68$ and $0.71$). $Q=4$ attains the lowest pointwise MAE and is at or near the best accuracy for most classifiers, so the headline choice is not a cherry-picked optimum. Because the sweep reuses the evaluation windows it is a sensitivity check rather than a nested selection, so we do not claim $Q=4$ is optimal for unseen subjects; MTF remains a descriptive lossy control.
 
 \section{RP--GADF structural diagnostic}
 \subsection{Null-Corrected RP/GADF Regional Overlap}
@@ -763,7 +763,7 @@ Pearson Correlation Coefficient & $0.99998 \pm 0.00009$ & $0.99999 \pm 0.00005$ 
 \midrule
 Mean Absolute Error & $4.13 \pm 5.11$ & $4.18 \pm 5.32$ & $3.53 \pm 4.66$ & $3.94 \pm 4.25$ \\
 Mean Squared Error & $57.39 \pm 123.57$ & $61.72 \pm 157.60$ & $47.18 \pm 158.11$ & $55.43 \pm 113.46$ \\
-Pearson Correlation Coefficient & $-0.00214 \pm 0.84525$ & $0.03600 \pm 0.83941$ & $0.00680 \pm 0.82844$ & $0.01356 \pm 0.48870$ \\
+Pearson Correlation Coefficient & $-0.00217 \pm 0.84528$ & $0.03600 \pm 0.83941$ & $0.00680 \pm 0.82844$ & $0.01355 \pm 0.48871$ \\
 \bottomrule
 \end{tabular}
 }
@@ -818,7 +818,7 @@ the differences among reconstruction methods. Per-class Support values are per-c
 
 \begin{table}[H]
 \centering
-\caption{Classification Results for GRU on the stratified window-level 3-fold protocol (mean $\pm$ std across folds 0, 1, 2). Per-class precision/recall/F1 and support averaged over the same three folds; footer accuracies averaged likewise.}
+\caption{Classification Results for GRU on the grouped trial-out 3-fold protocol (mean $\pm$ std across folds 0, 1, 2). Per-class precision/recall/F1 and support averaged over the same three folds; footer accuracies averaged likewise.}
 \label{tab:gru_classifiers}
 \setlength{\tabcolsep}{2pt}
 \resizebox{\linewidth}{!}{%
@@ -828,22 +828,22 @@ the differences among reconstruction methods. Per-class Support values are per-c
 \cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}\cmidrule(lr){14-17}\cmidrule(lr){18-21}
 Class & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp \\
 \midrule
-0 & 0.89$\pm$0.03 & 0.93$\pm$0.01 & 0.91$\pm$0.01 & 544 & 0.89$\pm$0.03 & 0.93$\pm$0.01 & 0.91$\pm$0.01 & 544 & 0.65$\pm$0.01 & 0.61$\pm$0.04 & 0.63$\pm$0.01 & 544 & 0.89$\pm$0.03 & 0.93$\pm$0.01 & 0.91$\pm$0.01 & 544 & 0.89$\pm$0.03 & 0.93$\pm$0.01 & 0.91$\pm$0.01 & 544 \\
-1 & 0.99$\pm$0.01 & 0.99$\pm$0.00 & 0.99$\pm$0.00 & 532 & 0.99$\pm$0.01 & 0.99$\pm$0.00 & 0.99$\pm$0.00 & 532 & 0.75$\pm$0.02 & 0.99$\pm$0.00 & 0.85$\pm$0.01 & 532 & 0.99$\pm$0.01 & 0.99$\pm$0.00 & 0.99$\pm$0.00 & 532 & 0.99$\pm$0.01 & 0.99$\pm$0.00 & 0.99$\pm$0.00 & 532 \\
-2 & 0.91$\pm$0.01 & 0.86$\pm$0.03 & 0.88$\pm$0.01 & 536 & 0.91$\pm$0.01 & 0.86$\pm$0.03 & 0.88$\pm$0.01 & 536 & 0.57$\pm$0.01 & 0.52$\pm$0.03 & 0.54$\pm$0.01 & 536 & 0.91$\pm$0.01 & 0.86$\pm$0.03 & 0.88$\pm$0.01 & 536 & 0.91$\pm$0.01 & 0.86$\pm$0.03 & 0.88$\pm$0.01 & 536 \\
-3 & 0.88$\pm$0.01 & 0.96$\pm$0.01 & 0.92$\pm$0.00 & 551 & 0.88$\pm$0.01 & 0.96$\pm$0.01 & 0.92$\pm$0.00 & 551 & 0.90$\pm$0.01 & 0.90$\pm$0.01 & 0.90$\pm$0.01 & 551 & 0.88$\pm$0.01 & 0.96$\pm$0.01 & 0.92$\pm$0.00 & 551 & 0.88$\pm$0.01 & 0.96$\pm$0.01 & 0.92$\pm$0.00 & 551 \\
-4 & 0.95$\pm$0.01 & 0.89$\pm$0.01 & 0.92$\pm$0.00 & 560 & 0.95$\pm$0.01 & 0.89$\pm$0.01 & 0.92$\pm$0.00 & 560 & 0.96$\pm$0.01 & 0.81$\pm$0.01 & 0.88$\pm$0.00 & 560 & 0.95$\pm$0.01 & 0.89$\pm$0.01 & 0.92$\pm$0.00 & 560 & 0.95$\pm$0.01 & 0.89$\pm$0.01 & 0.92$\pm$0.00 & 560 \\
+0 & 0.82$\pm$0.06 & 0.73$\pm$0.08 & 0.77$\pm$0.02 & 544 & 0.82$\pm$0.06 & 0.73$\pm$0.08 & 0.77$\pm$0.02 & 544 & 0.62$\pm$0.05 & 0.54$\pm$0.16 & 0.57$\pm$0.12 & 544 & 0.82$\pm$0.06 & 0.72$\pm$0.08 & 0.76$\pm$0.02 & 544 & 0.82$\pm$0.06 & 0.73$\pm$0.08 & 0.77$\pm$0.02 & 544 \\
+1 & 0.98$\pm$0.01 & 0.98$\pm$0.02 & 0.98$\pm$0.01 & 532 & 0.98$\pm$0.01 & 0.97$\pm$0.02 & 0.98$\pm$0.01 & 532 & 0.73$\pm$0.05 & 0.97$\pm$0.04 & 0.83$\pm$0.03 & 532 & 0.98$\pm$0.01 & 0.98$\pm$0.02 & 0.98$\pm$0.01 & 532 & 0.98$\pm$0.01 & 0.98$\pm$0.02 & 0.98$\pm$0.01 & 532 \\
+2 & 0.72$\pm$0.03 & 0.82$\pm$0.05 & 0.77$\pm$0.01 & 536 & 0.72$\pm$0.03 & 0.82$\pm$0.05 & 0.77$\pm$0.01 & 536 & 0.52$\pm$0.03 & 0.53$\pm$0.04 & 0.53$\pm$0.02 & 536 & 0.72$\pm$0.03 & 0.82$\pm$0.06 & 0.77$\pm$0.01 & 536 & 0.72$\pm$0.03 & 0.82$\pm$0.06 & 0.77$\pm$0.01 & 536 \\
+3 & 0.83$\pm$0.07 & 0.80$\pm$0.14 & 0.80$\pm$0.05 & 551 & 0.83$\pm$0.07 & 0.80$\pm$0.14 & 0.80$\pm$0.05 & 551 & 0.85$\pm$0.07 & 0.75$\pm$0.15 & 0.78$\pm$0.07 & 551 & 0.83$\pm$0.08 & 0.80$\pm$0.14 & 0.80$\pm$0.05 & 551 & 0.83$\pm$0.07 & 0.80$\pm$0.14 & 0.80$\pm$0.05 & 551 \\
+4 & 0.84$\pm$0.10 & 0.82$\pm$0.12 & 0.81$\pm$0.02 & 560 & 0.84$\pm$0.10 & 0.81$\pm$0.12 & 0.81$\pm$0.02 & 560 & 0.87$\pm$0.11 & 0.75$\pm$0.13 & 0.79$\pm$0.03 & 560 & 0.84$\pm$0.10 & 0.82$\pm$0.12 & 0.82$\pm$0.02 & 560 & 0.84$\pm$0.10 & 0.82$\pm$0.12 & 0.81$\pm$0.02 & 560 \\
 \midrule
-Accuracy & \multicolumn{4}{c|}{0.92$\pm$0.00 (2724)} & \multicolumn{4}{c|}{0.92$\pm$0.00 (2724)} & \multicolumn{4}{c|}{0.77$\pm$0.01 (2724)} & \multicolumn{4}{c|}{0.92$\pm$0.00 (2724)} & \multicolumn{4}{c}{0.92$\pm$0.00 (2724)} \\
-Macro Avg & \multicolumn{4}{c|}{0.93$\pm$0.00/0.92$\pm$0.00/0.92$\pm$0.00} & \multicolumn{4}{c|}{0.93$\pm$0.00/0.92$\pm$0.00/0.92$\pm$0.00} & \multicolumn{4}{c|}{0.77$\pm$0.01/0.76$\pm$0.01/0.76$\pm$0.01} & \multicolumn{4}{c|}{0.92$\pm$0.00/0.92$\pm$0.00/0.92$\pm$0.00} & \multicolumn{4}{c}{0.93$\pm$0.00/0.92$\pm$0.00/0.92$\pm$0.00} \\
-Weighted Avg & \multicolumn{4}{c|}{0.93$\pm$0.00/0.92$\pm$0.00/0.92$\pm$0.00} & \multicolumn{4}{c|}{0.93$\pm$0.00/0.92$\pm$0.00/0.92$\pm$0.00} & \multicolumn{4}{c|}{0.77$\pm$0.01/0.77$\pm$0.01/0.76$\pm$0.01} & \multicolumn{4}{c|}{0.92$\pm$0.00/0.92$\pm$0.00/0.92$\pm$0.00} & \multicolumn{4}{c}{0.93$\pm$0.00/0.92$\pm$0.00/0.92$\pm$0.00} \\
+Accuracy & \multicolumn{4}{c|}{0.83$\pm$0.01 (2724)} & \multicolumn{4}{c|}{0.82$\pm$0.01 (2724)} & \multicolumn{4}{c|}{0.71$\pm$0.03 (2724)} & \multicolumn{4}{c|}{0.82$\pm$0.01 (2724)} & \multicolumn{4}{c}{0.82$\pm$0.01 (2724)} \\
+Macro Avg & \multicolumn{4}{c|}{0.84$\pm$0.00/0.83$\pm$0.01/0.82$\pm$0.01} & \multicolumn{4}{c|}{0.84$\pm$0.00/0.83$\pm$0.01/0.82$\pm$0.01} & \multicolumn{4}{c|}{0.72$\pm$0.03/0.71$\pm$0.03/0.70$\pm$0.04} & \multicolumn{4}{c|}{0.84$\pm$0.00/0.83$\pm$0.01/0.82$\pm$0.01} & \multicolumn{4}{c}{0.84$\pm$0.00/0.83$\pm$0.01/0.82$\pm$0.01} \\
+Weighted Avg & \multicolumn{4}{c|}{0.84$\pm$0.00/0.83$\pm$0.01/0.82$\pm$0.01} & \multicolumn{4}{c|}{0.84$\pm$0.00/0.82$\pm$0.01/0.82$\pm$0.01} & \multicolumn{4}{c|}{0.72$\pm$0.03/0.71$\pm$0.03/0.70$\pm$0.04} & \multicolumn{4}{c|}{0.84$\pm$0.00/0.82$\pm$0.01/0.82$\pm$0.01} & \multicolumn{4}{c}{0.84$\pm$0.00/0.82$\pm$0.01/0.82$\pm$0.01} \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
 \begin{table}[H]
 \centering
-\caption{Classification Results for KNN on the stratified window-level 3-fold protocol (mean $\pm$ std across folds 0, 1, 2). Per-class precision/recall/F1 and support averaged over the same three folds; footer accuracies averaged likewise.}
+\caption{Classification Results for KNN on the grouped trial-out 3-fold protocol (mean $\pm$ std across folds 0, 1, 2). Per-class precision/recall/F1 and support averaged over the same three folds; footer accuracies averaged likewise.}
 \label{tab:knn_classifiers}
 \setlength{\tabcolsep}{2pt}
 \resizebox{\linewidth}{!}{%
@@ -853,22 +853,22 @@ Weighted Avg & \multicolumn{4}{c|}{0.93$\pm$0.00/0.92$\pm$0.00/0.92$\pm$0.00} & 
 \cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}\cmidrule(lr){14-17}\cmidrule(lr){18-21}
 Class & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp \\
 \midrule
-0 & 0.74$\pm$0.01 & 0.52$\pm$0.01 & 0.61$\pm$0.01 & 544 & 0.74$\pm$0.01 & 0.52$\pm$0.01 & 0.61$\pm$0.01 & 544 & 0.64$\pm$0.01 & 0.49$\pm$0.02 & 0.55$\pm$0.01 & 544 & 0.74$\pm$0.01 & 0.52$\pm$0.01 & 0.61$\pm$0.01 & 544 & 0.74$\pm$0.01 & 0.52$\pm$0.01 & 0.61$\pm$0.01 & 544 \\
-1 & 1.00$\pm$0.00 & 0.75$\pm$0.01 & 0.86$\pm$0.01 & 532 & 1.00$\pm$0.00 & 0.75$\pm$0.01 & 0.86$\pm$0.01 & 532 & 0.99$\pm$0.02 & 0.37$\pm$0.00 & 0.54$\pm$0.00 & 532 & 1.00$\pm$0.00 & 0.75$\pm$0.01 & 0.86$\pm$0.01 & 532 & 1.00$\pm$0.00 & 0.75$\pm$0.01 & 0.86$\pm$0.01 & 532 \\
-2 & 0.49$\pm$0.04 & 0.04$\pm$0.01 & 0.08$\pm$0.02 & 536 & 0.49$\pm$0.04 & 0.04$\pm$0.01 & 0.08$\pm$0.02 & 536 & 0.43$\pm$0.04 & 0.07$\pm$0.00 & 0.12$\pm$0.00 & 536 & 0.50$\pm$0.04 & 0.04$\pm$0.01 & 0.08$\pm$0.02 & 536 & 0.50$\pm$0.04 & 0.04$\pm$0.01 & 0.08$\pm$0.01 & 536 \\
-3 & 0.79$\pm$0.00 & 0.96$\pm$0.00 & 0.87$\pm$0.00 & 551 & 0.79$\pm$0.00 & 0.96$\pm$0.00 & 0.87$\pm$0.00 & 551 & 0.63$\pm$0.01 & 0.94$\pm$0.01 & 0.75$\pm$0.01 & 551 & 0.79$\pm$0.00 & 0.96$\pm$0.00 & 0.87$\pm$0.00 & 551 & 0.79$\pm$0.00 & 0.96$\pm$0.00 & 0.87$\pm$0.00 & 551 \\
-4 & 0.42$\pm$0.00 & 0.92$\pm$0.01 & 0.58$\pm$0.00 & 560 & 0.42$\pm$0.00 & 0.92$\pm$0.01 & 0.58$\pm$0.00 & 560 & 0.42$\pm$0.01 & 0.90$\pm$0.01 & 0.57$\pm$0.01 & 560 & 0.42$\pm$0.00 & 0.92$\pm$0.01 & 0.58$\pm$0.00 & 560 & 0.42$\pm$0.00 & 0.92$\pm$0.01 & 0.58$\pm$0.00 & 560 \\
+0 & 0.64$\pm$0.07 & 0.31$\pm$0.07 & 0.41$\pm$0.06 & 544 & 0.64$\pm$0.07 & 0.31$\pm$0.07 & 0.41$\pm$0.06 & 544 & 0.57$\pm$0.08 & 0.37$\pm$0.03 & 0.45$\pm$0.04 & 544 & 0.64$\pm$0.07 & 0.31$\pm$0.06 & 0.41$\pm$0.05 & 544 & 0.64$\pm$0.07 & 0.31$\pm$0.06 & 0.41$\pm$0.05 & 544 \\
+1 & 1.00$\pm$0.00 & 0.59$\pm$0.02 & 0.74$\pm$0.01 & 532 & 1.00$\pm$0.00 & 0.59$\pm$0.02 & 0.74$\pm$0.01 & 532 & 0.99$\pm$0.01 & 0.30$\pm$0.02 & 0.46$\pm$0.03 & 532 & 1.00$\pm$0.00 & 0.59$\pm$0.02 & 0.74$\pm$0.01 & 532 & 1.00$\pm$0.00 & 0.59$\pm$0.01 & 0.74$\pm$0.01 & 532 \\
+2 & 0.33$\pm$0.15 & 0.04$\pm$0.02 & 0.08$\pm$0.04 & 536 & 0.33$\pm$0.14 & 0.04$\pm$0.02 & 0.08$\pm$0.03 & 536 & 0.36$\pm$0.05 & 0.07$\pm$0.01 & 0.12$\pm$0.01 & 536 & 0.33$\pm$0.13 & 0.04$\pm$0.02 & 0.07$\pm$0.03 & 536 & 0.33$\pm$0.14 & 0.04$\pm$0.02 & 0.08$\pm$0.03 & 536 \\
+3 & 0.66$\pm$0.02 & 0.76$\pm$0.17 & 0.70$\pm$0.09 & 551 & 0.66$\pm$0.02 & 0.76$\pm$0.17 & 0.70$\pm$0.09 & 551 & 0.53$\pm$0.04 & 0.76$\pm$0.16 & 0.62$\pm$0.07 & 551 & 0.66$\pm$0.02 & 0.76$\pm$0.17 & 0.70$\pm$0.09 & 551 & 0.66$\pm$0.02 & 0.76$\pm$0.17 & 0.70$\pm$0.09 & 551 \\
+4 & 0.32$\pm$0.01 & 0.83$\pm$0.10 & 0.47$\pm$0.01 & 560 & 0.32$\pm$0.01 & 0.83$\pm$0.10 & 0.47$\pm$0.01 & 560 & 0.36$\pm$0.04 & 0.83$\pm$0.10 & 0.50$\pm$0.05 & 560 & 0.33$\pm$0.01 & 0.83$\pm$0.10 & 0.47$\pm$0.01 & 560 & 0.33$\pm$0.01 & 0.83$\pm$0.10 & 0.47$\pm$0.01 & 560 \\
 \midrule
-Accuracy & \multicolumn{4}{c|}{0.64$\pm$0.00 (2724)} & \multicolumn{4}{c|}{0.64$\pm$0.00 (2724)} & \multicolumn{4}{c|}{0.56$\pm$0.01 (2724)} & \multicolumn{4}{c|}{0.64$\pm$0.00 (2724)} & \multicolumn{4}{c}{0.64$\pm$0.00 (2724)} \\
-Macro Avg & \multicolumn{4}{c|}{0.69$\pm$0.01/0.64$\pm$0.00/0.60$\pm$0.00} & \multicolumn{4}{c|}{0.69$\pm$0.01/0.64$\pm$0.00/0.60$\pm$0.00} & \multicolumn{4}{c|}{0.62$\pm$0.01/0.55$\pm$0.01/0.51$\pm$0.01} & \multicolumn{4}{c|}{0.69$\pm$0.01/0.64$\pm$0.00/0.60$\pm$0.00} & \multicolumn{4}{c}{0.69$\pm$0.01/0.64$\pm$0.00/0.60$\pm$0.00} \\
-Weighted Avg & \multicolumn{4}{c|}{0.69$\pm$0.01/0.64$\pm$0.00/0.60$\pm$0.00} & \multicolumn{4}{c|}{0.69$\pm$0.01/0.64$\pm$0.00/0.60$\pm$0.00} & \multicolumn{4}{c|}{0.62$\pm$0.01/0.56$\pm$0.01/0.51$\pm$0.01} & \multicolumn{4}{c|}{0.69$\pm$0.01/0.64$\pm$0.00/0.60$\pm$0.00} & \multicolumn{4}{c}{0.69$\pm$0.01/0.64$\pm$0.00/0.60$\pm$0.00} \\
+Accuracy & \multicolumn{4}{c|}{0.51$\pm$0.02 (2724)} & \multicolumn{4}{c|}{0.51$\pm$0.02 (2724)} & \multicolumn{4}{c|}{0.47$\pm$0.01 (2724)} & \multicolumn{4}{c|}{0.51$\pm$0.02 (2724)} & \multicolumn{4}{c}{0.51$\pm$0.02 (2724)} \\
+Macro Avg & \multicolumn{4}{c|}{0.59$\pm$0.04/0.51$\pm$0.02/0.48$\pm$0.02} & \multicolumn{4}{c|}{0.59$\pm$0.04/0.51$\pm$0.02/0.48$\pm$0.02} & \multicolumn{4}{c|}{0.56$\pm$0.01/0.47$\pm$0.01/0.43$\pm$0.01} & \multicolumn{4}{c|}{0.59$\pm$0.04/0.51$\pm$0.02/0.48$\pm$0.02} & \multicolumn{4}{c}{0.59$\pm$0.04/0.51$\pm$0.02/0.48$\pm$0.02} \\
+Weighted Avg & \multicolumn{4}{c|}{0.59$\pm$0.04/0.51$\pm$0.02/0.48$\pm$0.02} & \multicolumn{4}{c|}{0.59$\pm$0.04/0.51$\pm$0.02/0.48$\pm$0.02} & \multicolumn{4}{c|}{0.56$\pm$0.01/0.47$\pm$0.01/0.43$\pm$0.01} & \multicolumn{4}{c|}{0.59$\pm$0.04/0.51$\pm$0.02/0.48$\pm$0.02} & \multicolumn{4}{c}{0.59$\pm$0.04/0.51$\pm$0.02/0.48$\pm$0.02} \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
 \begin{table}[H]
 \centering
-\caption{Classification Results for CNN on the stratified window-level 3-fold protocol (mean $\pm$ std across folds 0, 1, 2). Per-class precision/recall/F1 and support averaged over the same three folds; footer accuracies averaged likewise.}
+\caption{Classification Results for CNN on the grouped trial-out 3-fold protocol (mean $\pm$ std across folds 0, 1, 2). Per-class precision/recall/F1 and support averaged over the same three folds; footer accuracies averaged likewise.}
 \label{tab:cnn_classifiers}
 \setlength{\tabcolsep}{2pt}
 \resizebox{\linewidth}{!}{%
@@ -878,22 +878,22 @@ Weighted Avg & \multicolumn{4}{c|}{0.69$\pm$0.01/0.64$\pm$0.00/0.60$\pm$0.00} & 
 \cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}\cmidrule(lr){14-17}\cmidrule(lr){18-21}
 Class & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp \\
 \midrule
-0 & 0.89$\pm$0.05 & 0.89$\pm$0.05 & 0.89$\pm$0.01 & 544 & 0.89$\pm$0.05 & 0.89$\pm$0.05 & 0.89$\pm$0.01 & 544 & 0.61$\pm$0.07 & 0.73$\pm$0.08 & 0.66$\pm$0.01 & 544 & 0.89$\pm$0.05 & 0.89$\pm$0.05 & 0.89$\pm$0.01 & 544 & 0.89$\pm$0.05 & 0.89$\pm$0.05 & 0.89$\pm$0.01 & 544 \\
-1 & 0.99$\pm$0.01 & 0.98$\pm$0.00 & 0.99$\pm$0.00 & 532 & 0.99$\pm$0.01 & 0.98$\pm$0.00 & 0.99$\pm$0.00 & 532 & 0.88$\pm$0.03 & 0.97$\pm$0.02 & 0.92$\pm$0.01 & 532 & 0.99$\pm$0.01 & 0.98$\pm$0.00 & 0.99$\pm$0.00 & 532 & 0.99$\pm$0.01 & 0.98$\pm$0.00 & 0.99$\pm$0.00 & 532 \\
-2 & 0.88$\pm$0.04 & 0.87$\pm$0.05 & 0.87$\pm$0.01 & 536 & 0.88$\pm$0.04 & 0.87$\pm$0.05 & 0.87$\pm$0.01 & 536 & 0.62$\pm$0.03 & 0.55$\pm$0.10 & 0.57$\pm$0.05 & 536 & 0.88$\pm$0.04 & 0.87$\pm$0.05 & 0.87$\pm$0.01 & 536 & 0.88$\pm$0.04 & 0.87$\pm$0.05 & 0.87$\pm$0.01 & 536 \\
-3 & 0.84$\pm$0.05 & 0.97$\pm$0.02 & 0.90$\pm$0.02 & 551 & 0.84$\pm$0.05 & 0.97$\pm$0.02 & 0.90$\pm$0.02 & 551 & 0.85$\pm$0.04 & 0.89$\pm$0.04 & 0.87$\pm$0.01 & 551 & 0.84$\pm$0.04 & 0.97$\pm$0.02 & 0.90$\pm$0.02 & 551 & 0.84$\pm$0.05 & 0.97$\pm$0.02 & 0.90$\pm$0.02 & 551 \\
-4 & 0.97$\pm$0.02 & 0.83$\pm$0.05 & 0.89$\pm$0.02 & 560 & 0.97$\pm$0.02 & 0.82$\pm$0.05 & 0.89$\pm$0.02 & 560 & 0.97$\pm$0.03 & 0.73$\pm$0.04 & 0.83$\pm$0.02 & 560 & 0.97$\pm$0.02 & 0.83$\pm$0.05 & 0.89$\pm$0.02 & 560 & 0.97$\pm$0.02 & 0.82$\pm$0.05 & 0.89$\pm$0.02 & 560 \\
+0 & 0.77$\pm$0.07 & 0.73$\pm$0.10 & 0.74$\pm$0.03 & 544 & 0.77$\pm$0.07 & 0.73$\pm$0.10 & 0.74$\pm$0.03 & 544 & 0.57$\pm$0.06 & 0.63$\pm$0.13 & 0.59$\pm$0.07 & 544 & 0.77$\pm$0.07 & 0.73$\pm$0.10 & 0.74$\pm$0.03 & 544 & 0.77$\pm$0.07 & 0.73$\pm$0.10 & 0.74$\pm$0.03 & 544 \\
+1 & 0.89$\pm$0.07 & 0.99$\pm$0.00 & 0.93$\pm$0.04 & 532 & 0.89$\pm$0.07 & 0.99$\pm$0.00 & 0.93$\pm$0.04 & 532 & 0.74$\pm$0.06 & 0.98$\pm$0.01 & 0.84$\pm$0.04 & 532 & 0.89$\pm$0.07 & 0.99$\pm$0.00 & 0.93$\pm$0.04 & 532 & 0.89$\pm$0.07 & 0.99$\pm$0.00 & 0.93$\pm$0.04 & 532 \\
+2 & 0.82$\pm$0.08 & 0.73$\pm$0.14 & 0.76$\pm$0.06 & 536 & 0.82$\pm$0.08 & 0.73$\pm$0.14 & 0.75$\pm$0.06 & 536 & 0.62$\pm$0.03 & 0.44$\pm$0.22 & 0.47$\pm$0.18 & 536 & 0.82$\pm$0.08 & 0.73$\pm$0.14 & 0.76$\pm$0.06 & 536 & 0.82$\pm$0.08 & 0.73$\pm$0.14 & 0.76$\pm$0.06 & 536 \\
+3 & 0.81$\pm$0.07 & 0.71$\pm$0.19 & 0.73$\pm$0.10 & 551 & 0.81$\pm$0.07 & 0.71$\pm$0.19 & 0.73$\pm$0.10 & 551 & 0.82$\pm$0.07 & 0.63$\pm$0.20 & 0.68$\pm$0.13 & 551 & 0.81$\pm$0.07 & 0.71$\pm$0.19 & 0.73$\pm$0.10 & 551 & 0.81$\pm$0.07 & 0.71$\pm$0.19 & 0.73$\pm$0.10 & 551 \\
+4 & 0.76$\pm$0.10 & 0.82$\pm$0.10 & 0.77$\pm$0.03 & 560 & 0.76$\pm$0.10 & 0.82$\pm$0.10 & 0.78$\pm$0.03 & 560 & 0.76$\pm$0.10 & 0.75$\pm$0.12 & 0.74$\pm$0.02 & 560 & 0.76$\pm$0.10 & 0.82$\pm$0.10 & 0.77$\pm$0.03 & 560 & 0.76$\pm$0.10 & 0.82$\pm$0.10 & 0.77$\pm$0.03 & 560 \\
 \midrule
-Accuracy & \multicolumn{4}{c|}{0.91$\pm$0.00 (2724)} & \multicolumn{4}{c|}{0.91$\pm$0.00 (2724)} & \multicolumn{4}{c|}{0.77$\pm$0.01 (2724)} & \multicolumn{4}{c|}{0.91$\pm$0.01 (2724)} & \multicolumn{4}{c}{0.91$\pm$0.00 (2724)} \\
-Macro Avg & \multicolumn{4}{c|}{0.91$\pm$0.00/0.91$\pm$0.00/0.91$\pm$0.00} & \multicolumn{4}{c|}{0.91$\pm$0.00/0.91$\pm$0.00/0.91$\pm$0.00} & \multicolumn{4}{c|}{0.79$\pm$0.01/0.77$\pm$0.01/0.77$\pm$0.01} & \multicolumn{4}{c|}{0.91$\pm$0.00/0.91$\pm$0.01/0.91$\pm$0.01} & \multicolumn{4}{c}{0.91$\pm$0.00/0.91$\pm$0.00/0.91$\pm$0.00} \\
-Weighted Avg & \multicolumn{4}{c|}{0.91$\pm$0.00/0.91$\pm$0.00/0.91$\pm$0.01} & \multicolumn{4}{c|}{0.91$\pm$0.00/0.91$\pm$0.00/0.91$\pm$0.00} & \multicolumn{4}{c|}{0.79$\pm$0.01/0.77$\pm$0.01/0.77$\pm$0.01} & \multicolumn{4}{c|}{0.91$\pm$0.00/0.91$\pm$0.01/0.91$\pm$0.01} & \multicolumn{4}{c}{0.91$\pm$0.00/0.91$\pm$0.00/0.91$\pm$0.00} \\
+Accuracy & \multicolumn{4}{c|}{0.79$\pm$0.03 (2724)} & \multicolumn{4}{c|}{0.79$\pm$0.03 (2724)} & \multicolumn{4}{c|}{0.69$\pm$0.04 (2724)} & \multicolumn{4}{c|}{0.79$\pm$0.03 (2724)} & \multicolumn{4}{c}{0.79$\pm$0.03 (2724)} \\
+Macro Avg & \multicolumn{4}{c|}{0.81$\pm$0.01/0.79$\pm$0.03/0.79$\pm$0.04} & \multicolumn{4}{c|}{0.81$\pm$0.01/0.79$\pm$0.03/0.79$\pm$0.04} & \multicolumn{4}{c|}{0.70$\pm$0.02/0.69$\pm$0.04/0.66$\pm$0.06} & \multicolumn{4}{c|}{0.81$\pm$0.01/0.79$\pm$0.03/0.79$\pm$0.03} & \multicolumn{4}{c}{0.81$\pm$0.01/0.79$\pm$0.03/0.79$\pm$0.04} \\
+Weighted Avg & \multicolumn{4}{c|}{0.81$\pm$0.01/0.79$\pm$0.03/0.79$\pm$0.04} & \multicolumn{4}{c|}{0.81$\pm$0.01/0.79$\pm$0.03/0.79$\pm$0.04} & \multicolumn{4}{c|}{0.70$\pm$0.02/0.69$\pm$0.04/0.66$\pm$0.06} & \multicolumn{4}{c|}{0.81$\pm$0.01/0.79$\pm$0.03/0.79$\pm$0.03} & \multicolumn{4}{c}{0.81$\pm$0.01/0.79$\pm$0.03/0.79$\pm$0.04} \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
 \begin{table}[H]
 \centering
-\caption{Classification Results for Random Forest on the stratified window-level 3-fold protocol (mean $\pm$ std across folds 0, 1, 2). Per-class precision/recall/F1 and support averaged over the same three folds; footer accuracies averaged likewise.}
+\caption{Classification Results for Random Forest on the grouped trial-out 3-fold protocol (mean $\pm$ std across folds 0, 1, 2). Per-class precision/recall/F1 and support averaged over the same three folds; footer accuracies averaged likewise.}
 \label{tab:rf_classifiers}
 \setlength{\tabcolsep}{2pt}
 \resizebox{\linewidth}{!}{%
@@ -903,22 +903,22 @@ Weighted Avg & \multicolumn{4}{c|}{0.91$\pm$0.00/0.91$\pm$0.00/0.91$\pm$0.01} & 
 \cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}\cmidrule(lr){14-17}\cmidrule(lr){18-21}
 Class & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp \\
 \midrule
-0 & 0.85$\pm$0.01 & 0.79$\pm$0.00 & 0.82$\pm$0.00 & 544 & 0.85$\pm$0.01 & 0.79$\pm$0.00 & 0.82$\pm$0.01 & 544 & 0.68$\pm$0.01 & 0.60$\pm$0.01 & 0.64$\pm$0.00 & 544 & 0.85$\pm$0.01 & 0.79$\pm$0.01 & 0.82$\pm$0.01 & 544 & 0.85$\pm$0.01 & 0.79$\pm$0.00 & 0.82$\pm$0.00 & 544 \\
-1 & 0.94$\pm$0.00 & 0.99$\pm$0.00 & 0.96$\pm$0.00 & 532 & 0.94$\pm$0.00 & 0.99$\pm$0.00 & 0.96$\pm$0.00 & 532 & 0.65$\pm$0.01 & 1.00$\pm$0.00 & 0.79$\pm$0.01 & 532 & 0.94$\pm$0.00 & 0.99$\pm$0.00 & 0.96$\pm$0.00 & 532 & 0.94$\pm$0.00 & 0.99$\pm$0.00 & 0.96$\pm$0.00 & 532 \\
-2 & 0.79$\pm$0.00 & 0.82$\pm$0.01 & 0.81$\pm$0.01 & 536 & 0.79$\pm$0.00 & 0.82$\pm$0.01 & 0.80$\pm$0.01 & 536 & 0.63$\pm$0.01 & 0.51$\pm$0.02 & 0.56$\pm$0.01 & 536 & 0.79$\pm$0.01 & 0.82$\pm$0.01 & 0.80$\pm$0.01 & 536 & 0.79$\pm$0.00 & 0.82$\pm$0.01 & 0.80$\pm$0.01 & 536 \\
-3 & 0.92$\pm$0.01 & 0.95$\pm$0.00 & 0.93$\pm$0.01 & 551 & 0.92$\pm$0.01 & 0.95$\pm$0.00 & 0.93$\pm$0.01 & 551 & 0.93$\pm$0.01 & 0.89$\pm$0.01 & 0.91$\pm$0.00 & 551 & 0.92$\pm$0.01 & 0.95$\pm$0.00 & 0.93$\pm$0.01 & 551 & 0.92$\pm$0.01 & 0.95$\pm$0.00 & 0.93$\pm$0.00 & 551 \\
-4 & 0.96$\pm$0.00 & 0.90$\pm$0.01 & 0.93$\pm$0.00 & 560 & 0.96$\pm$0.00 & 0.90$\pm$0.01 & 0.93$\pm$0.00 & 560 & 0.94$\pm$0.01 & 0.79$\pm$0.01 & 0.86$\pm$0.01 & 560 & 0.96$\pm$0.00 & 0.90$\pm$0.01 & 0.93$\pm$0.00 & 560 & 0.96$\pm$0.00 & 0.90$\pm$0.01 & 0.93$\pm$0.00 & 560 \\
+0 & 0.74$\pm$0.07 & 0.59$\pm$0.10 & 0.65$\pm$0.06 & 544 & 0.74$\pm$0.07 & 0.59$\pm$0.10 & 0.65$\pm$0.06 & 544 & 0.62$\pm$0.05 & 0.53$\pm$0.07 & 0.57$\pm$0.06 & 544 & 0.74$\pm$0.07 & 0.59$\pm$0.09 & 0.65$\pm$0.06 & 544 & 0.74$\pm$0.07 & 0.59$\pm$0.10 & 0.65$\pm$0.06 & 544 \\
+1 & 0.88$\pm$0.07 & 0.98$\pm$0.01 & 0.93$\pm$0.04 & 532 & 0.88$\pm$0.07 & 0.98$\pm$0.01 & 0.93$\pm$0.04 & 532 & 0.64$\pm$0.03 & 0.99$\pm$0.00 & 0.78$\pm$0.02 & 532 & 0.88$\pm$0.07 & 0.98$\pm$0.01 & 0.93$\pm$0.04 & 532 & 0.88$\pm$0.08 & 0.98$\pm$0.01 & 0.93$\pm$0.04 & 532 \\
+2 & 0.67$\pm$0.02 & 0.77$\pm$0.04 & 0.72$\pm$0.02 & 536 & 0.67$\pm$0.01 & 0.77$\pm$0.04 & 0.72$\pm$0.02 & 536 & 0.57$\pm$0.03 & 0.48$\pm$0.02 & 0.52$\pm$0.02 & 536 & 0.68$\pm$0.02 & 0.77$\pm$0.03 & 0.72$\pm$0.02 & 536 & 0.67$\pm$0.02 & 0.77$\pm$0.03 & 0.72$\pm$0.02 & 536 \\
+3 & 0.82$\pm$0.07 & 0.75$\pm$0.15 & 0.77$\pm$0.07 & 551 & 0.82$\pm$0.07 & 0.75$\pm$0.14 & 0.77$\pm$0.07 & 551 & 0.85$\pm$0.09 & 0.72$\pm$0.14 & 0.76$\pm$0.07 & 551 & 0.82$\pm$0.07 & 0.75$\pm$0.15 & 0.77$\pm$0.07 & 551 & 0.82$\pm$0.07 & 0.75$\pm$0.15 & 0.77$\pm$0.07 & 551 \\
+4 & 0.80$\pm$0.08 & 0.78$\pm$0.14 & 0.77$\pm$0.02 & 560 & 0.80$\pm$0.08 & 0.78$\pm$0.13 & 0.77$\pm$0.03 & 560 & 0.79$\pm$0.07 & 0.68$\pm$0.14 & 0.72$\pm$0.04 & 560 & 0.80$\pm$0.07 & 0.78$\pm$0.13 & 0.77$\pm$0.03 & 560 & 0.79$\pm$0.08 & 0.78$\pm$0.14 & 0.77$\pm$0.02 & 560 \\
 \midrule
-Accuracy & \multicolumn{4}{c|}{0.89$\pm$0.00 (2724)} & \multicolumn{4}{c|}{0.89$\pm$0.00 (2724)} & \multicolumn{4}{c|}{0.76$\pm$0.00 (2724)} & \multicolumn{4}{c|}{0.89$\pm$0.00 (2724)} & \multicolumn{4}{c}{0.89$\pm$0.00 (2724)} \\
-Macro Avg & \multicolumn{4}{c|}{0.89$\pm$0.00/0.89$\pm$0.00/0.89$\pm$0.00} & \multicolumn{4}{c|}{0.89$\pm$0.00/0.89$\pm$0.00/0.89$\pm$0.00} & \multicolumn{4}{c|}{0.77$\pm$0.00/0.76$\pm$0.00/0.75$\pm$0.00} & \multicolumn{4}{c|}{0.89$\pm$0.00/0.89$\pm$0.00/0.89$\pm$0.00} & \multicolumn{4}{c}{0.89$\pm$0.00/0.89$\pm$0.00/0.89$\pm$0.00} \\
-Weighted Avg & \multicolumn{4}{c|}{0.89$\pm$0.00/0.89$\pm$0.00/0.89$\pm$0.00} & \multicolumn{4}{c|}{0.89$\pm$0.00/0.89$\pm$0.00/0.89$\pm$0.00} & \multicolumn{4}{c|}{0.77$\pm$0.00/0.76$\pm$0.00/0.75$\pm$0.00} & \multicolumn{4}{c|}{0.89$\pm$0.00/0.89$\pm$0.00/0.89$\pm$0.00} & \multicolumn{4}{c}{0.89$\pm$0.00/0.89$\pm$0.00/0.89$\pm$0.00} \\
+Accuracy & \multicolumn{4}{c|}{0.77$\pm$0.01 (2724)} & \multicolumn{4}{c|}{0.77$\pm$0.01 (2724)} & \multicolumn{4}{c|}{0.68$\pm$0.01 (2724)} & \multicolumn{4}{c|}{0.77$\pm$0.01 (2724)} & \multicolumn{4}{c}{0.77$\pm$0.01 (2724)} \\
+Macro Avg & \multicolumn{4}{c|}{0.78$\pm$0.01/0.77$\pm$0.01/0.77$\pm$0.01} & \multicolumn{4}{c|}{0.78$\pm$0.01/0.77$\pm$0.01/0.77$\pm$0.01} & \multicolumn{4}{c|}{0.69$\pm$0.01/0.68$\pm$0.01/0.67$\pm$0.01} & \multicolumn{4}{c|}{0.78$\pm$0.01/0.77$\pm$0.01/0.77$\pm$0.01} & \multicolumn{4}{c}{0.78$\pm$0.01/0.77$\pm$0.01/0.77$\pm$0.01} \\
+Weighted Avg & \multicolumn{4}{c|}{0.78$\pm$0.01/0.77$\pm$0.01/0.77$\pm$0.01} & \multicolumn{4}{c|}{0.78$\pm$0.01/0.77$\pm$0.01/0.77$\pm$0.01} & \multicolumn{4}{c|}{0.69$\pm$0.00/0.68$\pm$0.01/0.67$\pm$0.01} & \multicolumn{4}{c|}{0.78$\pm$0.01/0.77$\pm$0.01/0.77$\pm$0.01} & \multicolumn{4}{c}{0.78$\pm$0.01/0.77$\pm$0.01/0.77$\pm$0.01} \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
 \begin{table}[H]
 \centering
-\caption{Classification Results for Support Vector Machine on the stratified window-level 3-fold protocol (mean $\pm$ std across folds 0, 1, 2). Per-class precision/recall/F1 and support averaged over the same three folds; footer accuracies averaged likewise.}
+\caption{Classification Results for Support Vector Machine on the grouped trial-out 3-fold protocol (mean $\pm$ std across folds 0, 1, 2). Per-class precision/recall/F1 and support averaged over the same three folds; footer accuracies averaged likewise.}
 \label{tab:svm_classifiers}
 \setlength{\tabcolsep}{2pt}
 \resizebox{\linewidth}{!}{%
@@ -928,22 +928,22 @@ Weighted Avg & \multicolumn{4}{c|}{0.89$\pm$0.00/0.89$\pm$0.00/0.89$\pm$0.00} & 
 \cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}\cmidrule(lr){14-17}\cmidrule(lr){18-21}
 Class & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp \\
 \midrule
-0 & 0.76$\pm$0.01 & 0.65$\pm$0.02 & 0.70$\pm$0.01 & 544 & 0.76$\pm$0.01 & 0.65$\pm$0.01 & 0.70$\pm$0.01 & 544 & 0.52$\pm$0.01 & 0.71$\pm$0.02 & 0.60$\pm$0.01 & 544 & 0.76$\pm$0.01 & 0.65$\pm$0.01 & 0.70$\pm$0.01 & 544 & 0.76$\pm$0.00 & 0.65$\pm$0.01 & 0.70$\pm$0.01 & 544 \\
-1 & 0.97$\pm$0.01 & 0.97$\pm$0.00 & 0.97$\pm$0.00 & 532 & 0.97$\pm$0.01 & 0.97$\pm$0.00 & 0.97$\pm$0.00 & 532 & 0.69$\pm$0.01 & 1.00$\pm$0.00 & 0.81$\pm$0.01 & 532 & 0.97$\pm$0.01 & 0.97$\pm$0.00 & 0.97$\pm$0.00 & 532 & 0.97$\pm$0.01 & 0.97$\pm$0.00 & 0.97$\pm$0.00 & 532 \\
-2 & 0.66$\pm$0.01 & 0.69$\pm$0.01 & 0.67$\pm$0.01 & 536 & 0.65$\pm$0.01 & 0.69$\pm$0.01 & 0.67$\pm$0.01 & 536 & 0.49$\pm$0.04 & 0.17$\pm$0.01 & 0.25$\pm$0.02 & 536 & 0.65$\pm$0.01 & 0.69$\pm$0.01 & 0.67$\pm$0.01 & 536 & 0.66$\pm$0.01 & 0.69$\pm$0.01 & 0.67$\pm$0.01 & 536 \\
-3 & 0.84$\pm$0.01 & 0.84$\pm$0.00 & 0.84$\pm$0.00 & 551 & 0.85$\pm$0.01 & 0.84$\pm$0.00 & 0.84$\pm$0.00 & 551 & 0.86$\pm$0.01 & 0.81$\pm$0.01 & 0.83$\pm$0.00 & 551 & 0.84$\pm$0.01 & 0.84$\pm$0.00 & 0.84$\pm$0.00 & 551 & 0.84$\pm$0.01 & 0.84$\pm$0.00 & 0.84$\pm$0.00 & 551 \\
-4 & 0.78$\pm$0.01 & 0.85$\pm$0.01 & 0.81$\pm$0.00 & 560 & 0.78$\pm$0.01 & 0.85$\pm$0.01 & 0.81$\pm$0.01 & 560 & 0.86$\pm$0.00 & 0.81$\pm$0.00 & 0.83$\pm$0.00 & 560 & 0.78$\pm$0.01 & 0.85$\pm$0.01 & 0.81$\pm$0.00 & 560 & 0.78$\pm$0.00 & 0.85$\pm$0.01 & 0.81$\pm$0.00 & 560 \\
+0 & 0.68$\pm$0.04 & 0.52$\pm$0.09 & 0.58$\pm$0.04 & 544 & 0.68$\pm$0.04 & 0.52$\pm$0.10 & 0.58$\pm$0.05 & 544 & 0.52$\pm$0.03 & 0.69$\pm$0.12 & 0.59$\pm$0.06 & 544 & 0.68$\pm$0.05 & 0.52$\pm$0.09 & 0.58$\pm$0.04 & 544 & 0.68$\pm$0.04 & 0.52$\pm$0.10 & 0.58$\pm$0.05 & 544 \\
+1 & 0.93$\pm$0.05 & 0.97$\pm$0.01 & 0.95$\pm$0.03 & 532 & 0.93$\pm$0.05 & 0.97$\pm$0.01 & 0.95$\pm$0.03 & 532 & 0.68$\pm$0.04 & 0.99$\pm$0.00 & 0.81$\pm$0.03 & 532 & 0.93$\pm$0.05 & 0.97$\pm$0.01 & 0.95$\pm$0.03 & 532 & 0.93$\pm$0.05 & 0.97$\pm$0.01 & 0.95$\pm$0.03 & 532 \\
+2 & 0.58$\pm$0.01 & 0.62$\pm$0.07 & 0.60$\pm$0.03 & 536 & 0.58$\pm$0.01 & 0.63$\pm$0.06 & 0.60$\pm$0.02 & 536 & 0.46$\pm$0.02 & 0.17$\pm$0.03 & 0.25$\pm$0.03 & 536 & 0.58$\pm$0.01 & 0.62$\pm$0.07 & 0.60$\pm$0.03 & 536 & 0.58$\pm$0.01 & 0.62$\pm$0.07 & 0.60$\pm$0.03 & 536 \\
+3 & 0.80$\pm$0.05 & 0.75$\pm$0.15 & 0.76$\pm$0.06 & 551 & 0.80$\pm$0.05 & 0.75$\pm$0.16 & 0.76$\pm$0.06 & 551 & 0.83$\pm$0.07 & 0.72$\pm$0.14 & 0.76$\pm$0.06 & 551 & 0.80$\pm$0.05 & 0.75$\pm$0.15 & 0.76$\pm$0.06 & 551 & 0.80$\pm$0.05 & 0.75$\pm$0.15 & 0.76$\pm$0.06 & 551 \\
+4 & 0.72$\pm$0.07 & 0.80$\pm$0.12 & 0.75$\pm$0.02 & 560 & 0.71$\pm$0.07 & 0.80$\pm$0.13 & 0.74$\pm$0.02 & 560 & 0.81$\pm$0.10 & 0.76$\pm$0.13 & 0.77$\pm$0.02 & 560 & 0.72$\pm$0.07 & 0.80$\pm$0.12 & 0.75$\pm$0.02 & 560 & 0.72$\pm$0.07 & 0.80$\pm$0.12 & 0.74$\pm$0.02 & 560 \\
 \midrule
-Accuracy & \multicolumn{4}{c|}{0.80$\pm$0.00 (2724)} & \multicolumn{4}{c|}{0.80$\pm$0.00 (2724)} & \multicolumn{4}{c|}{0.70$\pm$0.01 (2724)} & \multicolumn{4}{c|}{0.80$\pm$0.00 (2724)} & \multicolumn{4}{c}{0.80$\pm$0.00 (2724)} \\
-Macro Avg & \multicolumn{4}{c|}{0.80$\pm$0.01/0.80$\pm$0.00/0.80$\pm$0.01} & \multicolumn{4}{c|}{0.80$\pm$0.00/0.80$\pm$0.00/0.80$\pm$0.00} & \multicolumn{4}{c|}{0.69$\pm$0.01/0.70$\pm$0.01/0.67$\pm$0.01} & \multicolumn{4}{c|}{0.80$\pm$0.01/0.80$\pm$0.00/0.80$\pm$0.01} & \multicolumn{4}{c}{0.80$\pm$0.00/0.80$\pm$0.00/0.80$\pm$0.00} \\
-Weighted Avg & \multicolumn{4}{c|}{0.80$\pm$0.01/0.80$\pm$0.00/0.80$\pm$0.01} & \multicolumn{4}{c|}{0.80$\pm$0.00/0.80$\pm$0.00/0.80$\pm$0.00} & \multicolumn{4}{c|}{0.69$\pm$0.01/0.70$\pm$0.01/0.67$\pm$0.01} & \multicolumn{4}{c|}{0.80$\pm$0.01/0.80$\pm$0.00/0.80$\pm$0.01} & \multicolumn{4}{c}{0.80$\pm$0.00/0.80$\pm$0.00/0.80$\pm$0.00} \\
+Accuracy & \multicolumn{4}{c|}{0.73$\pm$0.01 (2724)} & \multicolumn{4}{c|}{0.73$\pm$0.01 (2724)} & \multicolumn{4}{c|}{0.67$\pm$0.02 (2724)} & \multicolumn{4}{c|}{0.73$\pm$0.01 (2724)} & \multicolumn{4}{c}{0.73$\pm$0.01 (2724)} \\
+Macro Avg & \multicolumn{4}{c|}{0.74$\pm$0.01/0.73$\pm$0.01/0.73$\pm$0.02} & \multicolumn{4}{c|}{0.74$\pm$0.01/0.73$\pm$0.01/0.73$\pm$0.02} & \multicolumn{4}{c|}{0.66$\pm$0.02/0.67$\pm$0.02/0.63$\pm$0.01} & \multicolumn{4}{c|}{0.74$\pm$0.01/0.73$\pm$0.01/0.73$\pm$0.02} & \multicolumn{4}{c}{0.74$\pm$0.01/0.73$\pm$0.01/0.73$\pm$0.02} \\
+Weighted Avg & \multicolumn{4}{c|}{0.74$\pm$0.01/0.73$\pm$0.01/0.73$\pm$0.02} & \multicolumn{4}{c|}{0.74$\pm$0.01/0.73$\pm$0.01/0.73$\pm$0.02} & \multicolumn{4}{c|}{0.66$\pm$0.01/0.67$\pm$0.02/0.64$\pm$0.01} & \multicolumn{4}{c|}{0.74$\pm$0.01/0.73$\pm$0.01/0.73$\pm$0.02} & \multicolumn{4}{c}{0.74$\pm$0.01/0.73$\pm$0.01/0.73$\pm$0.02} \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
 \begin{table}[H]
 \centering
-\caption{Classification Results for LSTM on the stratified window-level 3-fold protocol (mean $\pm$ std across folds 0, 1, 2). Per-class precision/recall/F1 and support averaged over the same three folds; footer accuracies averaged likewise.}
+\caption{Classification Results for LSTM on the grouped trial-out 3-fold protocol (mean $\pm$ std across folds 0, 1, 2). Per-class precision/recall/F1 and support averaged over the same three folds; footer accuracies averaged likewise.}
 \label{tab:lstm_classifiers}
 \setlength{\tabcolsep}{2pt}
 \resizebox{\linewidth}{!}{%
@@ -953,15 +953,15 @@ Weighted Avg & \multicolumn{4}{c|}{0.80$\pm$0.01/0.80$\pm$0.00/0.80$\pm$0.01} & 
 \cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}\cmidrule(lr){14-17}\cmidrule(lr){18-21}
 Class & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp & Prec & Rec & F1 & Supp \\
 \midrule
-0 & 0.80$\pm$0.11 & 0.85$\pm$0.06 & 0.81$\pm$0.04 & 544 & 0.80$\pm$0.11 & 0.85$\pm$0.06 & 0.81$\pm$0.04 & 544 & 0.62$\pm$0.06 & 0.65$\pm$0.10 & 0.63$\pm$0.02 & 544 & 0.79$\pm$0.10 & 0.85$\pm$0.06 & 0.81$\pm$0.04 & 544 & 0.80$\pm$0.11 & 0.85$\pm$0.07 & 0.81$\pm$0.04 & 544 \\
-1 & 0.98$\pm$0.02 & 0.98$\pm$0.01 & 0.98$\pm$0.01 & 532 & 0.98$\pm$0.02 & 0.98$\pm$0.01 & 0.98$\pm$0.01 & 532 & 0.77$\pm$0.01 & 0.96$\pm$0.02 & 0.85$\pm$0.02 & 532 & 0.98$\pm$0.02 & 0.98$\pm$0.01 & 0.98$\pm$0.01 & 532 & 0.98$\pm$0.02 & 0.98$\pm$0.01 & 0.98$\pm$0.01 & 532 \\
-2 & 0.83$\pm$0.05 & 0.71$\pm$0.21 & 0.74$\pm$0.12 & 536 & 0.83$\pm$0.05 & 0.71$\pm$0.21 & 0.74$\pm$0.12 & 536 & 0.61$\pm$0.03 & 0.46$\pm$0.18 & 0.50$\pm$0.13 & 536 & 0.83$\pm$0.04 & 0.71$\pm$0.20 & 0.74$\pm$0.12 & 536 & 0.83$\pm$0.05 & 0.71$\pm$0.21 & 0.74$\pm$0.12 & 536 \\
-3 & 0.87$\pm$0.01 & 0.94$\pm$0.01 & 0.90$\pm$0.00 & 551 & 0.87$\pm$0.01 & 0.94$\pm$0.01 & 0.90$\pm$0.00 & 551 & 0.87$\pm$0.00 & 0.92$\pm$0.00 & 0.89$\pm$0.00 & 551 & 0.87$\pm$0.00 & 0.94$\pm$0.01 & 0.90$\pm$0.00 & 551 & 0.87$\pm$0.01 & 0.94$\pm$0.01 & 0.90$\pm$0.00 & 551 \\
-4 & 0.92$\pm$0.04 & 0.86$\pm$0.02 & 0.89$\pm$0.01 & 560 & 0.92$\pm$0.03 & 0.86$\pm$0.02 & 0.89$\pm$0.01 & 560 & 0.95$\pm$0.01 & 0.79$\pm$0.02 & 0.86$\pm$0.01 & 560 & 0.92$\pm$0.03 & 0.86$\pm$0.02 & 0.89$\pm$0.01 & 560 & 0.92$\pm$0.03 & 0.86$\pm$0.02 & 0.89$\pm$0.01 & 560 \\
+0 & 0.74$\pm$0.08 & 0.65$\pm$0.17 & 0.67$\pm$0.08 & 544 & 0.74$\pm$0.08 & 0.65$\pm$0.17 & 0.67$\pm$0.08 & 544 & 0.56$\pm$0.03 & 0.60$\pm$0.12 & 0.57$\pm$0.07 & 544 & 0.74$\pm$0.08 & 0.65$\pm$0.17 & 0.67$\pm$0.08 & 544 & 0.74$\pm$0.08 & 0.64$\pm$0.17 & 0.66$\pm$0.08 & 544 \\
+1 & 0.94$\pm$0.05 & 0.95$\pm$0.02 & 0.95$\pm$0.03 & 532 & 0.94$\pm$0.05 & 0.96$\pm$0.02 & 0.95$\pm$0.02 & 532 & 0.77$\pm$0.04 & 0.94$\pm$0.04 & 0.85$\pm$0.03 & 532 & 0.94$\pm$0.05 & 0.95$\pm$0.02 & 0.95$\pm$0.03 & 532 & 0.94$\pm$0.05 & 0.95$\pm$0.02 & 0.95$\pm$0.03 & 532 \\
+2 & 0.70$\pm$0.08 & 0.69$\pm$0.14 & 0.68$\pm$0.03 & 536 & 0.70$\pm$0.08 & 0.69$\pm$0.14 & 0.68$\pm$0.03 & 536 & 0.58$\pm$0.03 & 0.47$\pm$0.08 & 0.51$\pm$0.05 & 536 & 0.69$\pm$0.07 & 0.69$\pm$0.14 & 0.68$\pm$0.03 & 536 & 0.69$\pm$0.08 & 0.69$\pm$0.14 & 0.67$\pm$0.03 & 536 \\
+3 & 0.77$\pm$0.04 & 0.76$\pm$0.12 & 0.75$\pm$0.05 & 551 & 0.77$\pm$0.04 & 0.76$\pm$0.12 & 0.75$\pm$0.05 & 551 & 0.79$\pm$0.04 & 0.75$\pm$0.12 & 0.76$\pm$0.05 & 551 & 0.77$\pm$0.04 & 0.76$\pm$0.12 & 0.75$\pm$0.05 & 551 & 0.77$\pm$0.04 & 0.76$\pm$0.12 & 0.75$\pm$0.05 & 551 \\
+4 & 0.76$\pm$0.07 & 0.80$\pm$0.10 & 0.77$\pm$0.04 & 560 & 0.76$\pm$0.07 & 0.80$\pm$0.10 & 0.77$\pm$0.04 & 560 & 0.81$\pm$0.07 & 0.75$\pm$0.10 & 0.77$\pm$0.04 & 560 & 0.76$\pm$0.07 & 0.80$\pm$0.10 & 0.77$\pm$0.04 & 560 & 0.76$\pm$0.07 & 0.80$\pm$0.10 & 0.77$\pm$0.04 & 560 \\
 \midrule
-Accuracy & \multicolumn{4}{c|}{0.87$\pm$0.03 (2724)} & \multicolumn{4}{c|}{0.87$\pm$0.03 (2724)} & \multicolumn{4}{c|}{0.76$\pm$0.02 (2724)} & \multicolumn{4}{c|}{0.87$\pm$0.03 (2724)} & \multicolumn{4}{c}{0.87$\pm$0.03 (2724)} \\
-Macro Avg & \multicolumn{4}{c|}{0.88$\pm$0.02/0.87$\pm$0.03/0.86$\pm$0.04} & \multicolumn{4}{c|}{0.88$\pm$0.02/0.87$\pm$0.03/0.86$\pm$0.04} & \multicolumn{4}{c|}{0.76$\pm$0.01/0.76$\pm$0.02/0.75$\pm$0.03} & \multicolumn{4}{c|}{0.88$\pm$0.02/0.87$\pm$0.03/0.86$\pm$0.04} & \multicolumn{4}{c}{0.88$\pm$0.02/0.87$\pm$0.03/0.86$\pm$0.04} \\
-Weighted Avg & \multicolumn{4}{c|}{0.88$\pm$0.02/0.87$\pm$0.03/0.86$\pm$0.04} & \multicolumn{4}{c|}{0.88$\pm$0.02/0.87$\pm$0.03/0.86$\pm$0.04} & \multicolumn{4}{c|}{0.76$\pm$0.01/0.76$\pm$0.02/0.75$\pm$0.03} & \multicolumn{4}{c|}{0.88$\pm$0.02/0.87$\pm$0.03/0.86$\pm$0.04} & \multicolumn{4}{c}{0.88$\pm$0.02/0.87$\pm$0.03/0.86$\pm$0.04} \\
+Accuracy & \multicolumn{4}{c|}{0.77$\pm$0.01 (2724)} & \multicolumn{4}{c|}{0.77$\pm$0.02 (2724)} & \multicolumn{4}{c|}{0.70$\pm$0.01 (2724)} & \multicolumn{4}{c|}{0.77$\pm$0.01 (2724)} & \multicolumn{4}{c}{0.77$\pm$0.01 (2724)} \\
+Macro Avg & \multicolumn{4}{c|}{0.78$\pm$0.00/0.77$\pm$0.01/0.76$\pm$0.02} & \multicolumn{4}{c|}{0.78$\pm$0.00/0.77$\pm$0.01/0.76$\pm$0.02} & \multicolumn{4}{c|}{0.70$\pm$0.01/0.70$\pm$0.01/0.69$\pm$0.01} & \multicolumn{4}{c|}{0.78$\pm$0.00/0.77$\pm$0.01/0.76$\pm$0.02} & \multicolumn{4}{c}{0.78$\pm$0.00/0.77$\pm$0.01/0.76$\pm$0.02} \\
+Weighted Avg & \multicolumn{4}{c|}{0.78$\pm$0.00/0.77$\pm$0.01/0.76$\pm$0.02} & \multicolumn{4}{c|}{0.78$\pm$0.00/0.77$\pm$0.02/0.76$\pm$0.02} & \multicolumn{4}{c|}{0.70$\pm$0.01/0.70$\pm$0.01/0.69$\pm$0.01} & \multicolumn{4}{c|}{0.78$\pm$0.00/0.77$\pm$0.01/0.76$\pm$0.02} & \multicolumn{4}{c}{0.78$\pm$0.00/0.77$\pm$0.01/0.76$\pm$0.02} \\
 \bottomrule
 \end{tabular}}
 \end{table}
