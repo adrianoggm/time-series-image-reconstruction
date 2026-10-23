@@ -1,0 +1,45 @@
+{
+ "definition": "For a displacement d = s_i - s_j the sign is +1 iff the angle to v = (1,1)/sqrt2 is\n<= pi/4. Reflecting the signal (x -> -x) maps d to -d; the pair separates the two\norientations only if sign(d) != sign(-d), i.e. if d lies within pi/4 of the +-v\naxis. Per window and channel this reports, in float precision:",
+ "n_per_dataset": 500,
+ "length": 128,
+ "wisdm": {
+  "windows": 500,
+  "channels": 3,
+  "informative_frac": {
+   "mean": 0.7240780909277902,
+   "p05": 0.5044031089863766,
+   "p50": 0.7387826521684789
+  },
+  "informative_mass": {
+   "mean": 0.8035423658211148,
+   "p05": 0.5103587440016005,
+   "p50": 0.8264112353809949
+  },
+  "margin": {
+   "mean": 1.830307062661057,
+   "p05": 1.4247012421727983,
+   "min": 0.7307243020285931
+  },
+  "channel_series_with_margin_below_0.01": 0
+ },
+ "pamap2": {
+  "windows": 500,
+  "channels": 9,
+  "informative_frac": {
+   "mean": 0.7863530710050133,
+   "p05": 0.49943757030371205,
+   "p50": 0.8401449818772654
+  },
+  "informative_mass": {
+   "mean": 0.8440056308735508,
+   "p05": 0.5025563863979373,
+   "p50": 0.9180516398367635
+  },
+  "margin": {
+   "mean": 1.8497185752907874,
+   "p05": 1.409507285545093,
+   "min": 0.8638503776505663
+  },
+  "channel_series_with_margin_below_0.01": 0
+ }
+}
