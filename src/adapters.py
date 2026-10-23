@@ -161,3 +161,149 @@ class ESC50Adapter(DatasetAdapter):
                 x = resample_poly(x, self.target_fs // g, fs // g)
             yield Recording(data=x[:, None], group=str(row.src_file), rec_id=row.filename,
                             labels=np.full(len(x), row.target))
+
+
+PTBXL_SUPERCLASSES = ("NORM", "MI", "STTC", "CD", "HYP")
+
+
+@register
+class PTBXLAdapter(DatasetAdapter):
+    """PTB-XL 1.0.3 (Wagner et al., 2020): 21 799 ten-second 12-lead ECGs from 18 869 patients, CC BY 4.0.
+
+    Multilabel over the five diagnostic superclasses, aggregated from
+    ``scp_codes`` through ``scp_statements.csv`` (rows with diagnostic == 1);
+    records with no diagnostic statement get an all-zero vector and are counted.
+    Signals are in mV, read from the 16-bit WFDB records with each lead's gain
+    and baseline. The group is the patient, so one patient's ECGs never straddle
+    a split. ``fs`` picks records100 (100 Hz) or records500 (500 Hz). The
+    dataset's own stratified folds are in the ``strat_fold`` column.
+    """
+
+    spec = DatasetSpec(name="ptbxl", fs=100.0, channels=("I", "II", "III", "AVR", "AVL", "AVF", "V1", "V2", "V3",
+                                                         "V4", "V5", "V6"), units=("mV",) * 12, task="multilabel",
+                       classes=PTBXL_SUPERCLASSES)
+
+    def __init__(self, root: str | Path = "~/datasets/PTB-XL", fs: int = 100, max_records: int | None = None,
+                 seed: int = 0):
+        if fs not in (100, 500):
+            raise ValueError("PTB-XL ships 100 Hz and 500 Hz records only")
+        self.root, self.fs, self.max_records, self.seed = str(Path(root).expanduser()), fs, max_records, seed
+        self.spec = DatasetSpec(name="ptbxl", fs=float(fs), channels=PTBXLAdapter.spec.channels, units=("mV",) * 12,
+                                task="multilabel", classes=PTBXL_SUPERCLASSES)
+
+    def fingerprint(self) -> str:
+        return files_fingerprint([Path(self.root) / "ptbxl_database.csv", Path(self.root) / "scp_statements.csv"])
+
+    def _labels(self, db: pd.DataFrame) -> np.ndarray:
+        import ast
+
+        stm = pd.read_csv(Path(self.root) / "scp_statements.csv", index_col=0)
+        diag = stm[stm.diagnostic == 1].diagnostic_class.to_dict()
+        y = np.zeros((len(db), len(PTBXL_SUPERCLASSES)), dtype=np.int8)
+        for i, codes in enumerate(db.scp_codes):
+            for code in ast.literal_eval(codes):
+                if code in diag:
+                    y[i, PTBXL_SUPERCLASSES.index(diag[code])] = 1
+        return y
+
+    def recordings(self) -> Iterator[Recording]:
+        db = pd.read_csv(Path(self.root) / "ptbxl_database.csv")
+        if self.max_records:
+            db = db.sample(n=min(self.max_records, len(db)), random_state=self.seed).sort_values("ecg_id")
+        y = self._labels(db)
+        col = "filename_lr" if self.fs == 100 else "filename_hr"
+        for i, row in enumerate(db.itertuples()):
+            base = Path(self.root) / getattr(row, col)
+            lines = (base.with_suffix(".hea")).read_text().splitlines()
+            n_sig, n_samp = int(lines[0].split()[1]), int(lines[0].split()[3])
+            gain = np.array([float(ln.split()[2].split("(")[0].split("/")[0]) for ln in lines[1:1 + n_sig]])
+            base_ = np.array([float(ln.split()[2].split("(")[1].split(")")[0]) if "(" in ln.split()[2] else 0.0
+                              for ln in lines[1:1 + n_sig]])
+            raw = np.fromfile(base.with_suffix(".dat"), dtype="<i2").reshape(n_samp, n_sig)
+            yield Recording(data=(raw - base_) / gain, group=str(int(row.patient_id)), rec_id=str(row.ecg_id),
+                            labels=np.repeat(y[i][None, :], n_samp, axis=0))
+
+
+@register
+class SwarmMAGAdapter(DatasetAdapter):
+    """ESA Swarm MAGx_LR_1B: vector magnetic field B_NEC (nT) at 1 Hz, downloaded through VirES.
+
+    One recording per satellite and day (scripts/_swarm_download.py writes
+    ``<root>/<A|B|C>/<YYYY-MM-DD>.npz``). Unlabelled. ``Flags_B`` is a sum of
+    bits (Swarm Handbook, SW_MAGx_LR_1B): 1 ASM off, 2 outlier/gap/temperature,
+    4 suspicious VFM samples, 8 ASM-VFM discrepancy, 16 VFM gap; 255 means no
+    B_NEC was generated. Samples with 255 or with any bit in ``bad_flag_bits``
+    (default 2 and 16) become NaN, so ``make_windows`` drops and counts their
+    windows. Bit 1 is kept: it is set on almost every Swarm C sample (ASM off)
+    while the vector field is still delivered. Timestamps expose any gap. The
+    group is the day by default, or the satellite with ``group_by="satellite"``.
+    """
+
+    spec = DatasetSpec(name="swarm", fs=1.0, channels=("B_N", "B_E", "B_C"), units=("nT",) * 3, task="none")
+
+    def __init__(self, root: str | Path = "~/datasets/SWARM", satellites: str = "ABC", group_by: str = "day",
+                 bad_flag_bits: tuple[int, ...] = (2, 16)):
+        if group_by not in ("day", "satellite"):
+            raise ValueError("group_by must be 'day' or 'satellite'")
+        self.root, self.satellites = str(Path(root).expanduser()), satellites
+        self.group_by, self.bad_flag_bits = group_by, tuple(bad_flag_bits)
+
+    def _files(self) -> list[Path]:
+        return sorted(p for s in self.satellites for p in (Path(self.root) / s).glob("*.npz"))
+
+    def fingerprint(self) -> str:
+        return files_fingerprint(self._files())
+
+    def recordings(self) -> Iterator[Recording]:
+        for f in self._files():
+            z = np.load(f)
+            B = z["B_NEC"].astype(float)
+            flags = z["flags"].astype(int)
+            bad = flags == 255
+            for bit in self.bad_flag_bits:
+                bad |= (flags != 255) & (flags & bit != 0)
+            B[bad] = np.nan
+            sat, day = f.parent.name, f.stem
+            yield Recording(data=B, group=sat if self.group_by == "satellite" else day, rec_id=f"{sat}/{day}",
+                            t=(z["t"] - z["t"][0]) / 1e9)
+
+
+@register
+class STEADAdapter(DatasetAdapter):
+    """STEAD (Mousavi et al., 2019): 60-s three-component (E, N, Z) seismograms at 100 Hz, CC BY 4.0.
+
+    Binary task: local earthquake vs noise. The two downloaded chunks hold
+    235 426 noise and 200 000 earthquake traces, so a class-balanced random
+    subset of ``n_per_class`` traces per class is drawn with ``seed``. The group
+    is the earthquake (``source_id``) — one event is recorded by several
+    stations — and the station for noise traces, so neither an event nor a noise
+    station straddles a split.
+    """
+
+    spec = DatasetSpec(name="stead", fs=100.0, channels=("E", "N", "Z"), units=("counts",) * 3,
+                       classes=("noise", "earthquake_local"))
+
+    def __init__(self, root: str | Path = "~/datasets/STEAD", chunks: tuple[str, ...] = ("chunk1", "chunk2"),
+                 n_per_class: int = 1000, seed: int = 0):
+        self.root, self.chunks = str(Path(root).expanduser()), tuple(chunks)
+        self.n_per_class, self.seed = n_per_class, seed
+
+    def fingerprint(self) -> str:
+        return files_fingerprint([Path(self.root) / f"{c}.csv" for c in self.chunks])
+
+    def recordings(self) -> Iterator[Recording]:
+        import h5py
+
+        meta = pd.concat([pd.read_csv(Path(self.root) / f"{c}.csv", low_memory=False).assign(_chunk=c)
+                          for c in self.chunks], ignore_index=True)
+        picks = [g.sample(n=min(self.n_per_class, len(g)), random_state=self.seed)
+                 for _, g in meta.groupby("trace_category")]
+        sel = pd.concat(picks).sort_values(["_chunk", "trace_name"])
+        for chunk, rows in sel.groupby("_chunk"):
+            with h5py.File(Path(self.root) / f"{chunk}.hdf5", "r") as h:
+                for row in rows.itertuples():
+                    x = np.asarray(h["data"][row.trace_name], dtype=float)
+                    label = self.spec.classes.index(row.trace_category)
+                    group = (f"event:{row.source_id}" if row.trace_category == "earthquake_local"
+                             else f"station:{row.network_code}.{row.receiver_code}")
+                    yield Recording(data=x, group=group, rec_id=row.trace_name, labels=np.full(len(x), label))
