@@ -252,6 +252,12 @@ doc/*.out
 doc/*.bbl
 doc/*.blg
 doc/*.synctex.gz
+doc/infsci/*.aux
+doc/infsci/*.fls
+doc/infsci/*.fdb_latexmk
+doc/infsci/*.spl
+doc/infsci/*.log
+doc/infsci/*.out
 !results/_classification/
 results/_classification/*
 !results/_classification/summary.json
