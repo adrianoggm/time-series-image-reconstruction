@@ -211,17 +211,20 @@ def _rescale(x, minmax_c):
 def decode_channel(R_obs, minmax_c, source, dims=2, recover="overlap",
                    signed=True, rho=0.60, n_theta=720, top_k=8,
                    scale_invariant=False, orientation_method="closed_form"):
-    """Unified single-channel RP decoder. Returns a length-TIME_STEPS channel in
+    """Unified single-channel RP decoder. Returns a length-N channel in
     physical units, axis-compatible with recurrence_plots.Reconstruct_RP output.
 
     dims=1, recover="append": legacy 1-D projection + fix_rotationscale (baseline
       and RP-GEO-1D). dims=2, recover="overlap": 2-D O(2) alignment + overlap
       reconstruction; signed=True adds the signed-RP orientation selection.
+
+    The output has N = M + 1 samples for an (M, M) matrix, so any window length works.
     """
+    n_out = np.asarray(R_obs).shape[0] + 1
     if source == "jaccard_legacy":
         from src.rp_legacy import decode_channel as legacy_decode
 
-        return legacy_decode(R_obs, minmax_c, signed=signed, scale_invariant=scale_invariant, n_out=TIME_STEPS)[0]
+        return legacy_decode(R_obs, minmax_c, signed=signed, scale_invariant=scale_invariant, n_out=n_out)[0]
     if (dims, recover) not in {(1, "append"), (2, "overlap")}:
         raise ValueError(f"unsupported (dims, recover) combo: ({dims}, {recover!r})")
     dmat = distance_matrix(R_obs, source=source, rho=rho)
@@ -232,9 +235,9 @@ def decode_channel(R_obs, minmax_c, source, dims=2, recover="overlap",
         # its own double-centring on the passed matrix, so hand it `dmat`.
         proj = reconstruct_time_series(dmat, ep=0.0)          # (M,1)
         rec, _ = fix_rotationscale(R_obs, proj, 0, [ [minmax_c[0]], [minmax_c[1]] ],
-                                   TIME_STEPS=TIME_STEPS,
+                                   TIME_STEPS=n_out,
                                    use_orientation=signed, append_value="mean")
-        return np.asarray(rec)[:TIME_STEPS]
+        return np.asarray(rec)[:n_out]
 
     # 2-D path.
     Y, _ = embed_2d(dmat)
@@ -256,7 +259,7 @@ def decode_channel(R_obs, minmax_c, source, dims=2, recover="overlap",
     if not signed:
         _, a, b = cands[0]
         x = reconstruct_signal_from_states(a, b)
-        return _rescale(x, minmax_c)[:TIME_STEPS]
+        return _rescale(x, minmax_c)[:n_out]
 
     # Signed selection (lambda-free lexicographic): among the top_k lowest
     # overlap-error orientations, pick the one whose regenerated signed RP is
@@ -264,7 +267,7 @@ def decode_channel(R_obs, minmax_c, source, dims=2, recover="overlap",
     # candidates; ``top_k`` remains useful for the optional grid ablation.
     best = None
     for e_ov, a, b in cands[:top_k]:
-        x = _rescale(reconstruct_signal_from_states(a, b), minmax_c)[:TIME_STEPS]
+        x = _rescale(reconstruct_signal_from_states(a, b), minmax_c)[:n_out]
         e_sig = signed_rp_error(R_obs, x, scale_invariant=scale_invariant)
         if best is None or e_sig < best[0]:
             best = (e_sig, x)
