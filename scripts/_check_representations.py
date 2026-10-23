@@ -39,14 +39,14 @@ for T, C in ((64, 1), (200, 5), (256, 12)):
     row = []
     for name in REPRESENTATIONS:
         img = encode_window(name, win)
-        H = T - 1 if name == "RP" else T
+        H = T - 1 if name.startswith("RP") else T          # RP variants work on the N-1 adjacent states
         assert img.shape == (C, H, H) and img.dtype == np.uint8, (name, img.shape)
         nm = {}
         for cond, stack in (("float", encode_window(name, win, quantize=False)), ("8bit", img)):
             out = decode_window(name, stack, mm)
             assert out.shape == (T, C) and np.isfinite(out).all(), (name, cond, out.shape)
             nm[cond] = float((np.abs(out - win).mean(0) / rng_ax).mean())
-        if name != "MTF":
+        if name in ("RP", "GASF", "GADF", "XIRP"):            # exact by construction; the others are lossy
             assert nm["float"] < 1e-6, (name, T, C, nm)
         row.append(f"{name} {nm['float']:.0e}/{nm['8bit']:.4f}")
     print(f"[ok] T={T} C={C}: NMAE float/8-bit  " + "  ".join(row))

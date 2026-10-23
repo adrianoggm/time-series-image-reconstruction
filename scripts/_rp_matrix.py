@@ -88,51 +88,61 @@ def series_row(x):
 
 
 def main():
+    from scripts._benchmark import DATASETS
+
     ap = argparse.ArgumentParser()
-    ap.add_argument("--datasets", default="wisdm,pamap2")
-    ap.add_argument("--n", type=int, default=200, help="windows per dataset, sampled with seed 0")
-    ap.add_argument("--length", type=int, default=128)
-    ap.add_argument("--workers", type=int, default=12)
+    ap.add_argument("--datasets", default=",".join(DATASETS))
+    ap.add_argument("--n", type=int, default=300, help="windows per dataset and length, sampled with seed 0")
+    ap.add_argument("--lengths", default="64,128,256")
+    ap.add_argument("--workers", type=int, default=20)
     args = ap.parse_args()
 
     from src.datasets import get, make_windows
 
     summary = {"methods": METHODS, "conditions": CONDITIONS, "metrics": METRICS, "n_windows": args.n,
-               "length": args.length, "doc": "docs/experiments/rp_signed_comparison.md"}
+               "lengths": args.lengths, "datasets": DATASETS, "doc": "docs/experiments/rp_signed_comparison.md"}
     arrays = {}
-    for name in args.datasets.split(","):
-        w = make_windows(get(name), args.length)
-        idx = np.sort(np.random.default_rng(0).choice(len(w.X), size=min(args.n, len(w.X)), replace=False))
-        series = [w.X[i, :, c].astype(float) for i in idx for c in range(w.X.shape[2])]
-        t0 = time.perf_counter()
-        with ProcessPoolExecutor(args.workers) as ex:
-            res = np.stack(list(ex.map(series_row, series, chunksize=4)))  # (S, cond, method, metric)
-        arrays[f"{name}/values"] = res
-        arrays[f"{name}/window"] = np.repeat(idx, w.X.shape[2])
-        arrays[f"{name}/channel"] = np.tile(np.arange(w.X.shape[2]), len(idx))
-        arrays[f"{name}/group"] = np.repeat(w.groups[idx], w.X.shape[2])
-        summary[name] = {"series": len(series), "flat_series": int(np.isnan(res[:, 0, 0, 0]).sum()),
-                         "wall_seconds": time.perf_counter() - t0}
-        for ci, cond in enumerate(CONDITIONS):
-            for mi, m in enumerate(METHODS):
-                v = res[:, ci, mi]
-                summary[name][f"{cond}/{m}"] = {
-                    "nmae_mean": np.nanmean(v[:, 0]), "nmae_median": np.nanmedian(v[:, 0]),
-                    "nmae_p95": np.nanpercentile(v[:, 0], 95), "nrmse_mean": np.nanmean(v[:, 1]),
-                    "pearson_mean": np.nanmean(v[:, 2]), "orientation_ok": np.nanmean(v[:, 3]),
-                    "ms_per_series": 1000 * np.nanmean(v[:, 4])}
-        print(f"\n{name}: {len(series)} channel series, {summary[name]['wall_seconds']:.0f} s")
-        print(f"{'condition/method':32} {'NMAE mean':>10} {'median':>9} {'p95':>8} {'Pearson':>8} {'orient':>7} {'ms':>7}")
-        for cond in CONDITIONS:
-            for m in METHODS:
-                s = summary[name][f"{cond}/{m}"]
-                print(f"{cond + '/' + m:32} {s['nmae_mean']:10.4f} {s['nmae_median']:9.4f} {s['nmae_p95']:8.4f} "
-                      f"{s['pearson_mean']:8.3f} {s['orientation_ok']:7.3f} {s['ms_per_series']:7.1f}")
+    for ds in args.datasets.split(","):
+        adapter = get(ds, **DATASETS[ds])
+        for L in map(int, args.lengths.split(",")):
+            name = f"{ds}/L{L}"
+            w = make_windows(adapter, L, dtype=np.float32)
+            idx = np.sort(np.random.default_rng(0).choice(len(w.X), size=min(args.n, len(w.X)), replace=False))
+            series = [w.X[i, :, c].astype(float) for i in idx for c in range(w.X.shape[2])]
+            t0 = time.perf_counter()
+            with ProcessPoolExecutor(args.workers) as ex:
+                res = np.stack(list(ex.map(series_row, series, chunksize=4)))  # (S, cond, method, metric)
+            arrays[f"{name}/values"] = res
+            arrays[f"{name}/window"] = np.repeat(idx, w.X.shape[2])
+            arrays[f"{name}/channel"] = np.tile(np.arange(w.X.shape[2]), len(idx))
+            arrays[f"{name}/group"] = np.repeat(w.groups[idx], w.X.shape[2])
+            summary[name] = {"series": len(series), "flat_series": int(np.isnan(res[:, 0, 0, 0]).sum()),
+                             "wall_seconds": time.perf_counter() - t0}
+            _report(summary, name, res)
     out = Path("results/_stats")
     out.mkdir(parents=True, exist_ok=True)
     (out / "rp_matrix.json").write_text(json.dumps(summary, indent=1, default=float) + "\n")
     np.savez_compressed(out / "rp_matrix_series.npz", **arrays)
     print(f"\nwrote {out / 'rp_matrix.json'} and rp_matrix_series.npz")
+
+
+def _report(summary, name, res):
+    """Summarise (series, conditions, methods, metrics) into summary[name] and print it."""
+    for ci, cond in enumerate(CONDITIONS):
+        for mi, m in enumerate(METHODS):
+            v = res[:, ci, mi]
+            summary[name][f"{cond}/{m}"] = {
+                "nmae_mean": np.nanmean(v[:, 0]), "nmae_median": np.nanmedian(v[:, 0]),
+                "nmae_p95": np.nanpercentile(v[:, 0], 95), "nrmse_mean": np.nanmean(v[:, 1]),
+                "pearson_mean": np.nanmean(v[:, 2]), "orientation_ok": np.nanmean(v[:, 3]),
+                "ms_per_series": 1000 * np.nanmean(v[:, 4])}
+    print(f"\n{name}: {summary[name]['series']} channel series, {summary[name]['wall_seconds']:.0f} s", flush=True)
+    print(f"{'condition/method':32} {'NMAE mean':>10} {'median':>9} {'p95':>8} {'Pearson':>8} {'orient':>7} {'ms':>7}")
+    for cond in CONDITIONS:
+        for m in METHODS:
+            s = summary[name][f"{cond}/{m}"]
+            print(f"{cond + '/' + m:32} {s['nmae_mean']:10.4f} {s['nmae_median']:9.4f} {s['nmae_p95']:8.4f} "
+                  f"{s['pearson_mean']:8.3f} {s['orientation_ok']:7.3f} {s['ms_per_series']:7.1f}", flush=True)
 
 
 if __name__ == "__main__":
