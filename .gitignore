@@ -112,6 +112,7 @@ scripts/_*.py
 
 # Reproducibility sources and compact paper artefacts.  The broad rules above
 # continue to exclude scratch scripts, raw predictions and large experiment dumps.
+!scripts/_ablation_mtf_q_full.py
 !scripts/_ablation_rp_2d.py
 !scripts/_ablation_rp_metadata.py
 !scripts/_ablation_rp_orientation.py
@@ -149,6 +150,7 @@ results/_stats/*
 !results/_stats/gadf_pivot_sweep.tex
 !results/_stats/loso_tables.tex
 !results/_stats/mtf_decoder_ablation.json
+!results/_stats/mtf_q_ablation.csv
 !results/_stats/per_subject_mae_loto.json
 !results/_stats/robustness.json
 !results/_stats/robustness_tables.tex
