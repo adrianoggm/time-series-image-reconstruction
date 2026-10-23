@@ -127,16 +127,22 @@ class ESC50Adapter(DatasetAdapter):
     resamples with SciPy's polyphase filter (anti-aliased), since a 128-sample
     window at 44.1 kHz spans only 2.9 ms. The dataset's own 5 folds are in the
     ``fold`` column of meta/esc50.csv if a run must match published splits.
+    ``esc10=True`` keeps the dataset's official 10-class ESC-10 subset (400 clips).
     """
 
     NATIVE_FS = 44100
 
-    def __init__(self, root: str | Path = "~/datasets/ESC-50/ESC-50-master", target_fs: int | None = None):
+    def __init__(self, root: str | Path = "~/datasets/ESC-50/ESC-50-master", target_fs: int | None = None,
+                 esc10: bool = False):
         self.root = str(Path(root).expanduser())
         self.target_fs = target_fs
+        self.esc10 = esc10
         meta = pd.read_csv(Path(self.root) / "meta" / "esc50.csv")
+        if esc10:
+            meta = meta[meta.esc10].copy()
         classes = meta.drop_duplicates("target").sort_values("target").category.tolist()
-        self.spec = DatasetSpec(name="esc50", fs=float(target_fs or self.NATIVE_FS), channels=("audio",),
+        meta["label"] = meta.target.map({t: i for i, t in enumerate(sorted(meta.target.unique()))})
+        self.spec = DatasetSpec(name="esc10" if esc10 else "esc50", fs=float(target_fs or self.NATIVE_FS), channels=("audio",),
                                 units=("a.u.",), classes=tuple(classes))
         self._meta = meta
 
@@ -160,7 +166,7 @@ class ESC50Adapter(DatasetAdapter):
                 g = gcd(self.target_fs, fs)
                 x = resample_poly(x, self.target_fs // g, fs // g)
             yield Recording(data=x[:, None], group=str(row.src_file), rec_id=row.filename,
-                            labels=np.full(len(x), row.target))
+                            labels=np.full(len(x), row.label))
 
 
 PTBXL_SUPERCLASSES = ("NORM", "MI", "STTC", "CD", "HYP")
