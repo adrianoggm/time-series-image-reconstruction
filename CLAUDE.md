@@ -35,6 +35,10 @@ The pipeline materialises three nested artefact trees under `data/WISDM/`:
 
 `STYPE_FOLDER` in [src/paths.py](src/paths.py) is the single source of truth mapping the CLI identifier (`RP|GAF|GADF|MTF`) to its folder name (`recurrence_plot|GAF|GADF|MTF`). `GAF` everywhere in the code means **GASF**; the difference variant has its own `GADF` identifier.
 
+### Dataset interface (multi-dataset roadmap, M1)
+
+[src/datasets.py](src/datasets.py) is the dataset-agnostic layer the new datasets plug into: an adapter yields `Recording`s (`(T, C)` data, a `group` that splits must never break, a unique `rec_id`, optional per-sample labels and timestamps); `make_windows` segments them without crossing a label change or a timestamp gap and records provenance (`rec_id`, `start`) plus a transform log; `group_kfold` gives deterministic folds and asserts that no group straddles one. Labels follow `DatasetSpec.task`: `(T,)` class indices for `multiclass` (stratified folds), `(T, K)` multi-hot for `multilabel` and `None` for `none` (plain group folds). File-backed adapters must override `fingerprint()` (usually `files_fingerprint(...)`) or `cached_windows` will serve stale windows after a re-download; pass `dtype=np.float32` for the large datasets. WISDM still runs through `src/activity_data.py` until M2 migrates it. Note that the existing LOTO split gives every window its own group (`sj + 100·i + y + 1` never collides for 16xx subject IDs), so it is window-level stratified CV; reproducing it bit-for-bit needs that same group formula, because `StratifiedGroupKFold` depends on group-ID order.
+
 ## Pipeline
 
 The three pipeline stages run as `python -m scripts.<module>`. The orchestrator [scripts/run_pipeline.py](scripts/run_pipeline.py) chains them in-process so tracebacks stay readable; prefer it for full runs:
@@ -182,7 +186,8 @@ writes `doc/images/rp_gadf_structure_collage.png`). These three are CLI-only —
 nothing imports them, which does not make them dead.
 
 **Gates** — `_check_refs.py`, `_check_rp_decoders`, `_check_rp_production`,
-`_check_baseline` and `_freeze_baseline` (the M0 reference: golden decoder
+`_check_datasets` (the `src/datasets.py` interface on its synthetic
+dataset), `_check_baseline` and `_freeze_baseline` (the M0 reference: golden decoder
 outputs and a hash manifest of every result, under `results/_baseline/`; the
 audit behind them is `docs/audit/m0_baseline.md`), and
 the shell scripts `_check_build.sh` (strict LaTeX gate; it forces a `latexmk -g`
