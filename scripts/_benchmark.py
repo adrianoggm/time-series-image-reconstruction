@@ -2,7 +2,7 @@
 
 For each dataset and window length the same seeded sample of windows goes
 through the classical RP reconstruction (Hirata, on the conventional unsigned RP),
-our previous RP decoder, our Direct-2D RP decoder, GASF, GADF, MTF and XIRP
+our Direct-2D RP decoder, GASF, GADF, MTF and XIRP
 (src/representations.py), each decoded from the float operator and from its
 8-bit image. Per channel series it
 stores dimensionless fidelity and spectral metrics plus encode/decode time:
@@ -32,9 +32,9 @@ from pathlib import Path
 
 import numpy as np
 
-REPS = ("RP_HIRATA", "RP_LEGACY", "RP", "GASF", "GADF", "MTF", "XIRP")   # RP = our Direct-2D decoder
+REPS = ("RP_HIRATA", "RP", "GASF", "GADF", "MTF", "XIRP")   # RP = our Direct-2D decoder
 CONDS = ("float", "png8")
-LABELS = {"RP_HIRATA": "RP clásica (Hirata)", "RP_LEGACY": "RP anterior", "RP": "RP nueva (Direct-2D)",
+LABELS = {"RP_HIRATA": "RP clásica (Hirata)", "RP": "RP nueva (Direct-2D)",
           "GASF": "GASF", "GADF": "GADF", "MTF": "MTF", "XIRP": "XIRP"}
 METRICS = ("nmae", "nrmse", "pearson", "dnmae", "psd_shape", "fdom_err", "energy_err", "enc_ms", "dec_ms")
 # Dataset-specific settings live here and nowhere else.

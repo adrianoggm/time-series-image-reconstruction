@@ -167,12 +167,6 @@ def _rp_hirata_decode(R, mm):
     return to_series(Y, mm, "as_is")
 
 
-def _rp_legacy_decode(R, mm):
-    """Our previous decoder, faithful to the first manuscript (src/rp_legacy.py), on the same signed RP."""
-    from src.rp_legacy import decode_channel
-
-    return decode_channel(np.asarray(R, dtype=float), mm, scale_invariant=True, n_out=np.asarray(R).shape[0] + 1)[0]
-
 
 REPRESENTATIONS: dict[str, Representation] = {
     r.name: r for r in (
@@ -181,9 +175,8 @@ REPRESENTATIONS: dict[str, Representation] = {
         Representation("GADF", _gadf_encode, _gaf_to_uint8, _signed_from_uint8, _gadf_decode),
         Representation("MTF", _mtf_encode, _u8, _mtf_from_uint8, _mtf_decode),
         Representation("XIRP", _xirp_encode, _xirp_to_uint8, _xirp_from_uint8, _xirp_decode),
-        # RP reference decoders: the classical method on the conventional RP and our previous decoder.
+        # RP reference: the classical method on the conventional (unsigned, binary) RP.
         Representation("RP_HIRATA", _rp_encode, _rp_unsigned_to_uint8, _rp_unsigned_from_uint8, _rp_hirata_decode),
-        Representation("RP_LEGACY", _rp_encode, _rp_to_uint8, _rp_from_uint8, _rp_legacy_decode),
     )
 }
 
