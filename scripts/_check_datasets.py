@@ -3,10 +3,23 @@
     python -m scripts._check_datasets
 """
 import tempfile
+from pathlib import Path
 
 import numpy as np
 
-from src.datasets import REGISTRY, UNLABELLED, Recording, cached_windows, get, group_kfold, make_windows, validate
+from src.datasets import (
+    REGISTRY,
+    UNLABELLED,
+    DatasetAdapter,
+    DatasetSpec,
+    Recording,
+    cached_windows,
+    files_fingerprint,
+    get,
+    group_kfold,
+    make_windows,
+    validate,
+)
 
 LENGTH = 128
 
@@ -67,4 +80,55 @@ with tempfile.TemporaryDirectory() as d:
     assert all(np.array_equal(getattr(first, k), getattr(second, k)) for k in ("X", "y", "groups", "rec_id", "start"))
     assert not np.array_equal(first.X, other.X), "a different adapter config must not hit the same cache entry"
 print("[ok] cache: hit on identical config, miss on a different seed")
+
+
+# Multilabel (PTB-XL-like: one multi-hot vector per record) and unlabelled (Swarm-like) datasets.
+class _Multilabel(DatasetAdapter):
+    spec = DatasetSpec(name="ml", fs=100.0, channels=("I", "II"), units=("mV", "mV"), task="multilabel",
+                       classes=("NORM", "MI", "STTC"))
+
+    def recordings(self):
+        rng = np.random.default_rng(0)
+        for r in range(9):
+            hot = np.array([r % 3 == 0, r % 2 == 0, r % 5 == 0], dtype=np.int8)
+            yield Recording(rng.standard_normal((1000, 2)), f"patient{r // 3}", f"rec{r}", labels=np.tile(hot, (1000, 1)))
+
+
+class _Unlabelled(DatasetAdapter):
+    spec = DatasetSpec(name="ul", fs=1.0, channels=("B_N", "B_E", "B_C"), units=("nT",) * 3, task="none")
+
+    def __init__(self, root):
+        self.root = root
+
+    def recordings(self):
+        for p in sorted(Path(self.root).glob("*.npy")):
+            yield Recording(np.load(p), p.stem.split("_")[0], p.stem)
+
+    def fingerprint(self):
+        return files_fingerprint(Path(self.root).glob("*.npy"))
+
+
+ml = make_windows(_Multilabel(), 250, dtype=np.float32)
+assert ml.X.dtype == np.float32 and ml.y.shape == (len(ml.X), 3) and "cast(float32)" in ml.meta["transforms"]
+for train, test in group_kfold(ml, n_folds=3):
+    assert not set(ml.groups[train]) & set(ml.groups[test])
+try:
+    validate(Recording(np.zeros((10, 2)), "g", "bad", labels=np.full((10, 3), 2)), _Multilabel.spec)
+    raise SystemExit("validate accepted non-binary multilabel targets")
+except ValueError:
+    pass
+print(f"[ok] multilabel: X {ml.X.shape} {ml.X.dtype}, y {ml.y.shape}, group folds")
+
+with tempfile.TemporaryDirectory() as d:
+    for s in range(4):
+        np.save(Path(d) / f"pass{s}_A.npy", np.random.default_rng(s).standard_normal((600, 3)))
+    ul_adapter = _Unlabelled(d)
+    ul = make_windows(ul_adapter, 128)
+    assert (ul.y == UNLABELLED).all() and len(group_kfold(ul, n_folds=2)) == 2
+    cache = Path(d) / "cache"
+    before = cached_windows(ul_adapter, 128, cache_dir=cache)
+    np.save(Path(d) / "pass0_A.npy", np.zeros((700, 3)))            # source re-downloaded/changed
+    after = cached_windows(ul_adapter, 128, cache_dir=cache)
+    assert "cache" not in after.meta and not np.array_equal(before.X, after.X), "stale cache after source change"
+print(f"[ok] unlabelled: {len(ul.X)} windows, GroupKFold; cache invalidated when a source file changes")
 print("all checks passed")
