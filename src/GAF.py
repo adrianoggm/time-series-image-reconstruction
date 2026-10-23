@@ -30,8 +30,18 @@ def normalize_to_zero_one(series):
     normalized_series = np.where(normalized_series <= 0., 0., normalized_series)
     return normalized_series
 def tabulate(x, y, f):
-    """Return a table of f(x, y). Useful for the Gram-like operations."""
-    return np.vectorize(f)(*np.meshgrid(x, y, sparse=True))
+    """Return a table of f(x, y): T[i, j] = f(x_j, y_i). Useful for the Gram-like operations.
+
+    The two Gramian kernels run as NumPy ufuncs on the same meshgrid operands (bit-identical to
+    np.vectorize over math.cos/math.sin, checked by scripts/_check_encoder_parity.py); any other f
+    falls back to np.vectorize.
+    """
+    X, Y = np.meshgrid(x, y, sparse=True)
+    if f is cos_sum:
+        return np.cos(X + Y)
+    if f is sin_diff:
+        return np.sin(X - Y)
+    return np.vectorize(f)(X, Y)
 
 def cos_sum(a, b):
     """To work with tabulate."""
@@ -98,18 +108,8 @@ def RGBfromGAFMatrix_of_XYZ(X,Y,Z):
     if X.shape != Y.shape or X.shape != Z.shape or Y.shape != Z.shape:
         print('XYZ should be in same shape!')
         return 0
-    #print(X.shape)
-    dimImage = X.shape[0]
-    newImage = np.zeros((dimImage,dimImage,3))
-    for i in range(dimImage):
-        for j in range(dimImage):
-            _pixel = []
-            _pixel.append(X[i][j])
-            _pixel.append(Y[i][j])
-            _pixel.append(Z[i][j])
-            newImage[i][j] = _pixel
-    return newImage
-
+    # One channel per axis; was a per-pixel Python loop with identical values.
+    return np.stack([np.asarray(X, dtype=float), np.asarray(Y, dtype=float), np.asarray(Z, dtype=float)], axis=-1)
 
 def SavevarGAF_XYZ(x, sj, item_idx, action=None, normalized=True, path=None, saveImage=True, TIME_STEPS=128):
     if not all([(x==0).all()]):

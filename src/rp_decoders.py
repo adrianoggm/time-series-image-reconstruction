@@ -280,7 +280,7 @@ def overlap_error_abs(a, b):
 
 def decode_window(img_rgb, minmax, source, dims=2, recover="overlap",
                   signed=True, rho=0.60, rp_range=None,
-                  orientation_method="closed_form"):
+                  orientation_method="closed_form", with_metrics=True):
     """Decode a 3-channel RP image to (TIME_STEPS,3) plus geometry metrics.
 
     Metrics (averaged over channels): e_rp (signed-RP reproduction error),
@@ -300,6 +300,9 @@ def decode_window(img_rgb, minmax, source, dims=2, recover="overlap",
         (see ``scripts/_check_rp_scale.py``).
     The OUTPUT is always rescaled to the signal range, since the reconstruction
     is an amplitude.
+
+    ``with_metrics=False`` skips the diagnostics (a second distance matrix and
+    MDS per channel); the reconstruction is the same and the metrics are NaN.
     """
     maxs, mins = minmax
     diagonal = isinstance(rp_range, str) and rp_range == "diagonal"
@@ -316,15 +319,17 @@ def decode_window(img_rgb, minmax, source, dims=2, recover="overlap",
                              scale_invariant=diagonal,
                              orientation_method=orientation_method)
         chans.append(rec)
+        if not with_metrics:
+            continue
         e_rp.append(signed_rp_error(R_obs, rec, scale_invariant=diagonal))
         dmat = distance_matrix(R_obs, source=source, rho=rho)
         Y, pos = embed_2d(dmat)
         evrs.append(evr2(pos))
         stresses.append(mds_stress(dmat, Y))
     rec = np.stack(chans, axis=1)                       # (TIME_STEPS, 3)
-    metrics = dict(e_rp=float(np.mean(e_rp)),
-                   evr2=float(np.mean(evrs)),
-                   stress=float(np.mean(stresses)))
+    metrics = dict(e_rp=float(np.mean(e_rp)) if e_rp else np.nan,
+                   evr2=float(np.mean(evrs)) if evrs else np.nan,
+                   stress=float(np.mean(stresses)) if stresses else np.nan)
     return rec, metrics
 
 
