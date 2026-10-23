@@ -22,6 +22,26 @@ def NormalizeMatrix_Adri(_r):
     
     return _normalizedRP
 def varRP2(data, TIME_STEPS=128):#dim:=x,y,z
+    """Signed RP of the adjacent states s_i = (x_i, x_{i+1}); see main3.tex eq:FormulaRP.
+
+    Vectorised form of the original double loop, kept bit-identical to it
+    (scripts/_check_varrp2.py): the same pow(., 0.5), the same summation order
+    and the same -0.0 on the diagonal. ``TIME_STEPS`` is unused, as before.
+    """
+    x = np.asarray(data, dtype=float)
+    s = np.stack([x[:-1], x[1:]], axis=1)
+    d0 = s[:, None, 0] - s[None, :, 0]
+    d1 = s[:, None, 1] - s[None, :, 1]
+    norm = np.power(np.power(d1, 2) + np.power(d0, 2), 0.5)
+    y = norm * pow(pow(1.0, 2) + pow(1.0, 2), 0.5)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        cos = np.where(y > 0, (d1 * 1 + d0 * 1) / y, 0.0)
+    sign = np.where(cos >= pow(2, 0.5) / 2, 1.0, -1.0)
+    return sign * norm
+
+
+def _varRP2_loop(data, TIME_STEPS=128):
+    """The original implementation, kept as the reference for the vectorised varRP2."""
     x = data
     
     
