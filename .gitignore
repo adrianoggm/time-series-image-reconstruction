@@ -250,3 +250,7 @@ doc/*.synctex.gz
 results/_classification/*
 !results/_classification/summary.json
 !results/_classification/summary.md
+!results/_classification_esc10/
+results/_classification_esc10/*
+!results/_classification_esc10/summary.json
+!results/_classification_esc10/summary.md
