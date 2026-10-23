@@ -3,7 +3,6 @@
 Methods, all on the same windows and channels:
   hirata          Hirata RPR on the conventional binary RP (rate 0.75), orientation as returned
   hirata_oracle   the same with evaluation-only oracle orientation (a bound, not a result)
-  legacy_signed   our previous decoder (src/rp_legacy.py) on the signed RP
   direct_unsigned Direct-2D on |R| only (no sign available)
   direct_unsigned_oracle  the same with oracle orientation
   direct_signed   Direct-2D on the signed RP (production decoder)
@@ -26,7 +25,7 @@ from pathlib import Path
 
 import numpy as np
 
-METHODS = ("hirata", "hirata_oracle", "legacy_signed", "direct_unsigned", "direct_unsigned_oracle",
+METHODS = ("hirata", "hirata_oracle", "direct_unsigned", "direct_unsigned_oracle",
            "direct_signed", "geo_signed")
 CONDITIONS = ("float", "png8")
 METRICS = ("nmae", "nrmse", "pearson", "orientation_ok", "seconds")
@@ -50,7 +49,6 @@ def series_row(x):
     from src.recurrence_plots import NormalizeMatrix, varRP2
     from src.rp_decoders import decode_channel
     from src.rp_hirata import binary_rp, eps_for_rate, states, to_series
-    from src.rp_legacy import decode_channel as legacy
 
     T, mm = len(x), (x.max(), x.min())
     R = varRP2(x, TIME_STEPS=T)
@@ -69,8 +67,6 @@ def series_row(x):
         Y, _ = states(binary_rp(D_u, eps_for_rate(D_u, 0.75)))
         recs["hirata"] = (to_series(Y, mm), time.perf_counter() - t0)
         recs["hirata_oracle"] = (_oracle(recs["hirata"][0], x), recs["hirata"][1])
-        t0 = time.perf_counter()
-        recs["legacy_signed"] = (legacy(R_s, mm, scale_invariant=True, n_out=T)[0], time.perf_counter() - t0)
         t0 = time.perf_counter()
         du = decode_channel(D_u, mm, source="direct", signed=False)
         recs["direct_unsigned"] = (du, time.perf_counter() - t0)

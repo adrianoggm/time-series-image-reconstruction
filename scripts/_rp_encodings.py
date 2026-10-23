@@ -7,13 +7,10 @@ Encodings of the same channel series (adjacent states s_i = (x_i, x_{i+1})):
 
 Decoders:
   hirata    Hirata et al. RPR (graph of the binary RP, Eq. 2 weights, shortest paths, MDS) + our 1-D post-processing
-  previous  our previous decoder (src/rp_legacy.py): Jaccard graph, Dijkstra, SMACOF 1-D, signed check
   direct2d  our decoder: continuous distances (geodesics of the binary RP when only that exists), 2-D MDS,
             closed-form orientation and overlap recovery; the sign picks the reflection when available
 
-Hirata thresholds whatever it receives, so it only has a binary column. On the
-binary RP "previous" uses the binary graph directly (its own quantile threshold
-would make every pair recurrent). Without a sign the reflection cannot be
+Hirata thresholds whatever it receives, so it only has a binary column. Without a sign the reflection cannot be
 resolved: those cells report the reconstruction as returned and, separately, an
 evaluation-only oracle that picks the better of x and its reflection.
 
@@ -28,9 +25,7 @@ from pathlib import Path
 
 import numpy as np
 
-CELLS = (("binary", "hirata"), ("binary", "previous"), ("binary", "direct2d"),
-         ("unsigned", "previous"), ("unsigned", "direct2d"),
-         ("signed", "previous"), ("signed", "direct2d"))
+CELLS = (("binary", "hirata"), ("binary", "direct2d"), ("unsigned", "direct2d"), ("signed", "direct2d"))
 CONDS = ("float", "png8")
 FIELDS = ("nmae", "nmae_oracle", "orientation_ok", "ms")
 
@@ -42,18 +37,10 @@ def _rescale(v, mm):
 
 def decode(enc, dec, M, mm):
     from src.rp_decoders import decode_channel
-    from src.rp_hirata import geodesics, states, to_series
-    from src.rp_legacy import decode_channel as previous
-    from src.rp_legacy import project_1d
+    from src.rp_hirata import states, to_series
 
-    n = M.shape[0] + 1
     if dec == "hirata":
         return to_series(states(M)[0], mm, "as_is")
-    if dec == "previous":
-        if enc == "binary":
-            proj = project_1d(geodesics(M)[0], "smacof")
-            return _rescale(np.append(proj, proj.mean()), mm)
-        return previous(M, mm, signed=(enc == "signed"), scale_invariant=True, n_out=n)[0]
     if enc == "binary":
         return decode_channel(M, mm, source="binary_geodesic", dims=2, recover="overlap", signed=False)
     return decode_channel(M, mm, source="direct", dims=2, recover="overlap", signed=(enc == "signed"),
