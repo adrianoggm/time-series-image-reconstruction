@@ -307,3 +307,56 @@ class STEADAdapter(DatasetAdapter):
                     group = (f"event:{row.source_id}" if row.trace_category == "earthquake_local"
                              else f"station:{row.network_code}.{row.receiver_code}")
                     yield Recording(data=x, group=group, rec_id=row.trace_name, labels=np.full(len(x), label))
+
+
+EMG_GESTURES = ("rest", "fist", "wrist_flexion", "wrist_extension", "radial_deviation", "ulnar_deviation",
+                "extended_palm")
+
+
+@register
+class EMGGesturesAdapter(DatasetAdapter):
+    """UCI "EMG Data for Gestures" (Krilova et al., DOI 10.24432/C5ZP5C, CC BY 4.0): 8-channel Myo armband sEMG.
+
+    36 subjects, two series each, static gestures of 3 s separated by 3 s pauses.
+    Label 0 (unmarked pauses) is excluded like PAMAP2's transients; label 7
+    (extended palm) is excluded unless ``include_palm`` because only a few
+    subjects performed it. The logged time column advances in ~1 ms steps by
+    repeating the last value, while the signal itself changes about 100 times
+    per second (measured 91-111 Hz across files; UCI states no rate), so each
+    file is resampled with sample-and-hold onto a uniform ``fs`` grid (100 Hz
+    by default). One recording per gesture run; the group is the subject.
+    """
+
+    spec = DatasetSpec(name="emg_gestures", fs=100.0, channels=tuple(f"ch{k}" for k in range(1, 9)),
+                       units=("V",) * 8, classes=EMG_GESTURES[:6])
+
+    def __init__(self, root: str | Path = "~/datasets/EMG-Gestures/EMG_data_for_gestures-master", fs: float = 100.0,
+                 include_palm: bool = False):
+        self.root, self.fs, self.include_palm = str(Path(root).expanduser()), float(fs), include_palm
+        classes = EMG_GESTURES if include_palm else EMG_GESTURES[:6]
+        self.spec = DatasetSpec(name="emg_gestures", fs=self.fs, channels=EMGGesturesAdapter.spec.channels,
+                                units=("V",) * 8, classes=classes)
+
+    def _files(self) -> list[Path]:
+        return sorted(Path(self.root).glob("*/*.txt"))
+
+    def fingerprint(self) -> str:
+        return files_fingerprint(self._files())
+
+    def recordings(self) -> Iterator[Recording]:
+        n_classes = len(self.spec.classes)
+        for f in self._files():
+            df = pd.read_csv(f, sep="\t", on_bad_lines="skip").dropna()     # one truncated row in the release
+            t = df["time"].to_numpy(dtype=float) / 1000.0
+            X, lab = df.iloc[:, 1:9].to_numpy(dtype=float), df["class"].to_numpy(dtype=int)
+            grid = np.arange(t[0], t[-1], 1.0 / self.fs)
+            idx = np.searchsorted(t, grid, side="right") - 1             # sample-and-hold onto the grid
+            Xg, yg = X[idx], lab[idx]
+            change = np.flatnonzero(yg[1:] != yg[:-1]) + 1
+            bounds = np.concatenate([[0], change, [len(yg)]])
+            subject = f.parent.name
+            for a, b in zip(bounds[:-1], bounds[1:], strict=True):
+                if not 1 <= yg[a] <= n_classes:                         # 0 = pause; 7 unless include_palm
+                    continue
+                yield Recording(data=Xg[a:b], group=subject, rec_id=f"{subject}/{f.stem}/{a}",
+                                labels=np.full(b - a, yg[a] - 1), t=grid[a:b])
