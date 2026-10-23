@@ -130,6 +130,7 @@ scripts/_*.py
 !scripts/_check_wisdm_parity.py
 !scripts/_check_xirp.py
 !scripts/_check_refs.py
+!scripts/_check_representations.py
 !scripts/_check_rp_cycle.sh
 !scripts/_compile_papers.sh
 !scripts/_emit_main2_numbers.py
