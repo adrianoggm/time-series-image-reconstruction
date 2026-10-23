@@ -50,7 +50,9 @@ class Recording:
     data: np.ndarray                    # (T, C)
     group: str                          # unit a split must never break: subject, event, station
     rec_id: str                         # unique acquisition id
-    labels: np.ndarray | None = None    # (T,) int per sample; None when the dataset has no labels
+    # Per-sample labels: (T,) int class index for "multiclass", (T, K) 0/1 multi-hot for
+    # "multilabel" (K = len(spec.classes); repeat a per-record vector over T). None if unlabelled.
+    labels: np.ndarray | None = None
     t: np.ndarray | None = None         # (T,) seconds; None means uniform sampling at spec.fs
 
 
@@ -63,6 +65,20 @@ class DatasetAdapter:
     def config(self) -> dict:
         """Everything that changes the produced recordings; part of the cache key."""
         return {k: v for k, v in vars(self).items() if not k.startswith("_")}
+
+    def fingerprint(self) -> str:
+        """Identity of the raw source data, so the cache notices a re-download. Override for file-backed
+        adapters, usually with ``files_fingerprint(self.root.rglob(...))``."""
+        return ""
+
+
+def files_fingerprint(paths) -> str:
+    """Cheap source identity: name, size and mtime of every file (no content hashing)."""
+    h = hashlib.sha256()
+    for p in sorted(Path(p) for p in paths):
+        st = p.stat()
+        h.update(f"{p.as_posix()}|{st.st_size}|{st.st_mtime_ns}\n".encode())
+    return h.hexdigest()
 
 
 REGISTRY: dict[str, type[DatasetAdapter]] = {}
@@ -84,9 +100,16 @@ def validate(rec: Recording, spec: DatasetSpec) -> dict:
     if rec.data.ndim != 2 or rec.data.shape[1] != len(spec.channels):
         raise ValueError(f"{rec.rec_id}: data shape {rec.data.shape}, expected (T, {len(spec.channels)})")
     n = rec.data.shape[0]
-    for name, arr in (("labels", rec.labels), ("t", rec.t)):
-        if arr is not None and arr.shape != (n,):
-            raise ValueError(f"{rec.rec_id}: {name} shape {arr.shape}, expected ({n},)")
+    if rec.t is not None and rec.t.shape != (n,):
+        raise ValueError(f"{rec.rec_id}: t shape {rec.t.shape}, expected ({n},)")
+    if rec.labels is not None:
+        if spec.task == "none":
+            raise ValueError(f"{rec.rec_id}: labels given for a dataset declared task='none'")
+        expected = (n, len(spec.classes)) if spec.task == "multilabel" else (n,)
+        if rec.labels.shape != expected:
+            raise ValueError(f"{rec.rec_id}: labels shape {rec.labels.shape}, expected {expected}")
+        if spec.task == "multilabel" and not np.isin(rec.labels, (0, 1)).all():
+            raise ValueError(f"{rec.rec_id}: multilabel labels must be 0/1")
     report = {"samples": n, "nan": int(np.isnan(rec.data).sum()), "inf": int(np.isinf(rec.data).sum()),
               "non_monotonic_t": 0, "gaps": 0}
     if rec.t is not None:
@@ -102,7 +125,7 @@ def _runs(rec: Recording, spec: DatasetSpec) -> list[tuple[int, int]]:
     breaks = np.zeros(n, dtype=bool)
     breaks[0] = True
     if rec.labels is not None:
-        breaks[1:] |= rec.labels[1:] != rec.labels[:-1]
+        breaks[1:] |= (rec.labels[1:] != rec.labels[:-1]).reshape(n - 1, -1).any(axis=1)
     if rec.t is not None:
         dt = np.diff(rec.t)
         breaks[1:] |= (dt <= 0) | (dt > GAP_FACTOR / spec.fs)
@@ -113,7 +136,7 @@ def _runs(rec: Recording, spec: DatasetSpec) -> list[tuple[int, int]]:
 @dataclass
 class Windows:
     X: np.ndarray           # (N, T, C)
-    y: np.ndarray           # (N,) int, UNLABELLED when unknown
+    y: np.ndarray           # (N,) int (UNLABELLED when unknown), or (N, K) multi-hot for multilabel
     groups: np.ndarray      # (N,) str
     rec_id: np.ndarray      # (N,) str — together with `start`, where each window came from
     start: np.ndarray       # (N,) int sample offset inside its recording
@@ -121,11 +144,12 @@ class Windows:
 
 
 def make_windows(adapter: DatasetAdapter, length: int, step: int | None = None,
-                 drop_nonfinite: bool = True) -> Windows:
+                 drop_nonfinite: bool = True, dtype=None) -> Windows:
     """Segment every recording into windows of ``length`` samples every ``step`` (default: no overlap).
 
     Tails shorter than ``length`` are dropped. Windows with NaN/Inf are dropped
-    when ``drop_nonfinite`` and counted in ``meta["dropped"]``.
+    when ``drop_nonfinite`` and counted in ``meta["dropped"]``. ``dtype`` (e.g.
+    ``np.float32``) halves memory for the large datasets; None keeps the source dtype.
     """
     spec, step = adapter.spec, step or length
     X, y, groups, rec_ids, starts, reports = [], [], [], [], [], {}
@@ -142,8 +166,8 @@ def make_windows(adapter: DatasetAdapter, length: int, step: int | None = None,
                 if drop_nonfinite and not np.isfinite(win).all():
                     dropped["nonfinite"] += 1
                     continue
-                X.append(win)
-                y.append(UNLABELLED if rec.labels is None else int(rec.labels[s]))
+                X.append(win if dtype is None else win.astype(dtype))
+                y.append(UNLABELLED if rec.labels is None else rec.labels[s])
                 groups.append(rec.group)
                 rec_ids.append(rec.rec_id)
                 starts.append(s)
@@ -153,22 +177,26 @@ def make_windows(adapter: DatasetAdapter, length: int, step: int | None = None,
     transforms = [f"segment(length={length}, step={step}, break_on=label|gap)"]
     if drop_nonfinite:
         transforms.append("drop_nonfinite")
+    if dtype is not None:
+        transforms.append(f"cast({np.dtype(dtype).name})")
     meta = {"dataset": spec.name, "fs": spec.fs, "channels": list(spec.channels), "units": list(spec.units),
             "task": spec.task, "classes": list(spec.classes), "length": length, "step": step,
             "duration_s": length / spec.fs, "adapter_config": adapter.config(), "transforms": transforms,
             "dropped": dropped, "validation": reports}
-    return Windows(np.stack(X), np.array(y), np.array(groups), np.array(rec_ids), np.array(starts), meta)
+    return Windows(np.stack(X), np.asarray(y), np.array(groups), np.array(rec_ids), np.array(starts), meta)
 
 
 def group_kfold(w: Windows, n_folds: int) -> list[tuple[np.ndarray, np.ndarray]]:
     """Deterministic folds that never put one group on both sides.
 
-    Stratified by label when the dataset is labelled. No shuffling, so the same
-    windows always give the same folds (as the current WISDM pipeline does).
+    Stratified by class for multiclass data; plain group folds for multilabel
+    and unlabelled data. No shuffling, so the same windows always give the same
+    folds (as the current WISDM pipeline does).
     """
-    labelled = (w.y != UNLABELLED).all()
-    splitter = StratifiedGroupKFold(n_splits=n_folds) if labelled else GroupKFold(n_splits=n_folds)
-    folds = list(splitter.split(w.X, w.y if labelled else None, groups=w.groups))
+    # ponytail: multilabel folds are not label-stratified; add iterative stratification if PTB-XL folds come out skewed.
+    stratify = w.meta.get("task") == "multiclass" and w.y.ndim == 1 and (w.y != UNLABELLED).all()
+    splitter = StratifiedGroupKFold(n_splits=n_folds) if stratify else GroupKFold(n_splits=n_folds)
+    folds = list(splitter.split(w.X, w.y if stratify else None, groups=w.groups))
     for train, test in folds:
         leaked = set(w.groups[train]) & set(w.groups[test])
         if leaked:
@@ -177,21 +205,18 @@ def group_kfold(w: Windows, n_folds: int) -> list[tuple[np.ndarray, np.ndarray]]
 
 
 def cached_windows(adapter: DatasetAdapter, length: int, step: int | None = None,
-                   cache_dir: str | Path = "data/_windows") -> Windows:
-    """``make_windows`` memoised on disk, keyed by spec, adapter config and parameters.
-
-    # ponytail: the key does not hash the raw source files; add a fingerprint to
-    # ``config()`` in adapters whose source data can change under the same config.
-    """
+                   cache_dir: str | Path = "data/_windows", dtype=None) -> Windows:
+    """``make_windows`` memoised on disk, keyed by spec, adapter config, source fingerprint and parameters."""
     key_src = json.dumps({"v": CACHE_VERSION, "spec": repr(adapter.spec), "config": adapter.config(),
-                          "length": length, "step": step or length}, sort_keys=True, default=str)
+                          "source": adapter.fingerprint(), "length": length, "step": step or length,
+                          "dtype": None if dtype is None else np.dtype(dtype).name}, sort_keys=True, default=str)
     key = hashlib.sha256(key_src.encode()).hexdigest()[:16]
     path = Path(cache_dir) / f"{adapter.spec.name}-{key}"
     if (path.with_suffix(".npz")).exists():
         z = np.load(path.with_suffix(".npz"), allow_pickle=False)
         meta = json.loads(path.with_suffix(".json").read_text())
         return Windows(z["X"], z["y"], z["groups"], z["rec_id"], z["start"], meta | {"cache": str(path)})
-    w = make_windows(adapter, length, step)
+    w = make_windows(adapter, length, step, dtype=dtype)
     path.parent.mkdir(parents=True, exist_ok=True)
     np.savez(path.with_suffix(".npz"), X=w.X, y=w.y, groups=w.groups, rec_id=w.rec_id, start=w.start)
     path.with_suffix(".json").write_text(json.dumps(w.meta | {"cache_key": key_src}, indent=1, default=str))
