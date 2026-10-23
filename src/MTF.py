@@ -366,10 +366,7 @@ def _legacy_MTF_to_TS(mtf, dictionary, index=0, numstates=4, TIMESTEPS=128):
     serie=np.interp(serie,(min_a,max_a),(MIN[index], MAX[index]))
     return serie
 def generate_all_markov_transition_field(X_train, y_train, sj_train, dataset_folder=DEFAULT_DATA_DIR, TIME_STEPS=128,  FOLDS_N=3, sampling="loso"):
-  groups = sj_train 
-  if sampling == "loto":
-    #TODO change 100 for an automatic extracted number greater than the max subject ID: max(sj_train)*10
-    groups = [[int(sj[0])+i*100+np.argmax(y_train[i])+1] for i,sj in enumerate(sj_train)]
+  groups = act.fold_groups(sj_train, y_train, sampling)
 
   # if DATASET_NAME == "WISDM": #since wisdm is quite balanced
   sgkf = StratifiedGroupKFold(n_splits=FOLDS_N)

@@ -19,6 +19,7 @@ import src.calculate_ts_errors as err
 import time
 import seaborn as sns
 from sklearn.model_selection import StratifiedGroupKFold, GroupKFold
+import src.activity_data as act
 import src.recurrence_plots as rpts
 import src.GAF as gaf
 import src.GADF as gadf
@@ -370,10 +371,7 @@ def generate_all_time_series(X_train, y_train, sj_train, dataset_folder=DEFAULT_
   # skipped. The historical behaviour (run fold-0 only) is preserved by the
   # ``break`` statements below; passing ``target_fold=1`` or ``2`` lets the
   # orchestrator drive each remaining fold from outside.
-  groups = sj_train 
-  if sampling == "loto":
-    #TODO change 100 for an automatic extracted number greater than the max subject ID: max(sj_train)*10
-    groups = [[int(sj[0])+i*100+np.argmax(y_train[i])+1] for i,sj in enumerate(sj_train)]
+  groups = act.fold_groups(sj_train, y_train, sampling)
 
   # if DATASET_NAME == "WISDM": #since wisdm is quite balanced
   sgkf = StratifiedGroupKFold(n_splits=FOLDS_N)
