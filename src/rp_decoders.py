@@ -53,6 +53,7 @@ def distance_matrix(R_obs, source, rho=0.60):
     source="direct" : symmetric magnitudes (== L2 state distances, up to noise)
     source="geo"    : continuous-weighted graph geodesic distances
     source="jaccard": legacy Jaccard-dissimilarity graph geodesic (baseline)
+    source="jaccard_legacy": the faithful previous decoder's geodesics (src/rp_legacy.py)
     """
     if source == "direct":
         return symmetrized_magnitude(R_obs)
@@ -61,6 +62,11 @@ def distance_matrix(R_obs, source, rho=0.60):
     if source == "jaccard":
         # weigthed_graphRP expects the signed RP and applies its own |.| + threshold.
         return calculate_shortest_path_matrix(weigthed_graphRP(R_obs, 100.0 * rho))
+    if source == "jaccard_legacy":
+        # Faithful previous decoder (src/rp_legacy.py); always its own rho = 0.75, never this rho.
+        from src.rp_legacy import geodesic_distances
+
+        return geodesic_distances(R_obs)[0]
     raise ValueError(f"unknown source: {source!r}")
 
 
@@ -212,6 +218,10 @@ def decode_channel(R_obs, minmax_c, source, dims=2, recover="overlap",
       and RP-GEO-1D). dims=2, recover="overlap": 2-D O(2) alignment + overlap
       reconstruction; signed=True adds the signed-RP orientation selection.
     """
+    if source == "jaccard_legacy":
+        from src.rp_legacy import decode_channel as legacy_decode
+
+        return legacy_decode(R_obs, minmax_c, signed=signed, scale_invariant=scale_invariant, n_out=TIME_STEPS)[0]
     if (dims, recover) not in {(1, "append"), (2, "overlap")}:
         raise ValueError(f"unsupported (dims, recover) combo: ({dims}, {recover!r})")
     dmat = distance_matrix(R_obs, source=source, rho=rho)
