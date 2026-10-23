@@ -62,6 +62,12 @@ def distance_matrix(R_obs, source, rho=0.60):
     if source == "jaccard":
         # weigthed_graphRP expects the signed RP and applies its own |.| + threshold.
         return calculate_shortest_path_matrix(weigthed_graphRP(R_obs, 100.0 * rho))
+    if source == "binary_geodesic":
+        # A conventional binary RP has no distances; estimate them with Hirata's graph geodesics so the
+        # 2-D decoder can run on it (src/rp_hirata.py). R_obs is the binary matrix itself.
+        from src.rp_hirata import geodesics
+
+        return geodesics(R_obs)[0]
     if source == "jaccard_legacy":
         # Faithful previous decoder (src/rp_legacy.py); always its own rho = 0.75, never this rho.
         from src.rp_legacy import geodesic_distances
@@ -221,6 +227,12 @@ def decode_channel(R_obs, minmax_c, source, dims=2, recover="overlap",
     The output has N = M + 1 samples for an (M, M) matrix, so any window length works.
     """
     n_out = np.asarray(R_obs).shape[0] + 1
+    # The decoder is scale-equivariant (the output is rescaled to the channel range), but EPS and the
+    # flatness checks below are absolute. Bring matrices of tiny magnitude (e.g. a dead seismometer
+    # channel spanning 1e-12) to O(1) first; ordinary inputs never take this branch and are unchanged.
+    scale = float(np.max(np.abs(R_obs)))
+    if 0.0 < scale < 1e-6:
+        R_obs = np.asarray(R_obs, dtype=float) / scale
     if source == "jaccard_legacy":
         from src.rp_legacy import decode_channel as legacy_decode
 

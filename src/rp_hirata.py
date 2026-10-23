@@ -47,9 +47,13 @@ def binary_rp(D: np.ndarray, eps: float) -> np.ndarray:
     return (D < eps).astype(np.int8)                     # Eq. (1); diagonal is 1
 
 
-def states(B: np.ndarray, dims: int = 2) -> tuple[np.ndarray, int]:
-    """Steps 2-4 on a binary RP. Returns the MDS state coordinates and the unreachable-pair count."""
-    C = B.astype(float)
+def geodesics(B: np.ndarray) -> tuple[np.ndarray, int]:
+    """Steps 2-3 on a binary RP: Eq. (2) local distances on edges, then all-pairs shortest paths.
+
+    Returns the geodesic matrix (unreachable pairs set to 0, as our other decoders do) and their count.
+    Also used to run our 2-D decoder on a binary RP (rp_decoders, source="binary_geodesic").
+    """
+    C = (np.asarray(B) != 0).astype(float)
     inter = C @ C.T
     sizes = C.sum(axis=1)
     W = 1.0 - inter / (sizes[:, None] + sizes[None, :] - inter)      # Eq. (2)
@@ -58,7 +62,12 @@ def states(B: np.ndarray, dims: int = 2) -> tuple[np.ndarray, int]:
     G = csr_matrix((W[rows[keep], cols[keep]], (rows[keep], cols[keep])), shape=C.shape)
     SP = shortest_path(G, method="D", directed=False)
     unreachable = int(np.isinf(SP).sum())
-    SP = np.where(np.isfinite(SP), SP, 0.0)              # same convention as our other decoders; counted
+    return np.where(np.isfinite(SP), SP, 0.0), unreachable
+
+
+def states(B: np.ndarray, dims: int = 2) -> tuple[np.ndarray, int]:
+    """Steps 2-4 on a binary RP. Returns the MDS state coordinates and the unreachable-pair count."""
+    SP, unreachable = geodesics(B)
     n = len(SP)
     J = np.eye(n) - 1.0 / n
     vals, vecs = np.linalg.eigh(-0.5 * J @ np.square(SP) @ J)
