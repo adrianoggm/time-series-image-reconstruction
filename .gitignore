@@ -121,6 +121,7 @@ scripts/_*.py
 !scripts/_check_build.sh
 !scripts/_check_datasets.py
 !scripts/_check_pamap2.py
+!scripts/_check_rp_hirata.py
 !scripts/_check_rp_legacy.py
 !scripts/_check_wisdm_parity.py
 !scripts/_check_xirp.py
