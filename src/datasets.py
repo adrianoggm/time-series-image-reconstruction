@@ -127,7 +127,8 @@ def _runs(rec: Recording, spec: DatasetSpec) -> list[tuple[int, int]]:
     breaks = np.zeros(n, dtype=bool)
     breaks[0] = True
     if rec.labels is not None:
-        breaks[1:] |= (rec.labels[1:] != rec.labels[:-1]).reshape(n - 1, -1).any(axis=1)
+        diff = rec.labels[1:] != rec.labels[:-1]
+        breaks[1:] |= diff.any(axis=1) if diff.ndim > 1 else diff
     if rec.t is not None:
         dt = np.diff(rec.t)
         breaks[1:] |= (dt <= 0) | (dt > GAP_FACTOR / spec.fs)
