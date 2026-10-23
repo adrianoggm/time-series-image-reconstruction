@@ -147,6 +147,7 @@ scripts/_*.py
 !scripts/_mtf_controlled_ablation.py
 !scripts/_persist_paper_sources.sh
 !scripts/_regen_reconstruction_figs.py
+!scripts/_rp_encodings.py
 !scripts/_rp_matrix.py
 !scripts/_rp_sign_information.py
 !scripts/_run_recon_grid.sh
@@ -180,6 +181,8 @@ results/_stats/*
 !results/_stats/rp_orientation_ablation.md
 !results/_stats/rp_orientation_ablation.tex
 !results/_stats/rp_orientation_ablation_summary.json
+!results/_stats/rp_encodings.json
+!results/_stats/rp_encodings.md
 !results/_stats/rp_sign_information.json
 !results/_stats/stat_report_loso.json
 !results/_stats/stat_report_loso.md

@@ -62,6 +62,12 @@ def distance_matrix(R_obs, source, rho=0.60):
     if source == "jaccard":
         # weigthed_graphRP expects the signed RP and applies its own |.| + threshold.
         return calculate_shortest_path_matrix(weigthed_graphRP(R_obs, 100.0 * rho))
+    if source == "binary_geodesic":
+        # A conventional binary RP has no distances; estimate them with Hirata's graph geodesics so the
+        # 2-D decoder can run on it (src/rp_hirata.py). R_obs is the binary matrix itself.
+        from src.rp_hirata import geodesics
+
+        return geodesics(R_obs)[0]
     if source == "jaccard_legacy":
         # Faithful previous decoder (src/rp_legacy.py); always its own rho = 0.75, never this rho.
         from src.rp_legacy import geodesic_distances
