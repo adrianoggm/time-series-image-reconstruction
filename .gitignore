@@ -119,6 +119,7 @@ scripts/_*.py
 !scripts/_apply_classifier_tables.py
 !scripts/_benchmark.py
 !scripts/_benchmark_stats.py
+!scripts/_classification.py
 !scripts/_check_baseline.py
 !scripts/_check_build.sh
 !scripts/_check_datasets.py
@@ -245,3 +246,7 @@ doc/*.out
 doc/*.bbl
 doc/*.blg
 doc/*.synctex.gz
+!results/_classification/
+results/_classification/*
+!results/_classification/summary.json
+!results/_classification/summary.md

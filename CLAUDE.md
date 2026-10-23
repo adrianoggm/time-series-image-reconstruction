@@ -179,6 +179,10 @@ for SVM, `randomforestvalidation`, `lstmvalidation`, `gruvalidation`,
 `_make_loso_tables`, `_make_fidelity_tables`, `_make_robustness_tables`,
 `audit_manuscripts`.
 
+**Multi-dataset benchmark (M7)** — `_benchmark`, `_benchmark_stats`,
+`_rp_encodings`, `_rp_matrix`, `_classification` (classifiers trained on
+originals, tested on 8-bit reconstructions; writes `results/_classification/`).
+
 **Statistics and ablations** — `_stat_tests`, `_stat_per_subject`,
 `_gadf_pivot_stats`, `_mtf_controlled_ablation`, `_ablation_mtf_q_full`, `_ablation_rp_2d`,
 `_ablation_rp_metadata`, `_ablation_rp_orientation`.
