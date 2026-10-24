@@ -182,7 +182,10 @@ for SVM, `randomforestvalidation`, `lstmvalidation`, `gruvalidation`,
 **Multi-dataset benchmark (M7)** — `_benchmark`, `_benchmark_stats`,
 `_rp_encodings`, `_rp_matrix`, `_rp_conditions` (when the signed RP decoder is exact:
 sign information and state conditioning sigma2/sigma1), `_cost_scaling` (time and memory
-against length), `_classification` (classifiers trained on
+against length), `_robustness_multi` (noise on the stored image, seven datasets),
+`_sampling_rate` (PTB-XL resampled from 500 Hz), `_emit_infsci_tables` and
+`_make_infsci_figures` (every table, figure and quoted number of doc/infsci/main.tex,
+from the artefacts above), `_classification` (classifiers trained on
 originals, tested on 8-bit reconstructions; writes `results/_classification/`).
 
 **Statistics and ablations** — `_stat_tests`, `_stat_per_subject`,
