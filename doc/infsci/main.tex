@@ -111,7 +111,7 @@ The contributions are:
 Recurrence plots were introduced to visualise when a dynamical system revisits a region of its state space~\cite{eckmann1987recurrence} and have since been developed into a family of quantitative tools~\cite{marwan2007recurrence}. In their conventional form they are binary: a pixel marks whether two embedded states lie within a threshold of each other. Continuous variants keep the distance itself, and the signed variant of Lu and Tong also keeps whether the displacement between two states follows a reference direction, which they used for activity recognition from a single accelerometer~\cite{lu2019robust}. Wang and Oates proposed the Gramian angular fields, which map each sample to an angle and store the cosine of their sum or the sine of their difference, and the Markov transition field, which stores transition probabilities between quantile states, as image inputs to convolutional networks~\cite{wang2015encoding,wang2015encoding2}. These representations have been applied to human activity recognition~\cite{ahmad2021inertial}, anomaly detection~\cite{ma2024anomaly} and imputation~\cite{huamin2020reconstruction}. Hellermann and Lessmann recently introduced XIRP for time-series generation with image-based generative adversarial networks; it stores log-returns between instants off the diagonal and the series on the diagonal, so that generated images can be inverted~\cite{hellermann2026imagegan}.
 
 \subsection{Recovering a series from its image}
-Inversion has been studied separately for each representation. For binary recurrence plots, Hirata et al.\ build a graph from the recurrence neighbourhoods, approximate the distances between states by shortest paths and recover the state geometry by multidimensional scaling~\cite{hirata2008reproduction}\citetodo{Hirata et al.\ 2016, Sci.\ Rep.\ 6:34982}. For unthresholded recurrence plots of delay embeddings, Sipers et al.\ characterise when the signal is identifiable up to its mean and sign and reconstruct it by optimisation~\cite{sipers2011unique,sipers2017robust}. For GASF, Wang and Oates read the series from the diagonal, and restore damaged images with a denoising autoencoder before doing so~\cite{wang2015encoding}; Tao et al.\ follow a similar route for RP and GAF images~\cite{huamin2020reconstruction}. For GADF no decoder that resolves its branch ambiguity and its lost global offset has been specified, and for MTF even approximate recovery has been reported to be difficult~\cite{wang2015encoding}. XIRP is inverted from its diagonal or by averaging the proposals of all its columns~\cite{hellermann2026imagegan}.
+Inversion has been studied separately for each representation. For binary recurrence plots, Hirata et al.\ build a graph from the recurrence neighbourhoods, approximate the distances between states by shortest paths and recover the state geometry by multidimensional scaling~\cite{hirata2008reproduction,hirata2016chromosome}. For unthresholded recurrence plots of delay embeddings, Sipers et al.\ characterise when the signal is identifiable up to its mean and sign and reconstruct it by optimisation~\cite{sipers2011unique,sipers2017robust}. For GASF, Wang and Oates read the series from the diagonal, and restore damaged images with a denoising autoencoder before doing so~\cite{wang2015encoding}; Tao et al.\ follow a similar route for RP and GAF images~\cite{huamin2020reconstruction}. For GADF no decoder that resolves its branch ambiguity and its lost global offset has been specified, and for MTF even approximate recovery has been reported to be difficult~\cite{wang2015encoding}. XIRP is inverted from its diagonal or by averaging the proposals of all its columns~\cite{hellermann2026imagegan}.
 
 \subsection{Gap}
 Each of these works evaluates one representation, usually on one kind of signal, and several evaluate reconstruction only through classification. No study has compared the reconstruction capacity of the representations under a common protocol, separated what a representation loses from what image storage loses, or distinguished, for recurrence plots, the contribution of the encoding from that of the decoder.
@@ -141,7 +141,7 @@ Let $S\in\mathbb R^{(T-1)\times2}$ be the matrix of states and assume that the c
 \noindent\emph{Proof sketch.} The first part is the classical result that an exact Euclidean distance matrix of points with affine rank two is reproduced up to isometry by the two leading eigenvectors of the doubly centred squared-distance matrix~\cite{Torgerson1952}. For the second, the overlap residual is linear in $(\cos\theta,\sin\theta)$ for each reflection parity (Section~\ref{sec:rp_decoder}), so the exact orientation attains zero residual. \pending{complete proof and the uniqueness condition, issue \#121}
 
 \begin{remark}[8-bit storage]\label{rem:conditioning}
-Storage perturbs $|R|$ by at most half a quantisation step relative to its range. The error of the recovered two-dimensional subspace grows as the gap between the second and third eigenvalues of the centred Gram matrix shrinks, so the reconstruction degrades as $\sigma_2/\sigma_1$ of the centred states tends to zero, i.e.\ as the states become collinear\citetodo{eigenvector perturbation bound, e.g.\ Davis--Kahan}. Empirically, no series with $\sigma_2/\sigma_1\ge0.1$ exceeds a normalised error of $0.01$ (Section~\ref{sec:results_conditions}).
+Storage perturbs $|R|$ by at most half a quantisation step relative to its range. The error of the recovered two-dimensional subspace grows as the gap between the second and third eigenvalues of the centred Gram matrix shrinks, so the reconstruction degrades as $\sigma_2/\sigma_1$ of the centred states tends to zero, i.e.\ as the states become collinear~\cite{davis1970rotation}. Empirically, no series with $\sigma_2/\sigma_1\ge0.1$ exceeds a normalised error of $0.01$ (Section~\ref{sec:results_conditions}).
 \end{remark}
 
 \subsection{Gramian angular fields}
@@ -212,7 +212,7 @@ The orientation costs $O(T)$ and the decoder is dominated by the eigendecomposit
 On the unsigned RP the same decoder runs without step~4, so the reflection remains undetermined.
 
 \subsection{Classical reconstruction of Hirata et al.}\label{sec:hirata}
-As the reference for the conventional RP we implement the reconstruction of Hirata et al.~\cite{hirata2008reproduction}\citetodo{Hirata et al.\ 2016}: from the binary RP, an edge joins $i\ne j$ when $B_{ij}=1$, with local length $1-|G_i\cap G_j|/|G_i\cup G_j|$, $G_i=\{k:B_{ik}=1\}$; all-pairs shortest paths give a distance matrix, and classical MDS gives the states. The threshold $\varepsilon$ is not prescribed by the method; we set it to a recurrence rate of $0.75$. Turning the states into $T$ samples is our post-processing: the leading MDS coordinate, the mean appended to reach $T$ samples, and the range map. A binary RP carries no sign, so the reflection is left as returned. When Hirata's method is applied to the signed RP, its graph sees only the thresholded magnitude, so the sign is used, as in our decoder, only to choose between the series and its reflection.
+As the reference for the conventional RP we implement the reconstruction of Hirata et al.~\cite{hirata2008reproduction,hirata2016chromosome}: from the binary RP, an edge joins $i\ne j$ when $B_{ij}=1$, with local length $1-|G_i\cap G_j|/|G_i\cup G_j|$, $G_i=\{k:B_{ik}=1\}$; all-pairs shortest paths give a distance matrix, and classical MDS gives the states. The threshold $\varepsilon$ is not prescribed by the method; we set it to a recurrence rate of $0.75$. Turning the states into $T$ samples is our post-processing: the leading MDS coordinate, the mean appended to reach $T$ samples, and the range map. A binary RP carries no sign, so the reflection is left as returned. When Hirata's method is applied to the signed RP, its graph sees only the thresholded magnitude, so the sign is used, as in our decoder, only to choose between the series and its reflection.
 
 \subsection{GASF, GADF, MTF and XIRP decoders}\label{sec:gadf_decoder}
 GASF uses the diagonal inverse $\hat{\tilde x}_i=\cos(\tfrac12\arccos G^{\mathrm S}_{ii})$~\cite{wang2015encoding}. For GADF on $[-\alpha,\alpha]$ with $\alpha=0.7$, the row means $\mu_i=\frac1T\sum_jG^{\mathrm D}_{ij}$ are strictly increasing in $\phi_i$, so $e=\arg\max_i|\mu_i|$ identifies a boundary sample and the sign of $\mu_e$ fixes which boundary; the angles follow from $\hat\phi^{(p)}_j=\phi_e-\arcsin G^{\mathrm D}_{ep}-\arcsin G^{\mathrm D}_{pj}$, averaged over the five pivots with the smallest $|\mu_p|$. MTF ($Q=4$) is decoded to a representative trajectory by clustering the rows into $Q$ states, ordering them by the Fiedler vector of the symmetrised transition matrix~\cite{Atkins1998} and assigning each state its bin midpoint. XIRP uses inversion by mean~\cite{hellermann2026imagegan}.
@@ -221,7 +221,7 @@ GASF uses the diagonal inverse $\hat{\tilde x}_i=\cos(\tfrac12\arccos G^{\mathrm
 \section{Experimental protocol}\label{sec:protocol}
 
 \subsection{Datasets}
-Table~\ref{tab:datasets} lists the seven public datasets. They span human activity (WISDM~\cite{misc_wisdm_smartphone_and_smartwatch_activity_and_biometrics_dataset__507}, PAMAP2\citetodo{Reiss and Stricker 2012}), environmental audio (ESC-50\citetodo{Piczak 2015}), electrocardiography (PTB-XL\citetodo{Wagner et al.\ 2020}), geomagnetism (Swarm\citetodo{Swarm mission and data}), seismology (STEAD\citetodo{Mousavi et al.\ 2019}) and surface electromyography (EMG\citetodo{UCI EMG Data for Gestures, doi:10.24432/C5ZP5C}), with sampling rates from 1\,Hz to 8\,kHz and one to twelve channels.
+Table~\ref{tab:datasets} lists the seven public datasets. They span human activity (WISDM~\cite{misc_wisdm_smartphone_and_smartwatch_activity_and_biometrics_dataset__507}, PAMAP2~\cite{reiss2012pamap2}), environmental audio (ESC-50~\cite{piczak2015esc}), electrocardiography (PTB-XL~\cite{wagner2020ptbxl}), geomagnetism (Swarm~\cite{friis2006swarm}), seismology (STEAD~\cite{mousavi2019stead}) and surface electromyography (EMG~\cite{krilova2018emg}), with sampling rates from 1\,Hz to 8\,kHz and one to twelve channels.
 
 \begin{table}[t]
 \centering
@@ -421,6 +421,29 @@ Donald J. Schuirmann. ``A comparison of the two one-sided tests procedure and th
 
 \bibitem{Holm1979}
 Sture Holm. ``A simple sequentially rejective multiple test procedure''. \textit{Scandinavian Journal of Statistics}, vol. 6, no. 2, pp. 65--70, 1979.
+\bibitem{hirata2016chromosome}
+Yoshito Hirata, Arisa Oda, Kunihiro Ohta, and Kazuyuki Aihara. ``Three-dimensional reconstruction of single-cell chromosome structure using recurrence plots''. \textit{Scientific Reports}, vol. 6, article 34982, 2016. doi: \url{https://doi.org/10.1038/srep34982}.
+
+\bibitem{davis1970rotation}
+Chandler Davis and W. M. Kahan. ``The rotation of eigenvectors by a perturbation. III''. \textit{SIAM Journal on Numerical Analysis}, vol. 7, no. 1, pp. 1--46, 1970. doi: \url{https://doi.org/10.1137/0707001}.
+
+\bibitem{reiss2012pamap2}
+Attila Reiss and Didier Stricker. ``Introducing a new benchmarked dataset for activity monitoring''. In \textit{Proceedings of the 16th International Symposium on Wearable Computers (ISWC)}, pp. 108--109, 2012. doi: \url{https://doi.org/10.1109/ISWC.2012.13}.
+
+\bibitem{piczak2015esc}
+Karol J. Piczak. ``ESC: Dataset for environmental sound classification''. In \textit{Proceedings of the 23rd ACM International Conference on Multimedia}, pp. 1015--1018, 2015. doi: \url{https://doi.org/10.1145/2733373.2806390}.
+
+\bibitem{wagner2020ptbxl}
+Patrick Wagner, Nils Strodthoff, Ralf-Dieter Bousseljot, Dieter Kreiseler, Fatima I. Lunze, Wojciech Samek, and Tobias Schaeffter. ``PTB-XL, a large publicly available electrocardiography dataset''. \textit{Scientific Data}, vol. 7, article 154, 2020. doi: \url{https://doi.org/10.1038/s41597-020-0495-6}.
+
+\bibitem{friis2006swarm}
+E. Friis-Christensen, H. Lühr, and G. Hulot. ``Swarm: A constellation to study the Earth's magnetic field''. \textit{Earth, Planets and Space}, vol. 58, no. 4, pp. 351--358, 2006. doi: \url{https://doi.org/10.1186/BF03351933}.
+
+\bibitem{mousavi2019stead}
+S. Mostafa Mousavi, Yixiao Sheng, Weiqiang Zhu, and Gregory C. Beroza. ``STanford EArthquake Dataset (STEAD): A global data set of seismic signals for AI''. \textit{IEEE Access}, vol. 7, pp. 179464--179476, 2019. doi: \url{https://doi.org/10.1109/ACCESS.2019.2947848}.
+
+\bibitem{krilova2018emg}
+N. Krilova, I. Kastalskiy, V. Kazantsev, V. A. Makarov, and S. Lobov. ``EMG Data for Gestures'' [Dataset]. \textit{UCI Machine Learning Repository}, 2018. doi: \url{https://doi.org/10.24432/C5ZP5C}.
 \end{thebibliography}
 }
 
