@@ -11,6 +11,7 @@
 \usepackage{amssymb}
 \usepackage{amsthm}
 \usepackage{graphicx}
+\usepackage{float}
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{xurl}
@@ -65,7 +66,7 @@ That second use depends on a property the first never needed. A classifier only 
 
 This paper is a comparative analysis of the reconstruction capacity of image-based time-series representations. We take the most widely used ones, the recurrence plot, the Gramian angular summation and difference fields (GASF, GADF) and the Markov transition field, and add the extended intertemporal return plot (XIRP) of Hellermann and Lessmann~\cite{hellermann2026imagegan}, a recent representation proposed for image-based generation that stores the series itself on its diagonal and is therefore recoverable by construction. For the recurrence plot we separate the encoding from the decoder: we compare the binary RP of the classical literature, the continuous unsigned RP and the signed RP of Lu and Tong~\cite{lu2019robust}, decoded both with the classical reconstruction of Hirata et al.~\cite{hirata2008reproduction} and with a geometric decoder.
 
-The setting is controlled. Every image is the deterministic output of a known encoder, stored with 8 bits per pixel, and every decoder works from the stored image alone. Where a representation has a published inverse we use it; where it has none that can be applied to a stored image, as for the signed RP and GADF, we provide one, since otherwise the comparison could not be made. Decoding the floating-point matrix as well as the 8-bit image separates what the representation loses from what storage loses.
+The setting is controlled. Every image is the deterministic output of a known encoder, stored with 8 bits per pixel, and every decoder works from the stored image alone. Where a representation has a published inverse we use it; where it has none that can be applied to a stored image, as for the signed RP and GADF, we provide one, since otherwise the comparison could not be made. Decoding the floating-point matrix as well as the 8-bit image separates what the representation loses from what storage loses. Figure~\ref{fig:workflow} summarises this round trip.
 
 The analysis answers five questions:
 \begin{itemize}
@@ -84,7 +85,7 @@ The contributions are:
 \item Operational, metadata-free decoders for the two representations that lacked one, the signed RP and GADF, and the code and derived data needed to reproduce every result.
 \end{itemize}
 
-\begin{figure}[t]
+\begin{figure}[H]
 \centering
 \resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[font=\sffamily\footnotesize, node distance=8mm,
@@ -93,7 +94,7 @@ The contributions are:
   arrow/.style={->, draw=black!70, line width=0.8pt, >=Stealth}]
   \node[box] (input) {Window\\$X\in\mathbb{R}^{T\times C}$};
   \node[box, right=of input] (encode) {Per-channel calibration\\and encoding $\mathcal E_m$};
-  \node[box, right=of encode] (image) {$C$ matrices stored\\as 8-bit images};
+  \node[box, right=of encode] (image) {$C$ single-channel\\8-bit images};
   \node[box, right=of image] (decode) {Decoder $\mathcal D_m$\\(image only)};
   \node[box, right=of decode] (output) {Reconstruction\\$\hat X\in\mathbb{R}^{T\times C}$};
   \draw[arrow] (input) -- (encode);
