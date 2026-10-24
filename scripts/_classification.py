@@ -23,6 +23,7 @@ import json
 import os
 import time
 from concurrent.futures import ProcessPoolExecutor
+from functools import partial
 from pathlib import Path
 
 import numpy as np
@@ -35,27 +36,28 @@ MAIN = tuple(DATASETS)
 # is also scored per clip, averaging the class probabilities of its windows.
 DATASETS |= {f"esc10_{k}k": {"adapter": "esc50", "target_fs": k * 1000, "esc10": True, "min_std": 1e-3, "per_clip": True}
              for k in (2, 4, 8)}
-TECHS = ("RP_HIRATA", "RP_HIRATA_SIGNED", "RP_UNSIGNED", "RP", "GASF", "GADF", "MTF", "XIRP")
+TECHS = ("RP_HIRATA", "RP_HIRATA_SIGNED", "RP_UNSIGNED", "RP", "GASF", "GADF", "MTF", "XIRP",
+         "RP_SIPERS", "RP_SIPERS_SIGNED")      # the last two were added with --only (see main)
 CLASSIFIERS = ("knn", "svm", "rf", "lstm", "gru", "cnn")
 OUT = Path("results/_classification")
 B = 2000
 MIN_WINDOWS = 200      # blocks below this are kept in the JSON but left out of the tables (EMG at L = 256: 20 windows)
 
 
-def reconstruct(window: np.ndarray) -> np.ndarray:
+def reconstruct(window: np.ndarray, techs: tuple = TECHS) -> np.ndarray:
     """(T, C) -> (techniques, T, C) reconstructions from 8-bit images; flat channels are copied."""
     from threadpoolctl import threadpool_limits
 
     from src.representations import REPRESENTATIONS
 
-    out = np.repeat(window[None].astype(np.float32), len(TECHS), axis=0)
+    out = np.repeat(window[None].astype(np.float32), len(techs), axis=0)
     with threadpool_limits(1):
         for c in range(window.shape[1]):
             x = window[:, c].astype(float)
             if x.max() - x.min() < 1e-12:
                 continue
             mm = (float(x.max()), float(x.min()))
-            for k, name in enumerate(TECHS):
+            for k, name in enumerate(techs):
                 rep = REPRESENTATIONS[name]
                 try:
                     out[k, :, c] = rep.decode(rep.from_uint8(rep.to_uint8(rep.encode(x, mm))), mm)
@@ -123,8 +125,13 @@ def main():
     ap.add_argument("--epochs", type=int, default=30)
     ap.add_argument("--workers", type=int, default=20)
     ap.add_argument("--out", default=str(OUT))
+    ap.add_argument("--only", default="", help="add these techniques to the existing results: classifiers are "
+                    "retrained on the originals and each added technique is scored against the original accuracy "
+                    "of that same refit (stored as ref_original); existing entries are left untouched")
     args = ap.parse_args()
     out = Path(args.out)
+    only = tuple(args.only.split(",")) if args.only else ()
+    techs = only or TECHS
 
     from src.datasets import get, group_kfold, make_windows
 
@@ -149,32 +156,47 @@ def main():
         clips = w.rec_id[idx]
         sub = type(w)(X, y, groups, clips, w.start[idx], w.meta)
         folds = group_kfold(sub, n_folds=args.folds)
-        cache = out / f"recs_{ds}_L{length}.npy"      # untracked; lets a crashed run resume without re-decoding
+        # untracked; lets a crashed run resume without re-decoding
+        cache = out / (f"recs_{ds}_L{length}" + ("_" + "_".join(only) if only else "") + ".npy")
         if cache.exists():
             recs = np.load(cache)
         else:
             with ProcessPoolExecutor(args.workers) as ex:
-                recs = np.stack(list(ex.map(reconstruct, list(X), chunksize=8)), axis=1)   # (techs, N, T, C)
-            np.save(cache, recs)
-        n_fail = {t: int(np.isnan(recs[k]).any(axis=(1, 2)).sum()) for k, t in enumerate(TECHS)}
+                recs = np.stack(list(ex.map(partial(reconstruct, techs=techs), list(X), chunksize=8)), axis=1)
+            np.save(cache, recs)                                                        # (techs, N, T, C)
+        n_fail = {t: int(np.isnan(recs[k]).any(axis=(1, 2)).sum()) for k, t in enumerate(techs)}
         recs = np.nan_to_num(recs)
         classes = w.meta["classes"]
         n_out = len(classes)
         done = summary.get(f"{ds}_L{length}", {})
-        res = {"dataset": ds, "length": length, "windows": int(len(X)), "channels": int(X.shape[2]), "classes": n_out, "multilabel": multilabel,
-               "groups": int(len(np.unique(groups))), "reconstruction_failures": n_fail}
+        if only:
+            res = done | {"reconstruction_failures": done.get("reconstruction_failures", {}) | n_fail}
+        else:
+            res = {"dataset": ds, "length": length, "windows": int(len(X)), "channels": int(X.shape[2]),
+                   "classes": n_out, "multilabel": multilabel, "groups": int(len(np.unique(groups))),
+                   "reconstruction_failures": n_fail}
         for clf_name in clfs:
-            if clf_name in done:
+            if clf_name in done and all(t in done[clf_name] for t in techs):
                 res[clf_name] = done[clf_name]
                 continue
-            per = {"original": []} | {t: [] for t in TECHS}
-            correct = {"original": np.zeros(len(X), bool)} | {t: np.zeros(len(X), bool) for t in TECHS}
+            per = {"original": []} | {t: [] for t in techs}
+            correct = {"original": np.zeros(len(X), bool)} | {t: np.zeros(len(X), bool) for t in techs}
             for fi, (tr, te) in enumerate(folds):
                 mu = X[tr].mean(axis=(0, 1), keepdims=True)
                 sd = X[tr].std(axis=(0, 1), keepdims=True) + 1e-12
+                # trained models are kept, so a technique added later only needs predictions (untracked, large).
+                # joblib/h5 are only ever loaded from files this script wrote locally, never from elsewhere.
+                saved = out / "models" / f"{ds}_L{length}" / f"{clf_name}_fold{fi}"
+                saved.parent.mkdir(parents=True, exist_ok=True)
                 if clf_name in ("knn", "svm", "rf"):
-                    model = sklearn_model(clf_name, multilabel, args.workers)
-                    model.fit(((X[tr] - mu) / sd).reshape(len(tr), -1), y[tr])
+                    import joblib
+
+                    if saved.with_suffix(".joblib").exists():
+                        model = joblib.load(saved.with_suffix(".joblib"))
+                    else:
+                        model = sklearn_model(clf_name, multilabel, args.workers)
+                        model.fit(((X[tr] - mu) / sd).reshape(len(tr), -1), y[tr])
+                        joblib.dump(model, saved.with_suffix(".joblib"), compress=3)
 
                     def predict(Z, model=model, mu=mu, sd=sd, multilabel=multilabel):
                         p = model.predict_proba(((Z - mu) / sd).reshape(len(Z), -1))
@@ -186,14 +208,18 @@ def main():
                 else:
                     import tensorflow as tf
 
-                    model = keras_model(clf_name, X.shape[1], X.shape[2], n_out, multilabel, seed=fi)
-                    stop = tf.keras.callbacks.EarlyStopping(patience=4, restore_best_weights=True)
-                    model.fit((X[tr] - mu) / sd, y[tr], epochs=args.epochs, batch_size=64, validation_split=0.1,
-                              callbacks=[stop], verbose=0)
+                    if saved.with_suffix(".h5").exists():
+                        model = tf.keras.models.load_model(saved.with_suffix(".h5"))
+                    else:
+                        model = keras_model(clf_name, X.shape[1], X.shape[2], n_out, multilabel, seed=fi)
+                        stop = tf.keras.callbacks.EarlyStopping(patience=4, restore_best_weights=True)
+                        model.fit((X[tr] - mu) / sd, y[tr], epochs=args.epochs, batch_size=64, validation_split=0.1,
+                                  callbacks=[stop], verbose=0)
+                        model.save(saved.with_suffix(".h5"))
 
                     def predict(Z, model=model, mu=mu, sd=sd):
                         return model.predict((Z - mu) / sd, verbose=0)
-                for name, Z in [("original", X[te])] + [(t, recs[k][te]) for k, t in enumerate(TECHS)]:
+                for name, Z in [("original", X[te])] + [(t, recs[k][te]) for k, t in enumerate(techs)]:
                     proba = predict(Z)
                     per[name].append(scores(y[te], proba, multilabel))
                     if per_clip:
@@ -211,15 +237,21 @@ def main():
                 if not multilabel and name != "original":
                     diff, ci = group_diff_ci(correct["original"], correct[name], groups, rng)
                     entry[name] |= {"group_acc_diff": diff, "ci95": ci, "equivalent_0.01": bool(-0.01 <= ci[0] and ci[1] <= 0.01)}
-            res[clf_name] = entry
+            if only:            # keep the published entries; the added ones carry the refit they are compared with
+                refit = entry.pop("original")
+                res[clf_name] = done[clf_name] | {"original_refit": refit} | {
+                    t: entry[t] | {"ref_original": refit} for t in techs}
+            else:
+                res[clf_name] = entry
             summary[f"{ds}_L{length}"] = res | {"partial": True}
             path.write_text(json.dumps(summary, indent=1) + "\n")
-        res["wall_s"] = time.perf_counter() - t0
+        res["wall_s"] = done.get("wall_s", 0.0) + time.perf_counter() - t0 if only else time.perf_counter() - t0
+        res.pop("partial", None)
         summary[f"{ds}_L{length}"] = res
         path.write_text(json.dumps(summary, indent=1) + "\n")
         key = "macro_f1" if multilabel else "accuracy"
         print(f"{ds:13} L{length:<4} {len(X)} win x {X.shape[2]} ch, {res['groups']} groups, {res['wall_s']:.0f} s | {key} {'/'.join(clfs)}: "
-              + "  ".join(f"{n} " + "/".join(f"{res[c][n][key]:.3f}" for c in clfs) for n in ("original",) + TECHS),
+              + "  ".join(f"{n} " + "/".join(f"{res[c][n][key]:.3f}" for c in clfs) for n in ("original",) + techs),
               flush=True)
     write_md(summary, out)
 
@@ -243,7 +275,8 @@ def write_md(summary, out=OUT):
                  "|---|---|" + "---|" * len(TECHS)]
         for r in entries.values():
             key = "macro_f1" if r["multilabel"] else "accuracy"
-            cells = [f"{r[clf][t][key]:.3f}" + (" ✓" if r[clf][t].get("equivalent_0.01") else "") for t in TECHS]
+            cells = [f"{r[clf][t][key]:.3f}" + (" ✓" if r[clf][t].get("equivalent_0.01") else "") if t in r[clf] else "—"
+                     for t in TECHS]
             rows.append(f"| {r['dataset']} | {r[clf]['original'][key]:.3f} | " + " | ".join(cells) + " |")
         rows.append("")
     (out / "summary.md").write_text("\n".join(rows) + "\n")

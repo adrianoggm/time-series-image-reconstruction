@@ -33,10 +33,10 @@ def window_noise(args) -> np.ndarray:
     from scripts._benchmark import REPS
     from src.representations import REPRESENTATIONS
 
-    window, seed = args
+    window, seed, reps = (*args, REPS) if len(args) == 2 else args
     rng = np.random.default_rng(seed)
     T, C = window.shape
-    out = np.full((len(REPS), C, len(SIGMAS)), np.nan)
+    out = np.full((len(reps), C, len(SIGMAS)), np.nan)
     with threadpool_limits(1):
         for c in range(C):
             x = window[:, c].astype(float)
@@ -44,7 +44,7 @@ def window_noise(args) -> np.ndarray:
             if span < 1e-12:
                 continue
             mm = (float(x.max()), float(x.min()))
-            for k, name in enumerate(REPS):
+            for k, name in enumerate(reps):
                 rep = REPRESENTATIONS[name]
                 try:
                     img = rep.to_uint8(rep.encode(x, mm)).astype(float)
@@ -65,6 +65,8 @@ def main():
     ap.add_argument("--n", type=int, default=200)
     ap.add_argument("--lengths", default="64,128,256")
     ap.add_argument("--workers", type=int, default=20)
+    ap.add_argument("--only", default="", help="add only these techniques to the existing blocks; the noise of "
+                                               "the added ones comes from the same per-window seeds")
     args = ap.parse_args()
 
     from scripts._benchmark import DATASETS, LABELS, MIN_WINDOWS, REPS
@@ -75,11 +77,12 @@ def main():
     report["_design"] = {"sigmas": SIGMAS, "replicates": REPLICATES, "windows": args.n, "bootstrap": B, "seed": 0,
                          "techniques": REPS, "doc": __doc__.split("\n\n")[1].strip()}
     rng = np.random.default_rng(0)
+    only = tuple(args.only.split(",")) if args.only else REPS
     for name, cfg in DATASETS.items():
         adapter = get(name, **cfg)
         for L in map(int, args.lengths.split(",")):
             key = f"{name}/L{L}"
-            if key in report:
+            if key in report and all(r in report[key] for r in only):
                 continue
             npz = np.load(Path("results/_benchmark") / f"{name}_L{L}.npz")
             if len(npz["window_index"]) < MIN_WINDOWS:
@@ -88,10 +91,10 @@ def main():
             w = make_windows(adapter, L, dtype=np.float32)
             idx = npz["window_index"][pick]
             with ProcessPoolExecutor(args.workers) as ex:
-                vals = np.stack(list(ex.map(window_noise, [(w.X[i], int(i)) for i in idx], chunksize=2)))
+                vals = np.stack(list(ex.map(window_noise, [(w.X[i], int(i), only) for i in idx], chunksize=2)))
             groups = np.repeat(w.groups[idx], vals.shape[2])          # one group label per channel series
-            entry = {}
-            for k, rep in enumerate(REPS):
+            entry = report.get(key, {})
+            for k, rep in enumerate(only):
                 e = vals[:, k].reshape(-1, len(SIGMAS))               # (series, sigmas)
                 ok = np.isfinite(e).all(axis=1)
                 g = groups[ok]
@@ -111,7 +114,7 @@ def main():
             OUT.mkdir(parents=True, exist_ok=True)
             path.write_text(json.dumps(report, indent=1) + "\n")
             print(f"{key:20} " + "  ".join(f"{r} {entry[r]['nmae']['0.0']['mean']:.4f}->{entry[r]['nmae']['16.0']['mean']:.4f}"
-                                           for r in REPS), flush=True)
+                                           for r in only), flush=True)
     rows = ["# Robustness to Gaussian noise on the stored 8-bit image", "",
             "Mean NMAE at sigma = 0 / 4 / 16 intensity levels (two replicates per level).", "",
             "| Dataset / L | " + " | ".join(LABELS[r] for r in REPS) + " |", "|---|" + "---|" * len(REPS)]
@@ -120,7 +123,7 @@ def main():
             continue
         rows.append(f"| {key} | " + " | ".join(
             f"{entry[r]['nmae']['0.0']['mean']:.4f} / {entry[r]['nmae']['4.0']['mean']:.4f} / "
-            f"{entry[r]['nmae']['16.0']['mean']:.4f}" for r in REPS) + " |")
+            f"{entry[r]['nmae']['16.0']['mean']:.4f}" if r in entry else "—" for r in REPS) + " |")
     (OUT / "robustness_multi.md").write_text("\n".join(rows) + "\n", encoding="utf-8")
 
 

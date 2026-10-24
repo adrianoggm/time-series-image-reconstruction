@@ -29,6 +29,7 @@ def run(rep, x, mm):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--n", type=int, default=20)
+    ap.add_argument("--only", default="", help="time only these techniques and merge them into the existing report")
     args = ap.parse_args()
 
     from threadpoolctl import threadpool_limits
@@ -38,14 +39,17 @@ def main():
     from src.representations import REPRESENTATIONS
 
     adapter = get("wisdm")
-    report = {"_design": {"lengths": LENGTHS, "series_per_length": args.n, "dataset": "wisdm", "channel": 0,
-                          "doc": __doc__.split("\n\n")[1].strip()}}
+    path = OUT / "cost_scaling.json"
+    report = json.loads(path.read_text()) if args.only and path.exists() else {}
+    report["_design"] = {"lengths": LENGTHS, "series_per_length": args.n, "dataset": "wisdm", "channel": 0,
+                         "doc": __doc__.split("\n\n")[1].strip()}
+    only = tuple(args.only.split(",")) if args.only else REPS
     with threadpool_limits(1):
         for L in LENGTHS:
             w = make_windows(adapter, L)
             idx = np.random.default_rng(0).choice(len(w.X), size=min(args.n, len(w.X)), replace=False)
             series = [w.X[i][:, 0].astype(float) for i in idx if np.ptp(w.X[i][:, 0]) > 0]
-            for name in REPS:
+            for name in only:
                 rep = REPRESENTATIONS[name]
                 times = []
                 for x in series:
@@ -60,11 +64,11 @@ def main():
                 report.setdefault(name, {})[str(L)] = {"ms_median": float(np.median(times)), "peak_mb": peak,
                                                        "series": len(series)}
                 print(f"L{L:<5} {name:17} {np.median(times):9.1f} ms  {peak:8.1f} MB", flush=True)
-    for name in REPS:
+    for name in only:
         ms = [report[name][str(L)]["ms_median"] for L in LENGTHS]
         report[name]["time_exponent"] = float(np.polyfit(np.log(LENGTHS), np.log(ms), 1)[0])
     OUT.mkdir(parents=True, exist_ok=True)
-    (OUT / "cost_scaling.json").write_text(json.dumps(report, indent=1) + "\n")
+    path.write_text(json.dumps(report, indent=1) + "\n")
     rows = ["# Cost against window length (WISDM, one channel, single thread)", "",
             "Median ms to encode + store 8 bits + decode; peak traced MB; exponent = log-log slope of time.", "",
             "| Technique | " + " | ".join(f"L = {L}" for L in LENGTHS) + " | Exponent |",

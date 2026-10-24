@@ -14,6 +14,7 @@ Writes results/_stats/sampling_rate.json and .md.
 import argparse
 import json
 from concurrent.futures import ProcessPoolExecutor
+from functools import partial
 from pathlib import Path
 
 import numpy as np
@@ -27,7 +28,10 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--n", type=int, default=300)
     ap.add_argument("--lengths", default="64,128,256")
+    ap.add_argument("--duration", type=float, default=None,
+                    help="instead of fixed lengths, one window of this many seconds at every rate (constant duration)")
     ap.add_argument("--workers", type=int, default=20)
+    ap.add_argument("--only", default="", help="add only these techniques to the existing blocks")
     args = ap.parse_args()
 
     from scripts._benchmark import CONDS, LABELS, METRICS, REPS, summarise, window_row
@@ -39,14 +43,25 @@ def main():
     report["_design"] = {"rates": RATES, "windows": args.n, "seed": 0, "max_records": 3000,
                          "doc": __doc__.split("\n\n")[1].strip()}
     mi, ri, ci = METRICS.index("nmae"), REPS.index("RP"), CONDS.index("png8")
+    only = tuple(args.only.split(",")) if args.only else REPS
     for rate, cfg in RATES.items():
         adapter = get("ptbxl", max_records=3000, **cfg)
-        for L in map(int, args.lengths.split(",")):
-            key = f"{rate}Hz/L{L}"
-            if key in report:
+        lengths = ([round(args.duration * adapter.spec.fs)] if args.duration
+                   else map(int, args.lengths.split(",")))
+        for L in lengths:
+            key = f"{rate}Hz/{args.duration}s" if args.duration else f"{rate}Hz/L{L}"
+            if key in report and all(f"{r}/png8" in report[key] for r in only):
                 continue
             w = make_windows(adapter, L, dtype=np.float32)
             idx = np.sort(np.random.default_rng(0).choice(len(w.X), size=min(args.n, len(w.X)), replace=False))
+            if args.only and key in report:                   # same seeded windows; merge the added techniques
+                with ProcessPoolExecutor(args.workers) as ex:
+                    vals = np.stack(list(ex.map(partial(window_row, reps=only), [w.X[i] for i in idx], chunksize=2)))
+                report[key] |= summarise(vals, only)
+                path.write_text(json.dumps(report, indent=1, default=float) + "\n")
+                print(f"{key:16} added " + "  ".join(f"{x} {report[key][f'{x}/png8']['nmae']['mean']:.4f}" for x in only),
+                      flush=True)
+                continue
             with ProcessPoolExecutor(args.workers) as ex:
                 vals = np.stack(list(ex.map(window_row, [w.X[i] for i in idx], chunksize=2)))
             col = np.array([series_conditions(w.X[i][:, c])[1] for i in idx for c in range(w.X.shape[2])])
@@ -70,7 +85,7 @@ def main():
         if key.startswith("_"):
             continue
         rows.append(f"| {key} | {r['window_seconds']:.2f} | {r['collinearity_median']:.3f}, {r['share_below_0.1']:.2f} | "
-                    + " | ".join(f"{r[f'{x}/png8']['nmae']['mean']:.4f}" if "nmae" in r[f"{x}/png8"] else "—"
+                    + " | ".join(f"{r[f'{x}/png8']['nmae']['mean']:.4f}" if "nmae" in r.get(f"{x}/png8", {}) else "—"
                                  for x in REPS) + " |")
     (OUT / "sampling_rate.md").write_text("\n".join(rows) + "\n", encoding="utf-8")
 

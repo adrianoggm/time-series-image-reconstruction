@@ -155,6 +155,11 @@ scripts/_*.py
 !scripts/_sampling_rate.py
 !scripts/_emit_infsci_tables.py
 !scripts/_make_infsci_figures.py
+!scripts/_make_infsci_examples.py
+!scripts/_check_sign_identifiability.py
+!scripts/_hirata_threshold_sweep.py
+!scripts/_sipers_pilot.py
+!scripts/_sipers_checks.py
 !scripts/_rp_matrix.py
 !scripts/_rp_sign_information.py
 !scripts/_run_recon_grid.sh
@@ -190,6 +195,12 @@ results/_stats/*
 !results/_stats/robustness_multi.md
 !results/_stats/sampling_rate.json
 !results/_stats/sampling_rate.md
+!results/_stats/hirata_threshold_sweep.json
+!results/_stats/hirata_threshold_sweep.md
+!results/_stats/sign_identifiability.json
+!results/_stats/sipers_pilot.json
+!results/_stats/sipers_pilot.md
+!results/_stats/sipers_checks.json
 !results/_stats/rp_geometry_ablation.tex
 !results/_stats/rp_metadata_ablation.json
 !results/_stats/rp_metadata_ablation.tex
@@ -274,3 +285,6 @@ results/_classification/*
 results/_classification_esc10/*
 !results/_classification_esc10/summary.json
 !results/_classification_esc10/summary.md
+
+# third-party papers under restrictive licences: never commit
+doc/infsci/*Peeters*.pdf
