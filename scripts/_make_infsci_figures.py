@@ -5,7 +5,7 @@
     (c) median sigma2/sigma1 of the RP states against the sampling rate (results/_stats/sampling_rate.json,
     PTB-XL, T = 128). Only the near-lossless representations are drawn: the others stay at
     0.09-0.34 throughout and are reported in the text. Palette: the dataviz reference categorical
-    slots 1-4 (validated; the two low-contrast slots get distinct markers and direct labels).
+    slots 1-5 (validated; the low-contrast slots get distinct markers and direct labels).
 
     python -m scripts._make_infsci_figures
 Writes doc/infsci/images/robustness_sampling.pdf.
@@ -20,7 +20,8 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
 SERIES = (("RP", "Signed RP (ours)", "#2a78d6", "o"), ("GASF", "GASF", "#eb6834", "s"),
-          ("GADF", "GADF", "#1baf7a", "^"), ("XIRP", "XIRP", "#eda100", "D"))
+          ("GADF", "GADF", "#1baf7a", "^"), ("XIRP", "XIRP", "#eda100", "D"),
+          ("RP_SIPERS_SIGNED", "Signed RP (Sipers)", "#e87ba4", "v"))   # slots 1-5, validated together
 INK, MUTED = "#0b0b0b", "#52514e"
 OUT = Path("doc/infsci/images/robustness_sampling.pdf")
 

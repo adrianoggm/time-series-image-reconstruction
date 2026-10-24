@@ -1,6 +1,6 @@
 % Information Sciences submission (roadmap M11, #130). Separate from the TFG manuscript doc/main3.tex.
-% Plan: docs/publication/information_sciences.md. Red [cite: ...] marks are references still to be
-% verified and added; red [pending: ...] marks are results that come from M10 artefacts.
+% Plan: docs/publication/information_sciences.md. Red [pending: ...] marks are items still open.
+% Supplementary material: supplementary.tex. Every number comes from generated/ (scripts/_emit_infsci_tables.py).
 % Build from doc/infsci with: latexmk -pdf main.tex
 \documentclass[preprint,review,12pt]{elsarticle}
 \usepackage[T1]{fontenc}
@@ -23,7 +23,6 @@
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 \newtheorem{proposition}{Proposition}
 \newtheorem{remark}{Remark}
-\newcommand{\citetodo}[1]{\textcolor{red}{[cite: #1]}}
 \newcommand{\pending}[1]{\textcolor{red}{[pending: #1]}}
 \setlength{\emergencystretch}{2em}
 \input{generated/numbers.tex}
@@ -47,7 +46,7 @@
 
 \begin{abstract}
 % <= 200 words.
-Image-based representations of time series are used as classifier inputs and, increasingly, as the space in which signals are generated or restored, which requires mapping an image back to a series. We compare how much of a series each representation retains. We study the most widely used ones, the recurrence plot (RP) in its binary, unsigned and signed forms, the Gramian angular summation and difference fields (GASF, GADF) and the Markov transition field (MTF), together with the recently proposed XIRP, whose diagonal stores the series. Each is decoded from its 8-bit image alone, with the published inverse where one exists and an operational decoder where none does. On seven datasets from five domains, we measure temporal and spectral fidelity, robustness, cost, the conditions for exact reconstruction, and whether classifiers trained on original signals keep their accuracy on reconstructions. The signed RP with a geometric decoder, GASF, GADF and XIRP are exact in floating point and keep classifier accuracy, losing on average less than 0.1 percentage points; binary and unsigned RP and MTF lose most of the waveform. The sign recovers the RP's orientation, and the conditioning of its states, which degrades as the sampling rate grows, governs its error.
+Image representations of time series are increasingly used to generate or restore signals, which requires mapping an image back to a series. We establish a common framework to evaluate how much of a series established representations retain: the recurrence plot (RP; binary, unsigned and signed), the Gramian angular summation and difference fields (GASF, GADF), the Markov transition field (MTF) and XIRP. Every image is stored with 8 bits and decoded from the image alone, with published inverses where they exist and with decoders we propose where none applied: a geometric decoder for the signed RP, with sufficient conditions for exact recovery, and an anchored decoder for GADF. On seven datasets from six domains we measure fidelity, robustness, cost and downstream classification accuracy. The signed RP, GASF, GADF on a restricted angular range and XIRP were recovered to machine precision in floating point on all but one window and, after 8-bit storage, lost at most \clsMaxDropExact{} of accuracy on the labelled datasets. The signed RP degrades as its states become collinear, as at high sampling rates. The unsigned RP is recovered only up to sign; with the evaluated decoders, the binary RP and MTF lose most of the waveform.
 \end{abstract}
 
 \begin{keyword}
@@ -60,32 +59,24 @@ Time-series imaging \sep Reconstruction \sep Recurrence plots \sep Gramian angul
 % ============================================================================================
 \section{Introduction}\label{sec:introduction}
 
-Turning a time series into an image has become a common way of giving image-domain models access to temporal data. Recurrence plots (RP), Gramian angular fields (GAF) and Markov transition fields (MTF) place a relation between every pair of time instants in a matrix, and convolutional and other image models then learn from that matrix~\cite{wang2015encoding,wang2015encoding2,eckmann1987recurrence,marwan2007recurrence}. The same representations are now also used in the opposite direction: a generative or restoration model works on images, and its output has to be turned back into a series~\cite{huang2023tsdigan,hellermann2026imagegan}.
+Recurrence plots (RP), Gramian angular fields (GAF) and Markov transition fields (MTF) turn a time series into a matrix that relates every pair of instants, so that image models can learn from temporal data~\cite{wang2015encoding,wang2015encoding2,eckmann1987recurrence,marwan2007recurrence}. The same representations are now used in the opposite direction: a generative or restoration model works on images, and its output has to be turned back into a series~\cite{huang2023tsdigan,hellermann2026imagegan}. A classifier can succeed on an image that has discarded amplitude, phase or temporal order; a generator is useful as a signal model only if its images can be decoded into the signals they stand for. Reconstruction has nevertheless been studied one representation at a time, usually on one kind of signal, and often only through the accuracy of a downstream classifier.
 
-That second use depends on a property the first never needed. A classifier only has to separate classes, and it can do so from an image that has discarded amplitude, phase or temporal order. A model that produces images is useful only if those images can be decoded into the signal they stand for. Whether, and how well, each representation allows this has not been compared: reconstruction is usually studied for one representation at a time, on one kind of signal, and is often judged only through the accuracy of a downstream classifier.
-
-This paper is a comparative analysis of the reconstruction capacity of image-based time-series representations. We take the most widely used ones, the recurrence plot, the Gramian angular summation and difference fields (GASF, GADF) and the Markov transition field, and add the extended intertemporal return plot (XIRP) of Hellermann and Lessmann~\cite{hellermann2026imagegan}, a recent representation proposed for image-based generation that stores the series itself on its diagonal and is therefore recoverable by construction. For the recurrence plot we separate the encoding from the decoder: we compare the binary RP of the classical literature, the continuous unsigned RP and the signed RP of Lu and Tong~\cite{lu2019robust}, decoded both with the classical reconstruction of Hirata et al.~\cite{hirata2008reproduction} and with a geometric decoder.
-
-The setting is controlled. Every image is the deterministic output of a known encoder, stored with 8 bits per pixel, and every decoder works from the stored image alone. Where a representation has a published inverse we use it; where it has none that can be applied to a stored image, as for the signed RP and GADF, we provide one, since otherwise the comparison could not be made. Decoding the floating-point matrix as well as the 8-bit image separates what the representation loses from what storage loses. Figure~\ref{fig:workflow} summarises this round trip.
-
-The analysis answers five questions:
+This study establishes a common framework for evaluating the reconstruction capacity of established image representations of time series that are built from relations between pairs of instants; time--frequency and time--scale images, such as spectrograms and scalograms, are outside its scope. It does not seek the best representation for reconstruction: a model may need to work with a particular image for the structure it exposes, such as the recurrences of an RP, and then needs to know whether and how a series can be read back from it, with what error and under which conditions. We study the RP, the Gramian angular summation and difference fields (GASF, GADF) and the MTF, together with the extended intertemporal return plot (XIRP)~\cite{hellermann2026imagegan}, which stores the series on its diagonal and serves as a reference that is invertible by construction. For the RP we separate the encoding, binary, continuous unsigned or signed~\cite{lu2019robust}, from the decoder: the reconstructions of Hirata et al.~\cite{hirata2008reproduction} and Sipers et al.~\cite{sipers2017robust}, or a geometric decoder. Every image is stored with 8 bits per pixel and decoded from the image alone (Figure~\ref{fig:workflow}). We address four questions:
 \begin{itemize}
-\item \emph{RQ1.} How much of the signal can be recovered from each representation, in time and in frequency, and how much of the loss is due to 8-bit storage?
-\item \emph{RQ2.} For recurrence plots, what do the encoding and the decoder each contribute?
-\item \emph{RQ3.} Under which conditions is reconstruction exact, and how does it vary with the domain, the sampling rate and the window length?
-\item \emph{RQ4.} Do reconstructions preserve what classifiers trained on the original signals need?
-\item \emph{RQ5.} What does each reconstruction cost in time and memory?
+\item \emph{RQ1, capability.} What can each representation recover from the image alone, in time and frequency, and how much of the loss is due to 8-bit storage?
+\item \emph{RQ2, methods.} How far do the proposed decoders extend the available procedures, when are they exact, and what do encoding and decoder each contribute for recurrence plots?
+\item \emph{RQ3, fidelity and robustness.} How do quantisation, signal characteristics such as the sampling rate, and image perturbations affect reconstruction?
+\item \emph{RQ4, applicability.} What does reconstruction cost, and do reconstructions keep what classifiers trained on original signals need?
 \end{itemize}
 
 The contributions are:
 \begin{itemize}
-\item A comparative analysis of the reconstruction capacity of five image representations, eight encoding--decoder combinations in total, on seven public datasets from five domains (human activity, environmental audio, electrocardiography, geomagnetism and seismology) and three window lengths, under one protocol of fidelity, cost and classification utility.
-\item A separation of the two ingredients of RP reconstruction, encoding and decoder, which shows what the sign of the signed RP adds and what the decoder adds.
-\item A statement of what each image determines and of the conditions under which it is exactly, approximately or only partially invertible, with the conditioning of the recurrence-plot states identified as the quantity that governs reconstruction from the signed RP after storage.
-\item Operational, metadata-free decoders for the two representations that lacked one, the signed RP and GADF, and the code and derived data needed to reproduce every result.
+\item A common, reproducible framework: ten encoding--decoder combinations on seven public datasets from six domains and three window lengths, with one protocol of fidelity, robustness, cost and classification utility that separates representation loss from storage loss.
+\item Decoders for representations without a suitable image-only inverse: building on reconstruction from binary and unthresholded RPs, a geometric decoder for the signed RP (multidimensional scaling, adjacent-state overlap and sign-based orientation) with sufficient conditions for exact recovery, an anchored decoder for GADF on a restricted angular range, and an approximate representative-trajectory decoder for MTF.
+\item A basis for image-based generation of time series: what each image retains, how its reconstruction degrades after storage and under perturbation, which conditions it needs, including the conditioning of the signed-RP states, and what it costs.
 \end{itemize}
 
-\begin{figure}[H]
+\begin{figure}[tbp]
 \centering
 \resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[font=\sffamily\footnotesize, node distance=8mm,
@@ -102,129 +93,150 @@ The contributions are:
   \draw[arrow] (image) -- (decode);
   \draw[arrow] (decode) -- (output);
 \end{tikzpicture}}
-\caption{Controlled reconstruction. Each channel is calibrated, encoded and stored as an 8-bit image, then decoded from the image alone; the shared per-channel calibration returns it to physical units. Decoding the floating-point operator instead of the image isolates the algorithmic error from the storage error.}\label{fig:workflow}
+\caption{Controlled reconstruction. Each channel is calibrated, encoded, stored as an 8-bit image and decoded from the image alone; the shared per-channel calibration returns it to physical units. Decoding the floating-point operator instead of the image isolates the algorithmic error from the storage error.}\label{fig:workflow}
 \end{figure}
 
 % ============================================================================================
 \section{Related work}\label{sec:related}
 
-\subsection{Image representations of time series}
-Recurrence plots were introduced to visualise when a dynamical system revisits a region of its state space~\cite{eckmann1987recurrence} and have since been developed into a family of quantitative tools~\cite{marwan2007recurrence}. In their conventional form they are binary: a pixel marks whether two embedded states lie within a threshold of each other. Continuous variants keep the distance itself, and the signed variant of Lu and Tong also keeps whether the displacement between two states follows a reference direction, which they used for activity recognition from a single accelerometer~\cite{lu2019robust}. Wang and Oates proposed the Gramian angular fields, which map each sample to an angle and store the cosine of their sum or the sine of their difference, and the Markov transition field, which stores transition probabilities between quantile states, as image inputs to convolutional networks~\cite{wang2015encoding,wang2015encoding2}. These representations have been applied to human activity recognition~\cite{ahmad2021inertial}, anomaly detection~\cite{ma2024anomaly} and imputation~\cite{huamin2020reconstruction}. Hellermann and Lessmann recently introduced XIRP for time-series generation with image-based generative adversarial networks; it stores log-returns between instants off the diagonal and the series on the diagonal, so that generated images can be inverted~\cite{hellermann2026imagegan}.
+Recurrence plots show when a dynamical system revisits a region of its state space~\cite{eckmann1987recurrence,marwan2007recurrence}. The conventional RP is binary; continuous variants keep the distance between states, and the signed variant of Lu and Tong also keeps the direction of the displacement~\cite{lu2019robust}. Wang and Oates proposed GASF, GADF and MTF as inputs to convolutional networks~\cite{wang2015encoding,wang2015encoding2}, and these representations have been applied to activity recognition~\cite{ahmad2021inertial}, anomaly detection~\cite{ma2024anomaly} and imputation~\cite{huamin2020reconstruction}. XIRP was introduced for time-series generation with image-based generative adversarial networks, with the explicit aim of making generated images invertible~\cite{hellermann2026imagegan}.
 
-\subsection{Recovering a series from its image}
-Inversion has been studied separately for each representation. For binary recurrence plots, Hirata et al.\ build a graph from the recurrence neighbourhoods, approximate the distances between states by shortest paths and recover the state geometry by multidimensional scaling~\cite{hirata2008reproduction,hirata2016chromosome}. For unthresholded recurrence plots of delay embeddings, Sipers et al.\ characterise when the signal is identifiable up to its mean and sign and reconstruct it by optimisation~\cite{sipers2011unique,sipers2017robust}. For GASF, Wang and Oates read the series from the diagonal, and restore damaged images with a denoising autoencoder before doing so~\cite{wang2015encoding}; Tao et al.\ follow a similar route for RP and GAF images~\cite{huamin2020reconstruction}. For GADF no decoder that resolves its branch ambiguity and its lost global offset has been specified, and for MTF even approximate recovery has been reported to be difficult~\cite{wang2015encoding}. XIRP is inverted from its diagonal or by averaging the proposals of all its columns~\cite{hellermann2026imagegan}.
-
-\subsection{Gap}
-Each of these works evaluates one representation, usually on one kind of signal, and several evaluate reconstruction only through classification. No study has compared the reconstruction capacity of the representations under a common protocol, separated what a representation loses from what image storage loses, or distinguished, for recurrence plots, the contribution of the encoding from that of the decoder.
+Inversion has been studied separately for each representation. For binary RPs, Hirata et al.\ approximate distances between states by shortest paths in a recurrence graph and recover the states by multidimensional scaling~\cite{hirata2008reproduction,hirata2016chromosome}. For unthresholded RPs of delay embeddings, Sipers et al.\ give spectral conditions under which the RP determines the signal up to its mean and sign, and a reconstruction algorithm tested under disturbances and on multi-level RPs~\cite{sipers2011unique,sipers2017robust}. Both lines of work take an unsigned input, thresholded or not, so the sign of the series remains undetermined; neither uses the directional sign of the signed RP. GASF is read from its diagonal, after restoring damaged images with denoising autoencoders~\cite{wang2015encoding,huamin2020reconstruction}; approximate recovery from MTF has been reported to be difficult~\cite{wang2015encoding}; XIRP is inverted from its diagonal or by averaging the proposals of all its columns~\cite{hellermann2026imagegan}. We are not aware of a decoder that uses the sign of the signed RP to fix the orientation from a stored image, of a GADF decoder that resolves its branch ambiguity and its lost angular offset from the image alone, or of a comparison of these representations under a common protocol that separates representation loss from storage loss or, for recurrence plots, the contribution of the encoding from that of the decoder.
 
 % ============================================================================================
 \section{Mathematical formulation}\label{sec:formulation}
 
 \subsection{Encoding, storage and decoding}
-Let $x=(x_1,\ldots,x_T)$ be one channel of a window. Every method $m$ applies a calibration to a method-specific normalised domain, an encoder $\mathcal E_m$ producing a matrix $M^{(m)}$, a fixed 8-bit storage map $\mathcal Q_m$ and a decoder $\mathcal D_m$:
+Let $x=(x_1,\ldots,x_T)$ be one channel of a window. Every method $m$ applies a calibration $\mathcal N$ to a method-specific normalised domain, an encoder $\mathcal E_m$, a fixed 8-bit storage map $\mathcal Q_m$ and a decoder $\mathcal D_m$:
 \[
 \hat x = \mathcal N^{-1}\bigl(\mathcal D_m(\mathcal Q_m(\mathcal E_m(\mathcal N(x))));\,x_{\max},x_{\min}\bigr).
 \]
-The calibration $(x_{\max},x_{\min})$ is shared by all methods and is the only per-channel information used to return to physical units. We call a representation \emph{exactly invertible} when $\mathcal D_m\circ\mathcal E_m$ is the identity on its normalised domain, so that all error in $\hat x$ is due to $\mathcal Q_m$; \emph{approximately invertible} when $\mathcal D_m\circ\mathcal E_m$ is not the identity but recovers the series up to a bounded algorithmic error; and \emph{lossy} when $\mathcal E_m$ is many-to-one.
+The calibration $(x_{\max},x_{\min})$ is shared by all methods and is the only per-channel information used to return to physical units. We keep three properties apart: \emph{identifiability}, whether $\mathcal E_m$ is injective on the normalised domain, possibly up to a stated symmetry; \emph{exactness} of a given decoder, whether $\mathcal D_m\circ\mathcal E_m$ is the identity under stated hypotheses, so that all error is due to $\mathcal Q_m$; and \emph{stability}, how much the error grows after $\mathcal Q_m$ or other perturbations of the image. A representation is \emph{many-to-one} when distinct normalised series share the same matrix; no decoder can then be exact for all series.
 
 \subsection{Recurrence plots}
-With the adjacent states $s_i=(x_i,x_{i+1})$, $i=1,\ldots,T-1$, and $v=(1,1)/\sqrt2$, the continuous signed RP~\cite{lu2019robust} is
+The three RP encodings are built on the adjacent states
+\[
+s_i=(x_i,x_{i+1})\in\mathbb R^2,\qquad i=1,\ldots,T-1,
+\]
+a two-dimensional delay embedding with unit delay~\cite{takens1981detecting}, and differ in what they keep of the displacements $s_i-s_j$. The \emph{binary} RP keeps only whether two states are close~\cite{eckmann1987recurrence,marwan2007recurrence}, $B_{ij}=\mathbb 1[\lVert s_i-s_j\rVert_2<\varepsilon]$; it is many-to-one, and any reconstruction from it has to approximate distances from neighbourhoods. The \emph{unsigned} RP, also called an unthresholded or global RP~\cite{marwan2007recurrence,sipers2011unique}, keeps the distances $D_{ij}=\lVert s_i-s_j\rVert_2$. As a Euclidean distance matrix it determines the states up to a translation and an orthogonal transformation of the plane, and the series $x$ and its reflection $-x$ have the same $D$, so it is at best identifiable up to sign. It is stored as $D/\max_{ij}D_{ij}$.
+
+The \emph{signed} RP of Lu and Tong~\cite{lu2019robust} adds whether each displacement follows a reference direction. With $v=(1,1)/\sqrt2$ and $\hat u_{ij}=(s_i-s_j)/\lVert s_i-s_j\rVert_2$,
 \begin{equation}
 R_{ij}=\sigma_{ij}\lVert s_i-s_j\rVert_2,\qquad
-\sigma_{ij}=\begin{cases}+1,& \lVert s_i-s_j\rVert=0\ \text{or}\ \hat u_{ij}\cdot v\ge\cos(\pi/4),\\-1,&\text{otherwise},\end{cases}
+\sigma_{ij}=\begin{cases}+1,& \lVert s_i-s_j\rVert_2=0\ \text{or}\ \hat u_{ij}\cdot v\ge\cos(\pi/4),\\-1,&\text{otherwise}.\end{cases}
 \label{eq:signed_rp}
 \end{equation}
-with $\hat u_{ij}=(s_i-s_j)/\lVert s_i-s_j\rVert$. The unsigned RP is $|R|$, and the conventional binary RP is $B_{ij}=\mathbb 1[\lVert s_i-s_j\rVert<\varepsilon]$~\cite{eckmann1987recurrence,marwan2007recurrence}. A pair carries directional information only when its displacement lies within $\pi/4$ of $\pm v$: then $\sigma_{ij}=-\sigma_{ji}$, while displacements near the anti-diagonal receive $-1$ in both orders.
+Its magnitude is the unsigned RP, $|R|=D$. A pair is \emph{sign-informative} when its displacement lies within $\pi/4$ of $\pm v$; then $\sigma_{ij}=-\sigma_{ji}$, while displacements closer to the anti-diagonal receive $-1$ in both orders. The convention that marks only displacements within $\pi/4$ of $-v$ differs only on non-informative pairs and carries the same information. The signed RP is stored with a per-window affine map; its zero diagonal marks the level of $R=0$ in the image (Section~\ref{sec:storage}).
 
-\begin{proposition}[Signed RP, floating point]\label{prop:rp}
-Let $S\in\mathbb R^{(T-1)\times2}$ be the matrix of states and assume that the centred states span $\mathbb R^2$, i.e.\ $\sigma_2(S-\bar S)>0$. Then classical MDS applied to $|R|$ recovers $S$ up to a translation and an orthogonal transformation $Q\in O(2)$. If, in addition, the adjacent-state overlap $b_i=a_{i+1}$ is satisfied by a unique orientation up to the sign selection of Section~\ref{sec:rp_decoder}, the decoder returns $x$ exactly on the normalised domain.
+Exact recovery needs a recoverable geometry, an overlap that leaves only $x$ and $-x$, and a sign that tells them apart. The first two concern the unsigned geometry, studied by Sipers et al.\ for delay embeddings~\cite{sipers2011unique}; the third is what the sign adds.
+
+\begin{proposition}[Signed RP on exact input]\label{prop:rp}
+Let $S\in\mathbb R^{(T-1)\times2}$ have rows $s_i$, and assume
+\begin{enumerate}
+\item[(a)] the centred states span $\mathbb R^2$, i.e.\ $\sigma_2(S-\bar S)>0$;
+\item[(b)] for $i=1,\ldots,T-2$, $x$ satisfies neither \emph{(R)} $x_i+x_{i+2}=\kappa$ nor \emph{(F)} $\alpha(x_{i+2}-x_i)=\beta x_{i+1}+\kappa$, for any constants $\kappa$ and $(\alpha,\beta)\neq(0,0)$;
+\item[(c)] at least one pair of states is sign-informative.
+\end{enumerate}
+Then the decoder of Section~\ref{sec:rp_decoder} applied to the floating-point signed RP returns $x$ on the normalised domain. Without (c), $x$ and $-x$ have the same signed RP, so no decoder that uses the image alone can tell them apart. Under (a), condition (b) is equivalent to one of the matrices $H_\eta$ of step~3 having a simple zero eigenvalue and the other being positive definite, so it can be checked from the image; it holds, in particular, whenever the centred triples $(x_i,x_{i+1},x_{i+2})$, $i=1,\ldots,T-2$, have rank three.
 \end{proposition}
-\noindent\emph{Proof sketch.} The first part is the classical result that an exact Euclidean distance matrix of points with affine rank two is reproduced up to isometry by the two leading eigenvectors of the doubly centred squared-distance matrix~\cite{Torgerson1952}. For the second, the overlap residual is linear in $(\cos\theta,\sin\theta)$ for each reflection parity (Section~\ref{sec:rp_decoder}), so the exact orientation attains zero residual. \pending{complete proof and the uniqueness condition, issue \#121}
+\noindent\emph{Proof.} By (a), classical MDS applied to $|R|$ returns $Y$ with $Y=SP_0+\mathbf 1t^\top$ for some $P_0\in O(2)$~\cite{Torgerson1952}, so every candidate configuration is $Z=SP+\mathbf 1c^\top$ with $P\in O(2)$. Writing $(a_i,b_i)$ for the rows of $Z$, the residual $b_i-a_{i+1}$ is constant in $i$ if and only if $P_{12}x_i+(P_{22}-P_{11})x_{i+1}-P_{21}x_{i+2}$ is. For a rotation, $P=\bigl(\begin{smallmatrix}c&s\\-s&c\end{smallmatrix}\bigr)$, this reads $s(x_i+x_{i+2})=\mathrm{const}$; for a reflection, $P=\bigl(\begin{smallmatrix}c&s\\s&-c\end{smallmatrix}\bigr)$, it reads $s(x_i-x_{i+2})-2c\,x_{i+1}=\mathrm{const}$. Under (b) the only solutions are $s=0$ with $P$ a rotation, i.e.\ $P=\pm I$, so the overlap is satisfied exactly by the states of $x$ and $-x$ alone, and one of the two matrices $H_\eta$ of step~3 has a simple zero eigenvalue, whose eigenvector, taken with both signs, yields these two candidates. Conversely, (R) makes every rotation a solution, so one $H_\eta$ vanishes, and (F) gives a reflection solution, a zero eigenvalue of the other parity; this proves the equivalence. In step~4, $x$ reproduces $R$ exactly. Any candidate that also reproduces $R$, up to the positive scale removed by the normalisation, has states with distance matrix proportional to $|R|$ that satisfy the overlap by construction, and is therefore $\pm x$ up to scale and translation, which the final range map removes. Reflecting the series maps $s_i-s_j$ to $s_j-s_i$, so $\sigma_{ij}$ becomes $\sigma_{ji}$: on a sign-informative pair the entry changes sign, on a non-informative pair it does not. Hence the signed RPs of $x$ and $-x$ differ if and only if (c) holds, and under (c) the selected candidate is $x$. $\square$
 
-\begin{remark}[8-bit storage]\label{rem:conditioning}
-Storage perturbs $|R|$ by at most half a quantisation step relative to its range. The error of the recovered two-dimensional subspace grows as the gap between the second and third eigenvalues of the centred Gram matrix shrinks, so the reconstruction degrades as $\sigma_2/\sigma_1$ of the centred states tends to zero, i.e.\ as the states become collinear~\cite{davis1970rotation}. Empirically, no series with $\sigma_2/\sigma_1\ge0.1$ exceeds a normalised error of $0.01$ (Section~\ref{sec:results_conditions}).
+Neither (b) nor (c) follows from (a). A sinusoid at a quarter of the sampling rate, $x_i=\sin(\pi i/2+\phi)$, satisfies (R): every rotation then meets the overlap, and the phases $\phi=0.2$ and $\phi=0.25$ give the same signed RP, so identifiability can be lost altogether. Condition (b) is sufficient, not necessary: under (F) the additional reflection can still be discarded by the sign. The series $x=(1,-1.05,1.10,-1.15,1.20,-1.25,1.30,-1.35)$ satisfies (a) and (b), but every displacement lies close to the anti-diagonal, so no pair is informative and $x$ and $-x$ have the same signed RP. In the benchmark, all \signSeries{} channel series have a sign-informative pair, with a smallest share of \signMinShare\%, and the floating-point decoder was exact on all but one degenerate series (Section~\ref{sec:results_fidelity}), so neither failure affected the results.
+
+\begin{remark}[Stability after 8-bit storage]\label{rem:conditioning}
+Proposition~\ref{prop:rp} concerns exact input. Storage perturbs $|R|$ by at most half a quantisation step relative to its range; by the Davis--Kahan theorem, the resulting error of the recovered two-dimensional subspace is bounded by the perturbation divided by the gap between the second and third eigenvalues of the centred Gram matrix~\cite{davis1970rotation}, which shrinks as $\sigma_2/\sigma_1$ of the centred states tends to zero. We therefore use $\sigma_2/\sigma_1$ as an indicator of conditioning. It does not cover errors in the choice of orientation, which depend on the overlap residual and on the sign comparison.
 \end{remark}
 
 \subsection{Gramian angular fields}
-After scaling to the method-specific interval and $\phi_i=\arccos\tilde x_i$, the summation and difference fields are $G^{\mathrm S}_{ij}=\cos(\phi_i+\phi_j)$ and $G^{\mathrm D}_{ij}=\sin(\phi_i-\phi_j)$~\cite{wang2015encoding}. On $[0,1]$, $G^{\mathrm S}_{ii}=\cos(2\phi_i)$ determines $\tilde x_i$ uniquely, so GASF is exactly invertible. GADF has $G^{\mathrm D}_{ii}=0$; on the symmetric interval $[-\alpha,\alpha]$ the inverse sine returns $\phi_i-\phi_j$ without branch ambiguity if and only if $\alpha<1/\sqrt2$, and the remaining global offset is fixed by an image-derived boundary anchor (Section~\ref{sec:gadf_decoder}). Under these hypotheses GADF is exactly invertible.
+The Gramian angular fields~\cite{wang2015encoding} map each normalised sample to an angle, $\phi_i=\arccos\tilde x_i$, and store
+\[
+G^{\mathrm S}_{ij}=\cos(\phi_i+\phi_j),\qquad G^{\mathrm D}_{ij}=\sin(\phi_i-\phi_j).
+\]
+The diagonal of GASF, $\cos(2\phi_i)$, determines $\tilde x_i$ only up to sign on $[-1,1]$, but uniquely on $[0,1]$, which we use: there $\phi_i\in[0,\pi/2]$ and $\tilde x_i=\cos\bigl(\tfrac12\arccos G^{\mathrm S}_{ii}\bigr)$, so GASF is exactly invertible from its diagonal.
 
-\subsection{Markov transition fields and XIRP}
-MTF assigns every sample to one of $Q$ quantile states and stores the transition probability between the states occupied at two positions~\cite{wang2015encoding}. Samples in the same state are indistinguishable, so the operator is many-to-one and only a representative trajectory can be recovered. XIRP~\cite{hellermann2026imagegan} requires a strictly positive series and stores $R_{ii}=x_i$ and $R_{ij}=\log(x_i/x_j)$; it is exactly invertible from its diagonal, and inversion by mean averages the $T$ column proposals $x_j\exp(R_{ij})$.
+GADF is antisymmetric with a zero diagonal: it stores only relative angles. Inverting it requires the principal branch of $\arcsin$ to return $\phi_i-\phi_j$ and the lost global offset to be restored. If each window is scaled to the symmetric interval $[-\alpha,\alpha]$,
+\[
+\max_{i,j}|\phi_i-\phi_j|=\pi-2\arccos\alpha<\frac\pi2\iff\alpha<\frac1{\sqrt2},
+\]
+so with $\alpha=0.7$ no entry leaves the principal branch, and since every non-constant window reaches both bounds $\pm\alpha$ after scaling, the offset can be fixed from the image itself (Section~\ref{sec:gadf_decoder}). Exactness therefore holds for this restricted, known normalisation; it is not a property of GADF in general, and images encoded on a wider angular range keep the branch ambiguity.
 
-\subsection{What each image determines}
-Table~\ref{tab:contract} summarises, for each representation, what the image determines, what the decoder needs, and its class of invertibility.
+\subsection{Markov transition fields}
+MTF assigns every sample to one of $Q$ quantile states $q_t$, estimates the transition matrix $W_{pq}=P(q_{t+1}=q\mid q_t=p)$ and sets $M_{ab}=W_{q_aq_b}$~\cite{wang2015encoding}. Samples in the same state are indistinguishable, the image values do not fix the numerical order of the states, and different series with the same state sequence produce the same image. MTF is therefore many-to-one: no decoder can return every series exactly, and decoding means choosing a representative trajectory.
 
-\begin{table}[t]
+\subsection{Extended intertemporal return plot}
+XIRP~\cite{hellermann2026imagegan} is defined for a strictly positive series as $R_{ij}=\log(x_i/x_j)$ for $i\ne j$ and $R_{ii}=x_i$. Its diagonal is the series, so it is exactly invertible by construction; every column $j$ also proposes $x_i=x_j\exp(R_{ij})$, a redundancy that inversion by mean averages. Positivity is obtained by mapping each channel to $[1,2]$ with the shared calibration.
+
+Table~\ref{tab:contract} summarises what each image determines and how it is decoded, and Figure~\ref{fig:encodings} shows the stored images of one window of each dataset.
+
+\begin{figure}[tbp]
 \centering
-\caption{Information determined by each image and the resulting class of invertibility. Every decoder uses the image alone on the normalised domain; returning to physical units uses the shared calibration $(x_{\max},x_{\min})$.}\label{tab:contract}
-\small
-\begin{tabular}{@{}L{0.20\textwidth}L{0.36\textwidth}L{0.32\textwidth}@{}}
+\includegraphics[width=\textwidth]{images/encoding_examples.pdf}
+\caption{Stored 8-bit images ($T=128$) of one channel of one window per dataset, in grey levels as stored (0 black, 255 white). The binary RP uses a recurrence rate of $0.75$. Each column is decoded in the corresponding row of Figure~\ref{fig:examples}.}\label{fig:encodings}
+\end{figure}
+
+\begin{table}[tbp]
+\centering
+\caption{What each image determines, when exact recovery is possible, and the decoders compared. All decoders use the image alone on the normalised domain.}\label{tab:contract}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}L{0.13\textwidth}L{0.19\textwidth}L{0.21\textwidth}L{0.37\textwidth}@{}}
 \toprule
-Representation & Image determines & Invertibility \\
+Encoding & Image determines & Exact recovery & Decoders (origin) \\
 \midrule
-Signed RP & State geometry and directional sign & Exact if $\sigma_2/\sigma_1>0$ (Prop.~\ref{prop:rp}) \\
-Unsigned RP & State geometry only & Exact up to reflection \\
-Binary RP & Recurrence neighbourhoods & Approximate (graph geodesics) \\
-GASF & Angles on one branch & Exact on $[0,1]$ \\
-GADF & Angular differences & Exact if $\alpha<1/\sqrt2$ \\
-MTF & Quantile states and transitions & Lossy \\
-XIRP & Series on the diagonal & Exact \\
+Binary RP & Recurrence neighbourhoods & No (many-to-one) & Hirata, after thresholding the unsigned RP \\
+Unsigned RP & State geometry & Up to sign & Hirata on the thresholded image~\cite{hirata2008reproduction}; Sipers et al., circular variant~\cite{sipers2017robust}; geometric decoder without sign (this work) \\
+Signed RP & State geometry and directional sign & Under Prop.~\ref{prop:rp} & Hirata and Sipers with sign selection (adapted); geometric decoder (this work) \\
+GASF & Angles on $[0,\pi/2]$ & Yes, on $[0,1]$ & Diagonal inverse~\cite{wang2015encoding} \\
+GADF & Angular differences & If scaled to $[-\alpha,\alpha]$, $\alpha<1/\sqrt2$ & Restricted branch and boundary anchor (this work) \\
+MTF & Quantile states and transitions & No (many-to-one) & Fiedler-ordered representative (this work) \\
+XIRP & Series on the diagonal & Yes & Inversion by mean~\cite{hellermann2026imagegan} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 % ============================================================================================
-\section{Reconstruction methods}\label{sec:methods}
+\section{Decoders}\label{sec:methods}
 
-Table~\ref{tab:decoders} lists the decoder used for each representation in the comparison. Published inverses are used as described by their authors, with only the adaptations needed to decode a stored 8-bit image; the signed-RP and GADF decoders are ours, because neither representation had a decoder that could be applied to a stored image.
+\subsection{Storage protocol}\label{sec:storage}
+Each matrix is written to $[0,255]$ by a fixed or per-window affine map. GASF and GADF are read back with the fixed range $[-1,1]$, MTF with $[0,1]$, and XIRP with the fixed ranges of its diagonal, $[1,2]$, and off-diagonal, $[-\log2,\log2]$. The signed RP keeps a per-window map; because its diagonal is zero, subtracting the median diagonal pixel recovers the signed matrix up to a positive scale, which MDS and the final range map absorb. No decoder uses per-window metadata.
 
-\begin{table}[t]
-\centering
-\caption{Encoding and decoder of every compared combination.}\label{tab:decoders}
-\small
-\begin{tabular}{@{}L{0.22\textwidth}L{0.36\textwidth}L{0.30\textwidth}@{}}
-\toprule
-Encoding & Decoder & Origin of the decoder \\
-\midrule
-Binary RP & Graph geodesics and MDS & Hirata et al.~\cite{hirata2008reproduction} \\
-Signed RP & Hirata, sign used for the reflection & Hirata et al., adapted \\
-Unsigned RP & Two-dimensional MDS and overlap & This work \\
-Signed RP & Two-dimensional MDS, overlap and sign & This work \\
-GASF & Diagonal inverse & Wang and Oates~\cite{wang2015encoding} \\
-GADF & Restricted branch and boundary anchor & This work \\
-MTF & Fiedler-ordered representative & This work (lossy) \\
-XIRP & Inversion by mean & Hellermann and Lessmann~\cite{hellermann2026imagegan} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Storage protocol}
-Each matrix is written to $[0,255]$ by a fixed or per-window affine map. GASF and GADF are read back with the fixed operator range $[-1,1]$, MTF with $[0,1]$, and XIRP with the fixed ranges of its diagonal and off-diagonal parts after the series is mapped to $[1,2]$. The signed RP keeps a per-window map; its zero-valued diagonal locates $R=0$, so subtracting the median diagonal pixel recovers the signed matrix up to a positive scale that MDS and the final range map absorb. No decoder uses per-window metadata.
-
-\subsection{Signed-RP decoder}\label{sec:rp_decoder}
+\subsection{Geometric decoder on the signed RP}\label{sec:rp_decoder}
 \begin{enumerate}
-\item Recover $R^{\mathrm{obs}}=\mathrm{PNG}-\operatorname{median}_i\mathrm{PNG}_{ii}$ and the symmetric distances $D_{ij}=\tfrac12(|R^{\mathrm{obs}}_{ij}|+|R^{\mathrm{obs}}_{ji}|)$.
+\item Recover $R^{\mathrm{obs}}=\mathrm{PNG}-\operatorname{median}_i\mathrm{PNG}_{ii}$ and $D_{ij}=\tfrac12(|R^{\mathrm{obs}}_{ij}|+|R^{\mathrm{obs}}_{ji}|)$.
 \item Classical MDS~\cite{Torgerson1952}: with $J=I-\mathbf 1\mathbf 1^\top/(T-1)$, the two leading eigenpairs of $-\tfrac12JD^{\circ2}J$ give $Y=V_2\Lambda_2^{1/2}$.
-\item Orientation in closed form. Every $Q\in O(2)$ is $\mathrm{rot}(\theta)\operatorname{diag}(1,\eta)$ with $\eta\in\{\pm1\}$. Writing $Z=YQ$ and $(a_i,b_i)=(Z_{i1},Z_{i2})$, the overlap $b_i=a_{i+1}$ must hold up to a common translation $\delta$. For fixed $\eta$ the residual $b_i-a_{i+1}=A_i\cos\theta+B_i\sin\theta$ with $A_i=\eta Y_{i2}-Y_{i+1,1}$ and $B_i=-\eta Y_{i1}-Y_{i+1,2}$; profiling out $\delta$ centres $A$ and $B$, and the objective becomes the Rayleigh quotient $u^\top H_\eta u$ with $H_\eta=\tilde C^\top\tilde C$, $\tilde C=[\tilde A\ \tilde B]$ and $u=(\cos\theta,\sin\theta)$. Its minimiser is the eigenvector of the smaller eigenvalue of the $2\times2$ matrix $H_\eta$, so the two parities give four exact candidates.
-\item Sign selection. Among the four candidates, keep the one whose regenerated signed RP is closest to $R^{\mathrm{obs}}$ in Frobenius norm after both are normalised to unit norm. The orientation is chosen from the image alone; the original series is never consulted.
-\item Samples: $\hat x_1=a_1$, $\hat x_i=\tfrac12(b_{i-1}+a_i)$ for $2\le i\le T-1$, $\hat x_T=b_{T-1}$, and the minimum and maximum are mapped to the normalised range.
+\item Orientation in closed form. Write $Q=\mathrm{rot}(\theta)\operatorname{diag}(1,\eta)$, $\eta=\pm1$, and $(a_i,b_i)$ for the rows of $YQ$. For fixed $\eta$ the overlap residual is $b_i-a_{i+1}=A_i\cos\theta+B_i\sin\theta$, with $A_i=\eta Y_{i2}-Y_{i+1,1}$ and $B_i=-\eta Y_{i1}-Y_{i+1,2}$. Profiling out a common translation centres $A$ and $B$, and the squared residual becomes the Rayleigh quotient $u^\top H_\eta u$, $H_\eta=\tilde C^\top\tilde C$, $\tilde C=[\tilde A\ \tilde B]$, $u=(\cos\theta,\sin\theta)$. The eigenvector of the smaller eigenvalue of each $2\times2$ matrix $H_\eta$, with both signs, gives four candidates.
+\item Sign selection. Keep the candidate whose regenerated signed RP is closest to $R^{\mathrm{obs}}$ in Frobenius norm, both normalised to unit norm.
+\item Samples. Correct the translation, $a_i\mapsto a_i-\delta^\star/2$ and $b_i\mapsto b_i+\delta^\star/2$ with $\delta^\star=-\operatorname{mean}_i(b_i-a_{i+1})$; set $\hat x_1=a_1$, $\hat x_i=\tfrac12(b_{i-1}+a_i)$ for $2\le i\le T-1$ and $\hat x_T=b_{T-1}$, and map their range to the normalised domain.
 \end{enumerate}
-The orientation costs $O(T)$ and the decoder is dominated by the eigendecomposition, $O(T^3)$ in a dense implementation.
-On the unsigned RP the same decoder runs without step~4, so the reflection remains undetermined.
+Orientation costs $O(T)$; the decoder is dominated by the eigendecomposition, $O(T^3)$ in a dense implementation.
 
-\subsection{Classical reconstruction of Hirata et al.}\label{sec:hirata}
-As the reference for the conventional RP we implement the reconstruction of Hirata et al.~\cite{hirata2008reproduction,hirata2016chromosome}: from the binary RP, an edge joins $i\ne j$ when $B_{ij}=1$, with local length $1-|G_i\cap G_j|/|G_i\cup G_j|$, $G_i=\{k:B_{ik}=1\}$; all-pairs shortest paths give a distance matrix, and classical MDS gives the states. The threshold $\varepsilon$ is not prescribed by the method; we set it to a recurrence rate of $0.75$. Turning the states into $T$ samples is our post-processing: the leading MDS coordinate, the mean appended to reach $T$ samples, and the range map. A binary RP carries no sign, so the reflection is left as returned. When Hirata's method is applied to the signed RP, its graph sees only the thresholded magnitude, so the sign is used, as in our decoder, only to choose between the series and its reflection.
+\subsection{Decoders that isolate the sign and the decoder}\label{sec:hirata}
+\emph{Geometric decoder on the unsigned RP.} The distances are read directly from the image. Steps~2, 3 and~5 are applied unchanged; step~4 is not available, and the candidate with the smallest overlap residual is kept. On exact distances $x$ and $-x$ fit the overlap equally well, so which one is returned is arbitrary.
 
-\subsection{GASF, GADF, MTF and XIRP decoders}\label{sec:gadf_decoder}
-GASF uses the diagonal inverse $\hat{\tilde x}_i=\cos(\tfrac12\arccos G^{\mathrm S}_{ii})$~\cite{wang2015encoding}. For GADF on $[-\alpha,\alpha]$ with $\alpha=0.7$, the row means $\mu_i=\frac1T\sum_jG^{\mathrm D}_{ij}$ are strictly increasing in $\phi_i$, so $e=\arg\max_i|\mu_i|$ identifies a boundary sample and the sign of $\mu_e$ fixes which boundary; the angles follow from $\hat\phi^{(p)}_j=\phi_e-\arcsin G^{\mathrm D}_{ep}-\arcsin G^{\mathrm D}_{pj}$, averaged over the five pivots with the smallest $|\mu_p|$. MTF ($Q=4$) is decoded to a representative trajectory by clustering the rows into $Q$ states, ordering them by the Fiedler vector of the symmetrised transition matrix~\cite{Atkins1998} and assigning each state its bin midpoint. XIRP uses inversion by mean~\cite{hellermann2026imagegan}.
+\emph{Hirata's reconstruction.} As the reference for binary RPs we implement Hirata et al.~\cite{hirata2008reproduction,hirata2016chromosome}. The unsigned image is thresholded into a binary RP $B$; an edge joins $i\ne j$ when $B_{ij}=1$, with length $1-|G_i\cap G_j|/|G_i\cup G_j|$ and $G_i=\{k:B_{ik}=1\}$; all-pairs shortest paths give distances and classical MDS gives the states. Turning the states into $T$ samples is our post-processing: the leading MDS coordinate, the mean appended to reach $T$ samples, and the range map. The method does not prescribe the threshold, and its authors report that it still works with up to 70\% of the map set to one~\cite{hirata2016chromosome}; we fixed a recurrence rate of $0.75$ in advance and checked it against rates from $0.02$ to $0.75$ (Section~\ref{sec:results_rp}). On the signed RP the graph is built from $|R|$, so the sign cannot change the recovered geometry; it is used, as in step~4, to choose between the result and its reflection.
 
+\emph{Sipers' reconstruction.} For unthresholded RPs we also implement the method of Sipers et al.~\cite{sipers2017robust}: the two-dimensional Fourier coefficients of the squared RP factor into products of the signal's Fourier coefficients, recovered up to a sign by an eigendecomposition. It assumes a periodic signal and a circular embedding, so it decodes the circular variant of the RP, with the wrap state $(x_T,x_1)$ added and the same 8-bit maps. Frequencies whose power, estimated from the image, is below $10^{-4}$ of the largest are discarded; this global threshold minimised its own 8-bit error in a pilot, which favours the method (Supplementary Section~S5). On the signed RP, the sign selects between the result and its reflection.
+
+Hirata's method thus receives only the binary information left by thresholding, whereas the geometric decoder uses continuous distances. To separate the loss caused by thresholding from that of the reconstruction algorithm, both decoders are also run on the floating-point binary RP with the orientation chosen by an oracle that knows the original; the geometric decoder then uses the shortest-path distances of the binary graph.
+
+\subsection{GADF decoder}\label{sec:gadf_decoder}
+GADF on $[-\alpha,\alpha]$, $\alpha=0.7$, is decoded in three steps.
+\begin{enumerate}
+\item \emph{Boundary anchor.} The row means are $\mu_i=\frac1T\sum_jG^{\mathrm D}_{ij}=\rho\sin(\phi_i-\psi)$, where $\rho\ge0$ and $\psi$ lies inside the cone spanned by the sample angles. That cone is narrower than $\pi/2$, so $\mu$ is strictly increasing over it, $e=\arg\max_i|\mu_i|$ is a boundary sample, and $\phi_e=\arccos(-\alpha)$ if $\mu_e>0$ and $\arccos\alpha$ otherwise.
+\item \emph{Relative angles.} For a pivot row $p$, $\hat\phi^{(p)}_j=\phi_e-\arcsin G^{\mathrm D}_{ep}-\arcsin G^{\mathrm D}_{pj}$.
+\item \emph{Pivot averaging.} The angles from the five rows with the smallest $|\mu_p|$ are averaged, $\hat{\tilde x}_j=\cos\bigl(\frac15\sum_p\hat\phi^{(p)}_j\bigr)$, which reduces the effect of storage.
+\end{enumerate}
+The decoder is exact in real arithmetic under the hypotheses of Section~\ref{sec:formulation} and costs $O(T^2)$.
+
+\subsection{GASF, MTF and XIRP}
+GASF is decoded with the diagonal inverse of Wang and Oates~\cite{wang2015encoding}. For MTF, the $T$ rows are clustered into $Q=4$ groups, since rows of the same state are equal in a clean MTF; the transition matrix between groups is estimated from the image blocks, the groups are ordered by the Fiedler vector of the Laplacian of its symmetrisation, following spectral seriation~\cite{Atkins1998}, and each sample in ordered group $k$ is assigned the bin midpoint $(k-\tfrac12)/Q$. The global direction of that order is not determined by the image, and the error of this decoder combines what MTF discards with its own choices; the two are not separated here. XIRP is decoded with the inversion by mean of Hellermann and Lessmann~\cite{hellermann2026imagegan}.
 % ============================================================================================
 \section{Experimental protocol}\label{sec:protocol}
 
-\subsection{Datasets}
-Table~\ref{tab:datasets} lists the seven public datasets. They span human activity (WISDM~\cite{misc_wisdm_smartphone_and_smartwatch_activity_and_biometrics_dataset__507}, PAMAP2~\cite{reiss2012pamap2}), environmental audio (ESC-50~\cite{piczak2015esc}), electrocardiography (PTB-XL~\cite{wagner2020ptbxl}), geomagnetism (Swarm~\cite{friis2006swarm}), seismology (STEAD~\cite{mousavi2019stead}) and surface electromyography (EMG~\cite{krilova2018emg}), with sampling rates from 1\,Hz to 8\,kHz and one to twelve channels.
+\subsection{Datasets and windows}
+Table~\ref{tab:datasets} lists the seven public datasets: human activity (WISDM~\cite{misc_wisdm_smartphone_and_smartwatch_activity_and_biometrics_dataset__507}, PAMAP2~\cite{reiss2012pamap2}), environmental audio (ESC-50~\cite{piczak2015esc}), electrocardiography (PTB-XL~\cite{wagner2020ptbxl}), geomagnetism (Swarm~\cite{friis2006swarm}), seismology (STEAD~\cite{mousavi2019stead}) and surface electromyography (EMG~\cite{krilova2018emg}). Every channel is encoded, stored and decoded as its own single-channel image with its own calibration. Recordings are cut into non-overlapping windows of $T\in\{64,128,256\}$ samples that never cross a label change or a time gap. Blocks with fewer than 200 windows (EMG at $T=256$) are not reported.
 
-\begin{table}[t]
+\begin{table}[tbp]
 \centering
 \caption{Datasets. Windows of 128 samples available after segmentation; the group is the unit that never appears on both sides of a split.}\label{tab:datasets}
 \footnotesize
@@ -244,117 +256,90 @@ EMG gestures & 100 & 8 & 6 gestures & 880 & subject (36) \\
 \end{tabular}
 \end{table}
 
-\subsection{Windows and splits}
-Every channel is encoded, stored and decoded independently, as its own single-channel 8-bit image with its own calibration, whatever the number of channels: one image for ESC-50, three for WISDM, Swarm and STEAD, and eight, nine and twelve for EMG, PAMAP2 and PTB-XL. Channels are neither packed into colour planes nor combined, so results are comparable across datasets and cost grows linearly with the number of channels; representations that couple channels are outside the scope of this study. Each recording is cut into non-overlapping windows of $T\in\{64,128,256\}$ samples that never cross a label change or a time gap. For fidelity, 500 windows per dataset and length are drawn with a fixed seed. For classification, up to 6\,000 windows per dataset and length are drawn, and three grouped folds keep every subject, patient, event, station or source recording on one side; folds are stratified by class for single-label data. Blocks with fewer than 200 windows (EMG at $T=256$, where a gesture lasts about three seconds) are not reported. ESC-50 at 128 samples spans 16\,ms of sound; audio is therefore also evaluated on the official ESC-10 subset at 2, 4 and 8\,kHz with windows of 512 and 1\,024 samples, silent windows removed and accuracy also scored per clip.
-
-\subsection{Fidelity, cost and utility}
-Fidelity is measured per channel series with range-normalised errors, writing $r=\max_ix_i-\min_ix_i$:
+\subsection{Fidelity, robustness and cost}
+Fidelity uses 500 windows per dataset and length drawn with a fixed seed. Writing $r=\max_ix_i-\min_ix_i$, it is measured per channel series by
 \[
-\mathrm{NMAE}=\frac{1}{rT}\sum_i|x_i-\hat x_i|,\qquad
-\mathrm{NRMSE}=\frac1r\sqrt{\tfrac1T\sum_i(x_i-\hat x_i)^2},
+\mathrm{NMAE}=\frac{1}{rT}\sum_i|x_i-\hat x_i|,
 \]
-together with Pearson correlation, the range-normalised error of first differences, the $L_1$ distance between unit-mass Welch spectra~\cite{Welch1967}, the dominant-frequency error and the energy error. Constant series are counted and excluded. Each decoder is run on the floating-point operator and on the 8-bit image, which separates algorithmic from storage error. Cost is the single-thread time to encode and decode and the peak traced memory, measured for $T$ from 64 to 1\,024.
+the Pearson correlation, the $L_1$ distance between unit-mass Welch spectra~\cite{Welch1967} and the relative energy error; constant series are excluded. Each decoder is run on the floating-point matrix and on the 8-bit image. Robustness adds zero-mean Gaussian noise of $\sigma\in\{2,4,8,16\}$ intensity levels to every pixel of the stored image, which is then clipped and rounded, with two replicates per level on 200 windows per dataset and length. Cost is the single-thread time to encode, store and decode and the peak traced memory, for $T$ from 64 to 1\,024. The sampling-rate study reads 3\,000 PTB-XL records at 500\,Hz and resamples them with an anti-aliased polyphase filter to 250, 100 and 50\,Hz, with windows of 128 samples and, as a control, of a fixed duration of 1.28\,s.
 
-Robustness follows a local-stability protocol: zero-mean Gaussian noise of $\sigma\in\{2,4,8,16\}$ intensity levels is added to every pixel of the stored image, which is clipped to $[0,255]$, rounded and decoded, with two independent replicates per level on 200 windows per dataset and length. The sampling-rate study reads the same 3\,000 PTB-XL records at 500\,Hz and resamples them with an anti-aliased polyphase filter to 250, 100 and 50\,Hz.
-
-Utility follows the train-on-original protocol: KNN, SVM, random forest, LSTM, GRU and a one-dimensional CNN are trained on original windows and evaluated on the original and on every reconstruction of the same held-out windows.
+\subsection{Classification utility}
+Classifiers are trained on original windows and evaluated on the original and on every reconstruction of the same held-out windows. Up to 6\,000 windows per dataset and length are split into three grouped folds that keep every subject, patient, event, station or source recording on one side, stratified by class for single-label data; per-channel standardisation uses training statistics only, and reconstructions are produced independently per window, so no information crosses the split. KNN, an RBF SVM, a random forest, an LSTM, a GRU and a one-dimensional CNN are used with standard settings (Supplementary Section~S1). Accuracy, or macro-F1 for the multilabel PTB-XL, is averaged over the three folds. Swarm has no labels. ESC-50 windows of 128 samples span 16\,ms of sound, which leaves every classifier near chance, so audio is evaluated on the official ESC-10 subset at 2, 4 and 8\,kHz with windows of 512 and 1\,024 samples, silent windows removed and accuracy scored per clip.
 
 \subsection{Statistical protocol}
-All comparisons are paired over the same series. Differences between decoders are summarised by medians with $95\%$ bootstrap intervals that resample whole groups~\cite{DavisonHinkley1997,Hall1987}, tested with the Wilcoxon signed-rank test~\cite{Wilcoxon1945} and Holm's correction within each family~\cite{Holm1979}, and averaged across datasets with equal weight. Classification equivalence requires the $95\%$ group-bootstrap interval of the accuracy difference to lie within $\pm0.01$~\cite{Lakens2017}.
+All comparisons are paired over the same series; differences between decoders are summarised by medians of per-series differences, averaged across datasets with equal weight. A reconstruction is declared \emph{equivalent} to the original for a classifier when the $95\%$ bootstrap interval of the accuracy difference, resampling whole groups~\cite{DavisonHinkley1997,Hall1987}, lies within $\pm0.01$, which corresponds to two one-sided tests at the $2.5\%$ level~\cite{Schuirmann1987,Lakens2017}; a non-significant difference is not taken as evidence of equivalence. Equivalence is assessed on single-label data; for PTB-XL only the drop in macro-F1 is reported.
 
 % ============================================================================================
 \section{Results}\label{sec:results}
 
-\subsection{Fidelity across representations and domains}
-Table~\ref{tab:fidelity} gives the 8-bit reconstruction error of every combination at $T=128$; the other lengths behave alike and are in the Supplementary Material. Over the \benchBlocks{} reported dataset--length blocks, \benchSeries{} channel series were reconstructed by every combination, with no decoder failure.
+\subsection{Fidelity and storage (RQ1)}\label{sec:results_fidelity}
+Table~\ref{tab:fidelity} gives the 8-bit error of every combination at $T=128$; the other lengths behave alike (Supplementary Tables~S1--S2). Over the \benchBlocks{} reported dataset--length blocks, \benchSeries{} channel series were reconstructed by every combination without decoder failure.
 
-Decoding the floating-point matrix separates the representation from its storage. The geometric decoder on the signed RP, GASF, GADF and XIRP recover every series to machine precision: the median NMAE never exceeds \floatMaxRP{} for the signed RP and \floatMaxGASF, \floatMaxGADF{} and \floatMaxXIRP{} for GASF, GADF and XIRP. For these four the whole 8-bit error is therefore due to storage. The only exception is one ESC-50 window that is constant except for two samples, with an amplitude of about $3\times10^{-9}$.
+On the floating-point matrix, the geometric decoder on the signed RP, GASF, GADF and XIRP recover the series to machine precision: the median NMAE per block never exceeds \floatMaxRP{} for the signed RP and \floatMaxGASF, \floatMaxGADF{} and \floatMaxXIRP{} for GASF, GADF and XIRP. The one exception is an ESC-50 window that is constant except for two samples, with an amplitude of about $3\times10^{-9}$. For these four, the 8-bit error is therefore storage error. It stays between \rpEightMin{} and \rpEightMax{} for the signed RP on six datasets and rises to \rpEightSwarmMin--\rpEightSwarmMax{} on Swarm; GASF and GADF are of the same order, and XIRP is about an order of magnitude lower. Sipers' reconstruction on the circular signed RP comes close, between \sipEightMin{} and \sipEightMax{}. Without a node threshold it is exact in floating point but less accurate after storage; with the threshold used here its floating-point error reaches a median of \floatMaxSIPERS{} per block (Supplementary Section~S5).
 
-After 8-bit storage they form a near-lossless group. The signed RP stays between \rpEightMin{} and \rpEightMax{} on six datasets and rises to \rpEightSwarmMin--\rpEightSwarmMax{} on Swarm. GASF and GADF are of the same order. XIRP is an order of magnitude lower, because its diagonal stores the series with a fixed range and the decoder averages the proposals of all columns. Per series, the median difference to the signed RP is of order $10^{-3}$ in favour of GASF, GADF and XIRP on most datasets. The binary and unsigned RP decoders and MTF lose most of the waveform: their NMAE ranges from about $0.03$ to $0.34$, and the median per-series difference to the signed RP, averaged over datasets, is \macroDiffRPHIRATA{} for Hirata on the unsigned RP and \macroDiffMTF{} for MTF.
-
-\begin{table}[t]
+The remaining combinations reach an NMAE between about $0.03$ and $0.34$, for two different reasons (Figure~\ref{fig:examples}; spectral and correlational metrics in Supplementary Table~S7). On the unsigned RP, the geometric and Sipers' decoders keep the spectrum as well as on the signed RP, because a reflection leaves the spectrum unchanged; its pointwise error and its correlation of about zero come from returning the reflection in about half of the series. Hirata's reconstruction and the MTF representative also distort the spectrum and the energy: they lose the waveform, not only its sign.
+\begin{table}[tbp]
 \centering
-\caption{Mean 8-bit NMAE of every encoding--decoder combination at $T=128$ (500 windows per dataset, every channel). Uns./sig.: unsigned and signed RP.}\label{tab:fidelity}
+\caption{Mean 8-bit NMAE of every encoding--decoder combination at $T=128$ (500 windows per dataset, every channel). Uns./Sig.: unsigned and signed RP. Oracle: geometric decoder on the unsigned RP with the reflection picked using the original series; a bound, not a reconstruction.}\label{tab:fidelity}
 \scriptsize
-\setlength{\tabcolsep}{3pt}
+\setlength{\tabcolsep}{2.5pt}
 \input{generated/tab_fidelity.tex}
 \end{table}
 
-\subsection{Recurrence plots: encoding versus decoder}
-Table~\ref{tab:rp} separates the two ingredients of RP reconstruction. On the unsigned RP the geometric decoder recovers the shape of the series exactly but not its reflection: with the reflection chosen by an oracle that knows the original, its error falls to the level of the signed RP. The loss on the unsigned RP is therefore entirely a loss of orientation, which the sign restores without any external information. Hirata's reconstruction does not reach that level on either encoding, because its graph sees only the thresholded recurrence plot. The binary RP itself is the limit: even in floating point and with the oracle orientation, neither decoder brings its error below \binaryOracleMin{} (up to \binaryOracleMax{} across datasets). The sign improves Hirata as well, by choosing the reflection, but on the same signed RP the geometric decoder is one to two orders of magnitude more accurate on six datasets; on Swarm, where the states are nearly collinear, the gap narrows to a factor of about two.
-
-\begin{table}[t]
+\begin{figure}[tbp]
 \centering
-\caption{Recurrence plots, encoding versus decoder: mean 8-bit NMAE at $T=128$. ``Oracle'' picks the reflection using the original series and is an upper bound, not a reconstruction.}\label{tab:rp}
-\footnotesize
-\input{generated/tab_rp.tex}
-\end{table}
-
-\subsection{When is the signed RP decoder exact?}\label{sec:results_conditions}
-Remark~\ref{rem:conditioning} predicts that storage error is amplified when the states $(x_i,x_{i+1})$ are nearly collinear. Measured by the ratio $\sigma_2/\sigma_1$ of the singular values of the centred states, this is borne out across all datasets. None of the \condGoodSeries{} series with $\sigma_2/\sigma_1\ge0.1$ exceeds an 8-bit NMAE of $0.01$, whereas \condWorstRate\% of the series with $\sigma_2/\sigma_1<0.01$ do. The share of state pairs whose sign carries direction, by contrast, does not explain the error: slow series have almost all displacements along the diagonal, so their sign is informative in nearly every pair, yet their states are the most collinear. Swarm, sampled at 1\,Hz, is the limiting case, and it is the only dataset where the signed RP is not in the near-lossless group.
-
-\subsection{Robustness and computational cost}
-Figure~\ref{fig:robustness_sampling}a shows how the near-lossless group degrades when the stored image is perturbed. With noise of $\sigma=16$ intensity levels, the mean 8-bit NMAE at $T=128$ rises to \robHighXIRP{} for XIRP, \robHighRP{} for the signed RP, and \robHighGASF{} and \robHighGADF{} for GASF and GADF. The signed RP degrades less than both angular fields on \robDatasetsRPBetter{} of the \robDatasets{} datasets; on Swarm, whose states are nearly collinear, the three are level. XIRP is the most stable because each sample is read from the diagonal and averaged over the proposals of every column. The lossy combinations are insensitive to the noise, which moves their error by at most \robLossyShift{}, because their error is already dominated by what the representation discards.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\textwidth]{images/robustness_sampling.pdf}
-\caption{(a) Mean 8-bit NMAE against Gaussian noise added to the stored image ($T=128$, mean over the seven datasets, two replicates per level). (b) 8-bit NMAE and (c) median conditioning $\sigma_2/\sigma_1$ of the RP states against the sampling rate (PTB-XL, $T=128$, anti-aliased resampling from 500\,Hz). Binary and unsigned RP decoders and MTF stay between 0.08 and 0.34 throughout and are omitted.}\label{fig:robustness_sampling}
+\includegraphics[width=\textwidth]{images/reconstruction_examples.pdf}
+\caption{The windows of Figure~\ref{fig:encodings}, decoded from their 8-bit images. Left: the geometric decoder on the signed and on the unsigned RP. Right: Hirata's reconstruction on the unsigned RP and MTF. GASF, GADF and XIRP overlap the original at this scale and are omitted. On Swarm, whose states are nearly collinear, the signed RP deviates visibly at the start of the window.}\label{fig:examples}
 \end{figure}
 
-Table~\ref{tab:cost} reports single-thread cost against window length. Hirata's reconstruction grows fastest, with an exponent of about $2.6$ due to all-pairs shortest paths. The geometric decoder on the signed RP is \speedupMid{} times faster than Hirata on the same encoding at $T=256$ and \speedupLong{} times faster at $T=1024$. Its measured exponent is below the cubic cost of a dense eigendecomposition, because at these sizes building the matrix and the linear-algebra library dominate. GASF, GADF, XIRP and MTF are one to two orders of magnitude cheaper. Memory grows quadratically for all of them, and cost grows linearly with the number of channels.
+\subsection{Recurrence plots: encoding versus decoder (RQ2)}\label{sec:results_rp}
+Table~\ref{tab:fidelity} separates five effects. \emph{Thresholding.} On the floating-point binary RP, with the oracle orientation, neither decoder brings the error below \binaryOracleMin{} (up to \binaryOracleMax{} across datasets and lengths), and the two decoders stay within \binaryGapMax{} of each other: once the image is binary, most of the loss comes from the encoding, not from the algorithm. \emph{Sign.} On the unsigned RP, the geometric decoder with oracle orientation reaches the error of the signed RP, so its loss there is entirely a loss of orientation, which the sign restores from the image alone. \emph{Continuous distances.} On the same signed RP, the geometric decoder, which uses the distances that thresholding discards, is one to two orders of magnitude more accurate than Hirata's on six datasets; on Swarm the gap narrows to a factor of about two. \emph{Decoder on continuous distances.} Sipers' reconstruction also uses the continuous distances; with the sign it is a median of \macroDiffRPSIPERSSIGNED{} per series above the geometric decoder, which on the same circular image is \pilotRatioMin{} to \pilotRatioMax{} times more accurate on every dataset (Supplementary Table~S5). It is ahead in the benchmark only on Swarm, and the gain comes from the encoding: adding the wrap state raises the median $\sigma_2/\sigma_1$ from \swRatioNonCirc{} to \swRatioCirc{} and lowers the geometric decoder's error from \swGeoNonCirc{} to \swGeoCirc{}, below Sipers' \swSipCirc{} on the same image, while on other datasets it changes by at most \encGapMax{}. \emph{Threshold choice.} These comparisons do not depend on the recurrence rate fixed for Hirata: choosing the best rate per dataset with knowledge of the result lowers its error by at most \hirataGainUns{} on the unsigned and \hirataGainSig{} on the signed RP, leaving it between \hirataBestMin{} and \hirataBestMax{} (Supplementary Table~S3).
 
-\begin{table}[t]
+\subsection{Signal characteristics and stability (RQ3)}\label{sec:results_conditions}
+Remark~\ref{rem:conditioning} predicts that storage error is amplified when the states are nearly collinear, and the data agree. None of the \condGoodSeries{} series with $\sigma_2/\sigma_1\ge0.1$ exceeds an 8-bit NMAE of $0.01$, whereas \condWorstRate\% of the series with $\sigma_2/\sigma_1<0.01$ do. The ratio is an empirical indicator, not a complete explanation: it separates the regimes at the two ends but does not determine which series in between fail. Nor does the share of sign-informative pairs: slow series are informative in nearly every pair, yet their states are the most collinear. Swarm, sampled at 1\,Hz, is the limiting case and the only dataset where the signed RP is not in the low-error group.
+
+The sampling rate changes how far apart consecutive samples are, and with it the conditioning (Figure~\ref{fig:robustness_sampling}b--c). On PTB-XL with windows of 128 samples, from 50 to 500\,Hz the median $\sigma_2/\sigma_1$ falls from \srColFifty{} to \srColFivehundred{}, the share of series below $0.1$ grows from \srShareFifty\% to \srShareFivehundred\%, and the 8-bit NMAE of the signed RP rises from \srRPFifty{} to \srRPFivehundred{}, while GASF and GADF stay between \srGafMin{} and \srGafMax{} and XIRP is unaffected. A fixed number of samples spans a shorter time at a higher rate, but the trend persists at a fixed duration of 1.28\,s, from \srDurRPFifty{} to \srDurRPFivehundred{} (Supplementary Table~S4). Sipers' reconstruction rises with the rate as well (Figure~\ref{fig:robustness_sampling}b), so the effect belongs to the RP, not to one decoder. The resampled and the distributed 100\,Hz files give the same error (\srResampledRP{} and \srNativeRP{}). Resampling also changes the spectral content of each window, and the study covers one dataset, so the trend is attributable to the rate as realised by anti-aliased resampling of PTB-XL, not to the rate in isolation.
+
+\subsection{Classification utility (RQ4)}
+Six classifiers, five labelled datasets and three lengths give \clsCombos{} combinations on \clsWindows{} windows (Table~\ref{tab:utility}). On the original windows, accuracy ranges from \origAccMin{} to \origAccMax{} and PTB-XL macro-F1 from \origFoneMin{} to \origFoneMax{}; the lowest values (KNN on EMG) are near chance, where drops are less informative. The four combinations that are exact in floating point never lose more than \clsMaxDropExact{} and are equivalent within $\pm0.01$ in nearly every single-label combination; where equivalence is not established, the observed difference is still below $0.01$ and the interval is too wide rather than the drop large. Hirata's reconstruction on either encoding, the geometric decoder on the unsigned RP and MTF lose between $0.08$ and $0.12$ on average and up to $0.40$. The same separation holds per clip on ESC-10 (\escWindows{} windows, \escCombos{} combinations), where the exactly decodable combinations lose at most \escMaxDropExact{}.
+
+\begin{table}[tbp]
 \centering
-\caption{Median single-thread time (ms) to encode, store and decode one channel (WISDM, 20 series per length), log--log slope of time against $T$, and peak traced memory at $T=1024$.}\label{tab:cost}
-\footnotesize
-\input{generated/tab_cost.tex}
-\end{table}
-
-\subsection{Preservation of classification utility}
-Table~\ref{tab:utility} summarises the train-on-original experiment: six classifiers, six labelled datasets and three lengths, \clsCombos{} combinations on \clsWindows{} windows. ESC-50 is excluded from these combinations because 128 samples at 8\,kHz span only 16\,ms of sound, which leaves every classifier near chance. Audio is evaluated instead on ESC-10 at window lengths that span 64 to 512\,ms (\escWindows{} windows, \escCombos{} combinations), with accuracy scored per clip.
-
-The near-lossless group of the fidelity analysis is also the group that preserves utility. The signed RP with the geometric decoder, GASF, GADF and XIRP never lose more than $0.01$ of accuracy (or macro-F1 on the multilabel PTB-XL), and their difference to the original is statistically equivalent within $\pm0.01$ in almost every single-label combination. The binary and unsigned RP decoders and MTF lose between $0.08$ and $0.12$ on average and up to $0.40$, and are equivalent in only a minority of combinations. The pattern holds per clip on ESC-10.
-
-\begin{table}[t]
-\centering
-\caption{Drop from the original accuracy (macro-F1 on PTB-XL) for classifiers trained on original windows and tested on reconstructions. Equivalent: 95\% group-bootstrap interval within $\pm0.01$, counted over the single-label combinations.}\label{tab:utility}
+\caption{Drop from the original accuracy (macro-F1 on PTB-XL) for classifiers trained on original windows and tested on reconstructions. $|\Delta|\le0.01$: share of combinations whose observed drop is within $0.01$. Equivalent: $95\%$ group-bootstrap interval within $\pm0.01$, over the single-label combinations.}\label{tab:utility}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
 \input{generated/tab_utility.tex}
 \end{table}
 
-\subsection{Sampling rate}
-The sampling rate changes how far apart consecutive samples are, and therefore how collinear the states $(x_i,x_{i+1})$ become. Figure~\ref{fig:robustness_sampling}b--c shows the consequence on PTB-XL. From 50 to 500\,Hz, the median $\sigma_2/\sigma_1$ falls from \srColFifty{} to \srColFivehundred{}, and the share of series below $0.1$ grows from \srShareFifty\% to \srShareFivehundred\%. The 8-bit NMAE of the signed RP rises accordingly, from \srRPFifty{} to \srRPFivehundred{}, while GASF and GADF stay between \srGafMin{} and \srGafMax{} and XIRP is unaffected. The signed RP is thus the most accurate of the three at low rates and the least accurate at high rates, as Remark~\ref{rem:conditioning} predicts. The resampled 100\,Hz series and the 100\,Hz files distributed with the dataset give the same error (\srResampledRP{} and \srNativeRP{}), so the effect is not an artefact of the resampling.
+\subsection{Robustness (RQ3) and cost (RQ4)}
+With noise of $\sigma=16$ intensity levels on the stored image, the mean NMAE at $T=128$ rises to \robHighXIRP{} for XIRP, \robHighRP{} for the signed RP, and \robHighGASF{} and \robHighGADF{} for GASF and GADF, and \robHighSIPERS{} for Sipers' reconstruction on the signed RP (Figure~\ref{fig:robustness_sampling}a). The geometric decoder on the signed RP degrades less than both angular fields on \robDatasetsRPBetter{} of the \robDatasets{} datasets, with the three level on Swarm, and less than Sipers' on \robDatasetsRPBetterSipers{} of the \robDatasets{}. The lossy combinations move by at most \robLossyShift{}, because their error is already dominated by what is discarded before storage.
 
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\textwidth]{images/robustness_sampling.pdf}
+\caption{(a) Mean 8-bit NMAE against Gaussian noise added to the stored image ($T=128$, mean over the seven datasets, two replicates per level). (b) 8-bit NMAE and (c) median conditioning $\sigma_2/\sigma_1$ of the RP states against the sampling rate (PTB-XL, $T=128$, anti-aliased resampling from 500\,Hz). Hirata's reconstruction, the geometric and Sipers' decoders on the unsigned RP and MTF stay between 0.08 and 0.34 throughout and are omitted.}\label{fig:robustness_sampling}
+\end{figure}
+
+Hirata's reconstruction has the steepest cost, with an exponent of about $2.6$ due to all-pairs shortest paths (Supplementary Table~S6). The geometric decoder on the signed RP is \speedupMid{} times faster at $T=256$ and \speedupLong{} times faster at $T=1024$, and costs about as much as Sipers' reconstruction at $T=256$ and half as much at $T=1024$. GASF, GADF, XIRP and MTF are one to two orders of magnitude cheaper. Memory grows quadratically for all of them.
 % ============================================================================================
 \section{Discussion}\label{sec:discussion}
 
-\subsection{Three classes of representation}
-The results sort the compared combinations into three classes that agree across domains, window lengths and evaluation lenses. The first contains the signed RP with the geometric decoder, GASF, GADF and XIRP. Each is exact on the floating-point matrix, so its error after storage is the error of storage, and that error is small enough to leave classifiers trained on original signals unaffected. The second is the unsigned RP: it determines the shape of the series but not its reflection, so its reconstruction is exact up to a sign that no image-only decoder can fix. The third contains the binary RP, under either decoder, and MTF, which discard information the series needs: thresholding keeps only neighbourhoods, and quantile assignment keeps only states. No decoder can recover what these encodings do not store; for them the question is not how to invert but what representative to return.
+\paragraph{What each representation retains}
+Three groups emerge, consistent across domains, lengths and classifiers. The signed RP with the geometric decoder, GASF, GADF on its restricted range and XIRP are exact in floating point under the stated conditions, so their error after storage is storage error, too small to affect classifiers trained on original signals. The unsigned RP determines the shape of the series but not its sign. The binary RP and MTF are many-to-one, so no decoder can be exact for every series, and the evaluated decoders lose most of the waveform; better approximations, for instance with learned priors, are not ruled out, but they cannot be read back with a guarantee of matching the encoded series.
 
-The classes follow from what each image determines (Table~\ref{tab:contract}), not from the domain. The same ordering holds for accelerometers, electrocardiograms, magnetometers, seismograms, electromyograms and audio, and for every classifier. This matters for image-domain generation: a model trained on the third class cannot produce images that map back to the signals it was trained on, whatever its quality.
+\paragraph{What the sign and the decoder add}
+RP reconstruction needs both. The sign fixes the orientation that the unsigned RP leaves open, and one sign-informative pair suffices (Proposition~\ref{prop:rp}). The continuous distances that thresholding discards account for the advantage over Hirata's reconstruction, and among decoders that use them the geometric one is more accurate and more robust than Sipers' on the same image, without assuming a periodic signal or choosing a frequency threshold.
 
-\subsection{What the sign and the decoder each add}
-Separating the encoding from the decoder shows that RP reconstruction needs both. The sign is what makes the problem well posed: on the unsigned RP, even an exact geometric decoder loses the orientation. The decoder is what exploits the information the matrix holds. Hirata's reconstruction was designed for the binary plot and sees only its neighbourhoods, so applying it to the signed RP gains the orientation but not the geometry. Using the full distances, the geometric decoder makes the signed RP as accurate as the angular fields on six of the seven datasets.
+\paragraph{When recovery becomes unstable}
+The signed RP is the only exactly decodable representation whose stability depends strongly on the signal: slowly varying windows, from Swarm at 1\,Hz or from an ECG at 500\,Hz, have nearly collinear states that amplify storage error, for Sipers' decoder as for ours.
 
-\subsection{Conditioning and sampling rate}
-The signed RP is the only representation in the first class whose accuracy depends on the signal. Its decoder recovers the two-dimensional geometry of the states $(x_i,x_{i+1})$, so it is limited by how far that cloud is from a line. Slowly varying windows, whether from Swarm at 1\,Hz or from an ECG sampled at 500\,Hz, have consecutive samples that are nearly equal and states that are nearly collinear, and there storage error is amplified. The ratio $\sigma_2/\sigma_1$ makes this a measurable condition: above $0.1$, no series exceeded a normalised error of $0.01$. It also gives a practical rule. For signals sampled far above their bandwidth, the angular fields or XIRP are the safer choice, unless the signal is downsampled first. An embedding delay larger than one sample would also decorrelate the states, but we have not tested it.
-
-\subsection{XIRP and the cost of reconstruction}
-XIRP is the most accurate and the most robust representation in the comparison because it does not encode the series indirectly: the diagonal is the series, and inversion by mean averages $T$ independent proposals of each sample, which reduces quantisation and pixel noise. Its constraint is that the series must be strictly positive, which the shared calibration provides here. The angular fields and XIRP are also one to two orders of magnitude cheaper to decode than either RP decoder. Among the RP decoders, the geometric decoder is faster than Hirata's and scales better, because a single eigendecomposition replaces all-pairs shortest paths.
-
-\subsection{Limitations}
-\begin{itemize}
-\item \textbf{Controlled inputs.} Every image is the deterministic output of a known encoder. Noise on the stored image measures local stability only; structurally invalid or generated images are not evaluated.
-\item \textbf{Calibration and storage.} All decoders work from the image alone on the normalised domain, but physical units need the per-channel calibration $(x_{\max},x_{\min})$, which a generative setting would have to supply. Only 8-bit storage is evaluated.
-\item \textbf{Channels.} Every channel is an independent image, so representations that couple channels, and any information shared between them, are outside the study.
-\item \textbf{Sampling of data.} Fidelity uses 500 windows and classification up to 6\,000 windows per dataset and length. EMG at 256 samples is not reported (gestures last about three seconds), ESC-50 at 64--256 samples is too short for audio classification and is complemented by ESC-10, and the splits of PTB-XL and ESC-50 are grouped by patient and source recording rather than the official folds.
-\item \textbf{Reference implementation.} Hirata's reconstruction is our implementation of the published algorithm; the conversion from states to samples is ours, and the recurrence threshold is not prescribed by the method.
-\end{itemize}
+\paragraph{Using the benchmark}
+The comparison is not a ranking, since a model may need a particular image. With recurrence plots, the signed RP and the geometric decoder give a route back to the series, with sufficient conditions for exactness, a measurable indicator of stability and less sensitivity to pixel noise than the angular fields on most datasets. GADF can be decoded if its angular range is restricted at encoding time; MTF and the binary RP give only approximations. Where the image is free to choose and the signal is sampled far above its bandwidth, the angular fields and XIRP are cheaper and independent of its conditioning. XIRP is an explicitly invertible reference: the redundancy of its column proposals plausibly explains its lower error, which says nothing about whether its images are better inputs for classification or generation.
+\paragraph{Limitations}
+Images are deterministic outputs of known encoders; pixel noise measures local stability only. Physical units need the per-channel calibration, which a generative setting would have to supply; only 8-bit storage and independent channels are studied. PTB-XL and ESC-50 are split by patient and recording, not by official folds. Hirata's reconstruction is our implementation, with a threshold the method does not prescribe, and Sipers' runs on the circular RP it requires, with a node threshold chosen in a pilot. The sampling-rate study covers one dataset, and $\sigma_2/\sigma_1$ is an empirical indicator, not an error bound.
 
 \section{Conclusions}\label{sec:conclusions}
-We compared how much of a time series survives its image for the most widely used image representations and for XIRP, on seven datasets from five domains. Four representations are exactly invertible and keep what classifiers need: the signed recurrence plot decoded geometrically, the Gramian angular summation and difference fields, and XIRP. The unsigned recurrence plot loses its orientation, and the binary recurrence plot and the Markov transition field lose most of the waveform under any decoder. For recurrence plots both the sign and a decoder that uses the full distances are necessary, and the conditioning of the states decides when storage error stays negligible, which ties the choice of representation to the sampling rate of the signal. These results give image-domain generation a criterion that comes before any model: only images from an invertible representation can be mapped back to the signals they represent. Evaluating generated and structurally imperfect images is the next step.
+We measured, under one framework, how much of a time series survives its image for the most widely used image representations and XIRP, on seven datasets from six domains. Four are exactly decodable in floating point under stated conditions and, after 8-bit storage, keep what classifiers trained on original signals need: the signed recurrence plot with a geometric decoder, GASF on $[0,1]$, GADF on a restricted angular range, and XIRP. The unsigned recurrence plot is recovered only up to sign; the binary recurrence plot and the Markov transition field, which are many-to-one, lose most of the waveform with the decoders evaluated. For recurrence plots, exact recovery needs the sign and a decoder that uses the continuous distances; stability after storage depends on how collinear the states are, and hence on the sampling rate. Images produced by generative models are the next step.
 
 % ============================================================================================
 \section*{CRediT authorship contribution statement}
@@ -367,10 +352,10 @@ We compared how much of a time series survives its image for the most widely use
 This research did not receive any specific grant from funding agencies in the public, commercial, or not-for-profit sectors.
 
 \section*{Data availability}
-All seven datasets are public and are cited at their official sources. The code, window and split manifests, configurations and derived results are available at \url{https://github.com/adrianoggm/TFG-Tratamiento-de-Series-Temporales} \pending{archived release with DOI, \#137}.
+All datasets are public and cited. Code, manifests, configurations and derived results: \url{https://github.com/adrianoggm/TFG-Tratamiento-de-Series-Temporales} \pending{DOI, \#137}.
 
 \section*{Declaration of generative AI and AI-assisted technologies in the manuscript preparation process}
-\pending{List every tool used for writing and for code, and what it was used for (\#138).} All AI-assisted content was critically reviewed, verified and revised by the authors, who take full responsibility for the accuracy, originality and integrity of the manuscript.
+\pending{tools and uses, \#138.} All AI-assisted content was critically reviewed, verified and revised by the authors, who take full responsibility for the accuracy, originality and integrity of the manuscript.
 
 {\small
 \begin{thebibliography}{99}
@@ -385,96 +370,88 @@ Zhiguang Wang and Tim Oates. ``Imaging time-series to improve classification and
 Zhiguang Wang and Tim Oates. ``Encoding time series as images for visual inspection and classification using tiled convolutional neural networks''. In \textit{Workshops at the Twenty-Ninth AAAI Conference on Artificial Intelligence}, 2015.
 
 \bibitem{huang2023tsdigan}
-Tongge Huang, Pranamesh Chakraborty, and Anuj Sharma. ``Deep convolutional generative adversarial networks for traffic data imputation encoding time series as images''. \textit{International Journal of Transportation Science and Technology}, vol. 12, no. 1, pp. 1--18, 2023. doi: \url{https://doi.org/10.1016/j.ijtst.2021.10.007}.
+Tongge Huang, Pranamesh Chakraborty, and Anuj Sharma. ``Deep convolutional generative adversarial networks for traffic data imputation encoding time series as images''. \textit{International Journal of Transportation Science and Technology}, vol. 12, no. 1, pp. 1--18, 2023. doi:\url{10.1016/j.ijtst.2021.10.007}.
 
 \bibitem{hellermann2026imagegan}
-Justin Hellermann and Stefan Lessmann. ``Leveraging image-based generative adversarial networks for time series generation''. \textit{International Journal of Forecasting}, vol. 42, no. 2, pp. 616--639, 2026. doi: \url{https://doi.org/10.1016/j.ijforecast.2025.09.004}.
+Justin Hellermann and Stefan Lessmann. ``Leveraging image-based generative adversarial networks for time series generation''. \textit{International Journal of Forecasting}, vol. 42, no. 2, pp. 616--639, 2026. doi:\url{10.1016/j.ijforecast.2025.09.004}.
 
 \bibitem{eckmann1987recurrence}
-Jean-Pierre Eckmann, S. Oliffson Kamphorst, and David Ruelle. ``Recurrence plots of dynamical systems''. \textit{Europhysics Letters}, vol. 4, no. 9, pp. 973--977, 1987. doi: \url{https://doi.org/10.1209/0295-5075/4/9/004}.
+Jean-Pierre Eckmann, S. Oliffson Kamphorst, and David Ruelle. ``Recurrence plots of dynamical systems''. \textit{Europhysics Letters}, vol. 4, no. 9, pp. 973--977, 1987. doi:\url{10.1209/0295-5075/4/9/004}.
 
 \bibitem{marwan2007recurrence}
-Norbert Marwan, M. Carmen Romano, Marco Thiel, and Jürgen Kurths. ``Recurrence plots for the analysis of complex systems''. \textit{Physics Reports}, vol. 438, no. 5--6, pp. 237--329, 2007. doi: \url{https://doi.org/10.1016/j.physrep.2006.11.001}.
+Norbert Marwan, M. Carmen Romano, Marco Thiel, and Jürgen Kurths. ``Recurrence plots for the analysis of complex systems''. \textit{Physics Reports}, vol. 438, no. 5--6, pp. 237--329, 2007. doi:\url{10.1016/j.physrep.2006.11.001}.
 
 \bibitem{ahmad2021inertial}
-Zeeshan Ahmad and Naimul Khan. ``Inertial sensor data to image encoding for human action recognition''. \textit{IEEE Sensors Journal}, vol. 21, no. 9, pp. 10978--10988, 2021. doi: \url{https://doi.org/10.1109/JSEN.2021.3062261}.
+Zeeshan Ahmad and Naimul Khan. ``Inertial sensor data to image encoding for human action recognition''. \textit{IEEE Sensors Journal}, vol. 21, no. 9, pp. 10978--10988, 2021. doi:\url{10.1109/JSEN.2021.3062261}.
 
 \bibitem{ma2024anomaly}
-Jidong Ma and Hairu Wang. ``Anomaly detection in sensor data via encoding time series into images''. \textit{Journal of King Saud University -- Computer and Information Sciences}, vol. 36, no. 10, article 102232, 2024. doi: \url{https://doi.org/10.1016/j.jksuci.2024.102232}.
+Jidong Ma and Hairu Wang. ``Anomaly detection in sensor data via encoding time series into images''. \textit{Journal of King Saud University -- Computer and Information Sciences}, vol. 36, no. 10, article 102232, 2024. doi:\url{10.1016/j.jksuci.2024.102232}.
 
 \bibitem{huamin2020reconstruction}
-Huamin Tao, Qiuqun Deng, and Shanzhu Xiao. ``Reconstruction of time series with missing value using 2D representation-based denoising autoencoder''. \textit{Journal of Systems Engineering and Electronics}, vol. 31, no. 6, pp. 1087--1096, 2020. doi: \url{https://doi.org/10.23919/JSEE.2020.000081}.
+Huamin Tao, Qiuqun Deng, and Shanzhu Xiao. ``Reconstruction of time series with missing value using 2D representation-based denoising autoencoder''. \textit{Journal of Systems Engineering and Electronics}, vol. 31, no. 6, pp. 1087--1096, 2020. doi:\url{10.23919/JSEE.2020.000081}.
 
 \bibitem{takens1981detecting}
-Floris Takens. ``Detecting strange attractors in turbulence''. In \textit{Dynamical Systems and Turbulence, Warwick 1980}, Lecture Notes in Mathematics, vol. 898, pp. 366--381, Springer, 1981. doi: \url{https://doi.org/10.1007/BFb0091924}.
+Floris Takens. ``Detecting strange attractors in turbulence''. In \textit{Dynamical Systems and Turbulence, Warwick 1980}, Lecture Notes in Mathematics, vol. 898, pp. 366--381, Springer, 1981. doi:\url{10.1007/BFb0091924}.
 
 \bibitem{lu2019robust}
-Jianjie Lu and Kai-Yu Tong. ``Robust single accelerometer-based activity recognition using modified recurrence plot''. \textit{IEEE Sensors Journal}, vol. 19, no. 15, pp. 6317--6324, 2019. doi: \url{https://doi.org/10.1109/JSEN.2019.2911204}.
+Jianjie Lu and Kai-Yu Tong. ``Robust single accelerometer-based activity recognition using modified recurrence plot''. \textit{IEEE Sensors Journal}, vol. 19, no. 15, pp. 6317--6324, 2019. doi:\url{10.1109/JSEN.2019.2911204}.
 
 \bibitem{hirata2008reproduction}
-Yoshito Hirata, Shunsuke Horai, and Kazuyuki Aihara. ``Reproduction of distance matrices and original time series from recurrence plots and their applications''. \textit{The European Physical Journal Special Topics}, vol. 164, no. 1, pp. 13--22, 2008. doi: \url{https://doi.org/10.1140/epjst/e2008-00830-8}.
+Yoshito Hirata, Shunsuke Horai, and Kazuyuki Aihara. ``Reproduction of distance matrices and original time series from recurrence plots and their applications''. \textit{The European Physical Journal Special Topics}, vol. 164, no. 1, pp. 13--22, 2008. doi:\url{10.1140/epjst/e2008-00830-8}.
 
 \bibitem{sipers2011unique}
-Aloys Sipers, Paul J. A. Borm, and Ralf L. M. Peeters. ``On the unique reconstruction of a signal from its unthresholded recurrence plot''. \textit{Physics Letters A}, vol. 375, no. 24, pp. 2309--2321, 2011. doi: \url{https://doi.org/10.1016/j.physleta.2011.04.040}.
+Aloys Sipers, Paul J. A. Borm, and Ralf L. M. Peeters. ``On the unique reconstruction of a signal from its unthresholded recurrence plot''. \textit{Physics Letters A}, vol. 375, no. 24, pp. 2309--2321, 2011. doi:\url{10.1016/j.physleta.2011.04.040}.
 
 \bibitem{sipers2017robust}
-Aloys Sipers, Paul J. A. Borm, and Ralf L. M. Peeters. ``Robust reconstruction of a signal from its unthresholded recurrence plot subject to disturbances''. \textit{Physics Letters A}, vol. 381, no. 6, pp. 604--615, 2017. doi: \url{https://doi.org/10.1016/j.physleta.2016.12.028}.
+Aloys Sipers, Paul J. A. Borm, and Ralf L. M. Peeters. ``Robust reconstruction of a signal from its unthresholded recurrence plot subject to disturbances''. \textit{Physics Letters A}, vol. 381, no. 6, pp. 604--615, 2017. doi:\url{10.1016/j.physleta.2016.12.028}.
 
 \bibitem{Torgerson1952}
-Warren S. Torgerson. ``Multidimensional scaling: I. Theory and method''. \textit{Psychometrika}, vol. 17, no. 4, pp. 401--419, 1952. doi: \url{https://doi.org/10.1007/BF02288916}.
+Warren S. Torgerson. ``Multidimensional scaling: I. Theory and method''. \textit{Psychometrika}, vol. 17, no. 4, pp. 401--419, 1952. doi:\url{10.1007/BF02288916}.
 
 \bibitem{Atkins1998}
-Jonathan E. Atkins, Erik G. Boman, and Bruce Hendrickson. ``A spectral algorithm for seriation and the consecutive ones problem''. \textit{SIAM Journal on Computing}, vol. 28, no. 1, pp. 297--310, 1998. doi: \url{https://doi.org/10.1137/S0097539795285771}.
+Jonathan E. Atkins, Erik G. Boman, and Bruce Hendrickson. ``A spectral algorithm for seriation and the consecutive ones problem''. \textit{SIAM Journal on Computing}, vol. 28, no. 1, pp. 297--310, 1998. doi:\url{10.1137/S0097539795285771}.
 
 \bibitem{misc_wisdm_smartphone_and_smartwatch_activity_and_biometrics_dataset__507}
-Gary M. Weiss. ``WISDM Smartphone and Smartwatch Activity and Biometrics Dataset''. \textit{UCI Machine Learning Repository}, 2019. doi: \url{https://doi.org/10.24432/C5HK59}.
+Gary M. Weiss. ``WISDM Smartphone and Smartwatch Activity and Biometrics Dataset''. \textit{UCI Machine Learning Repository}, 2019. doi:\url{10.24432/C5HK59}.
 
 \bibitem{Welch1967}
-Peter D. Welch. ``The use of fast Fourier transform for the estimation of power spectra: A method based on time averaging over short, modified periodograms''. \textit{IEEE Transactions on Audio and Electroacoustics}, vol. 15, no. 2, pp. 70--73, 1967. doi: \url{https://doi.org/10.1109/TAU.1967.1161901}.
-
-\bibitem{Wilcoxon1945}
-Frank Wilcoxon. ``Individual comparisons by ranking methods''. \textit{Biometrics Bulletin}, vol. 1, no. 6, pp. 80--83, 1945. doi: \url{https://doi.org/10.2307/3001968}.
-
-\bibitem{McNemar1947}
-Quinn McNemar. ``Note on the sampling error of the difference between correlated proportions or percentages''. \textit{Psychometrika}, vol. 12, no. 2, pp. 153--157, 1947. doi: \url{https://doi.org/10.1007/BF02295996}.
+Peter D. Welch. ``The use of fast Fourier transform for the estimation of power spectra: A method based on time averaging over short, modified periodograms''. \textit{IEEE Transactions on Audio and Electroacoustics}, vol. 15, no. 2, pp. 70--73, 1967. doi:\url{10.1109/TAU.1967.1161901}.
 
 \bibitem{DavisonHinkley1997}
 Anthony C. Davison and David V. Hinkley. \textit{Bootstrap Methods and Their Application}. Cambridge University Press, 1997.
 
 \bibitem{Hall1987}
-Peter Hall. ``On the bootstrap and likelihood-based confidence regions''. \textit{Biometrika}, vol. 74, no. 3, pp. 481--493, 1987. doi: \url{https://doi.org/10.1093/biomet/74.3.481}.
+Peter Hall. ``On the bootstrap and likelihood-based confidence regions''. \textit{Biometrika}, vol. 74, no. 3, pp. 481--493, 1987. doi:\url{10.1093/biomet/74.3.481}.
 
 \bibitem{Lakens2017}
-Daniël Lakens. ``Equivalence tests: A practical primer for t tests, correlations, and meta-analyses''. \textit{Social Psychological and Personality Science}, vol. 8, no. 4, pp. 355--362, 2017. doi: \url{https://doi.org/10.1177/1948550617697177}.
+Daniël Lakens. ``Equivalence tests: A practical primer for t tests, correlations, and meta-analyses''. \textit{Social Psychological and Personality Science}, vol. 8, no. 4, pp. 355--362, 2017. doi:\url{10.1177/1948550617697177}.
 
 \bibitem{Schuirmann1987}
-Donald J. Schuirmann. ``A comparison of the two one-sided tests procedure and the power approach for assessing the equivalence of average bioavailability''. \textit{Journal of Pharmacokinetics and Biopharmaceutics}, vol. 15, no. 6, pp. 657--680, 1987. doi: \url{https://doi.org/10.1007/BF01068419}.
+Donald J. Schuirmann. ``A comparison of the two one-sided tests procedure and the power approach for assessing the equivalence of average bioavailability''. \textit{Journal of Pharmacokinetics and Biopharmaceutics}, vol. 15, no. 6, pp. 657--680, 1987. doi:\url{10.1007/BF01068419}.
 
-\bibitem{Holm1979}
-Sture Holm. ``A simple sequentially rejective multiple test procedure''. \textit{Scandinavian Journal of Statistics}, vol. 6, no. 2, pp. 65--70, 1979.
 \bibitem{hirata2016chromosome}
-Yoshito Hirata, Arisa Oda, Kunihiro Ohta, and Kazuyuki Aihara. ``Three-dimensional reconstruction of single-cell chromosome structure using recurrence plots''. \textit{Scientific Reports}, vol. 6, article 34982, 2016. doi: \url{https://doi.org/10.1038/srep34982}.
+Yoshito Hirata, Arisa Oda, Kunihiro Ohta, and Kazuyuki Aihara. ``Three-dimensional reconstruction of single-cell chromosome structure using recurrence plots''. \textit{Scientific Reports}, vol. 6, article 34982, 2016. doi:\url{10.1038/srep34982}.
 
 \bibitem{davis1970rotation}
-Chandler Davis and W. M. Kahan. ``The rotation of eigenvectors by a perturbation. III''. \textit{SIAM Journal on Numerical Analysis}, vol. 7, no. 1, pp. 1--46, 1970. doi: \url{https://doi.org/10.1137/0707001}.
+Chandler Davis and W. M. Kahan. ``The rotation of eigenvectors by a perturbation. III''. \textit{SIAM Journal on Numerical Analysis}, vol. 7, no. 1, pp. 1--46, 1970. doi:\url{10.1137/0707001}.
 
 \bibitem{reiss2012pamap2}
-Attila Reiss and Didier Stricker. ``Introducing a new benchmarked dataset for activity monitoring''. In \textit{Proceedings of the 16th International Symposium on Wearable Computers (ISWC)}, pp. 108--109, 2012. doi: \url{https://doi.org/10.1109/ISWC.2012.13}.
+Attila Reiss and Didier Stricker. ``Introducing a new benchmarked dataset for activity monitoring''. In \textit{Proceedings of the 16th International Symposium on Wearable Computers (ISWC)}, pp. 108--109, 2012. doi:\url{10.1109/ISWC.2012.13}.
 
 \bibitem{piczak2015esc}
-Karol J. Piczak. ``ESC: Dataset for environmental sound classification''. In \textit{Proceedings of the 23rd ACM International Conference on Multimedia}, pp. 1015--1018, 2015. doi: \url{https://doi.org/10.1145/2733373.2806390}.
+Karol J. Piczak. ``ESC: Dataset for environmental sound classification''. In \textit{Proceedings of the 23rd ACM International Conference on Multimedia}, pp. 1015--1018, 2015. doi:\url{10.1145/2733373.2806390}.
 
 \bibitem{wagner2020ptbxl}
-Patrick Wagner, Nils Strodthoff, Ralf-Dieter Bousseljot, Dieter Kreiseler, Fatima I. Lunze, Wojciech Samek, and Tobias Schaeffter. ``PTB-XL, a large publicly available electrocardiography dataset''. \textit{Scientific Data}, vol. 7, article 154, 2020. doi: \url{https://doi.org/10.1038/s41597-020-0495-6}.
+Patrick Wagner, Nils Strodthoff, Ralf-Dieter Bousseljot, Dieter Kreiseler, Fatima I. Lunze, Wojciech Samek, and Tobias Schaeffter. ``PTB-XL, a large publicly available electrocardiography dataset''. \textit{Scientific Data}, vol. 7, article 154, 2020. doi:\url{10.1038/s41597-020-0495-6}.
 
 \bibitem{friis2006swarm}
-E. Friis-Christensen, H. Lühr, and G. Hulot. ``Swarm: A constellation to study the Earth's magnetic field''. \textit{Earth, Planets and Space}, vol. 58, no. 4, pp. 351--358, 2006. doi: \url{https://doi.org/10.1186/BF03351933}.
+E. Friis-Christensen, H. Lühr, and G. Hulot. ``Swarm: A constellation to study the Earth's magnetic field''. \textit{Earth, Planets and Space}, vol. 58, no. 4, pp. 351--358, 2006. doi:\url{10.1186/BF03351933}.
 
 \bibitem{mousavi2019stead}
-S. Mostafa Mousavi, Yixiao Sheng, Weiqiang Zhu, and Gregory C. Beroza. ``STanford EArthquake Dataset (STEAD): A global data set of seismic signals for AI''. \textit{IEEE Access}, vol. 7, pp. 179464--179476, 2019. doi: \url{https://doi.org/10.1109/ACCESS.2019.2947848}.
+S. Mostafa Mousavi, Yixiao Sheng, Weiqiang Zhu, and Gregory C. Beroza. ``STanford EArthquake Dataset (STEAD): A global data set of seismic signals for AI''. \textit{IEEE Access}, vol. 7, pp. 179464--179476, 2019. doi:\url{10.1109/ACCESS.2019.2947848}.
 
 \bibitem{krilova2018emg}
-N. Krilova, I. Kastalskiy, V. Kazantsev, V. A. Makarov, and S. Lobov. ``EMG Data for Gestures'' [Dataset]. \textit{UCI Machine Learning Repository}, 2018. doi: \url{https://doi.org/10.24432/C5ZP5C}.
+N. Krilova, I. Kastalskiy, V. Kazantsev, V. A. Makarov, and S. Lobov. ``EMG Data for Gestures''. \textit{UCI Machine Learning Repository}, 2018. doi:\url{10.24432/C5ZP5C}.
 \end{thebibliography}
 }
 
