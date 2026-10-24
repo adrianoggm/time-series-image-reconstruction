@@ -12,3 +12,5 @@ Median ms to encode + store 8 bits + decode; peak traced MB; exponent = log-log 
 | GADF | 0.1 ms / 0 MB | 0.3 ms / 1 MB | 1.0 ms / 2 MB | 4.3 ms / 8 MB | 13.0 ms / 32 MB | 1.72 |
 | MTF | 0.5 ms / 0 MB | 0.7 ms / 0 MB | 1.5 ms / 2 MB | 5.5 ms / 6 MB | 12.8 ms / 24 MB | 1.22 |
 | XIRP | 0.1 ms / 0 MB | 0.2 ms / 1 MB | 0.6 ms / 2 MB | 4.1 ms / 8 MB | 12.8 ms / 32 MB | 2.03 |
+| Sipers · RP sin signo (circular) | 1.1 ms / 1 MB | 7.3 ms / 2 MB | 27.1 ms / 9 MB | 184.6 ms / 31 MB | 1172.7 ms / 112 MB | 2.47 |
+| Sipers · Signed RP (circular) | 1.5 ms / 1 MB | 5.9 ms / 2 MB | 29.9 ms / 9 MB | 202.5 ms / 30 MB | 1193.1 ms / 112 MB | 2.45 |

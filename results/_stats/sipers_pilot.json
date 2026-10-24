@@ -1,0 +1,499 @@
+{
+ "_design": {
+  "T": 128,
+  "windows": 100,
+  "M": 2,
+  "delay": 1,
+  "tols": [
+   0.01,
+   0.001,
+   0.0001,
+   1e-06,
+   0.0
+  ],
+  "doc": "The benchmark evaluates Sipers' Fourier-domain reconstruction (src/rp_sipers.py) on the circular variant\nof the RP that it requires, while our geometric decoder runs on the benchmark's non-circular RP. This\nscript removes that difference: both decoders receive the identical circular image (T states), stored\nwith the production 8-bit maps, so any gap is due to the decoder."
+ },
+ "wisdm": {
+  "series": 300,
+  "float/unsigned/sipers": {
+   "nmae": 0.19557565073332028,
+   "ms": 3.9364972900034445,
+   "nmae_oracle": 0.0009433047586767015
+  },
+  "float/unsigned/geometric": {
+   "nmae": 0.19760840978973468,
+   "ms": 1.2638302833306625,
+   "nmae_oracle": 9.300113048636432e-17
+  },
+  "float/signed/sipers": {
+   "nmae": 0.0009433047586767015,
+   "ms": 3.9300687933390086
+  },
+  "float/signed/geometric": {
+   "nmae": 9.300113048636432e-17,
+   "ms": 1.2121368533288053
+  },
+  "float/sweep/0.01": {
+   "nmae_oracle": 0.043952430754984693
+  },
+  "float/sweep/0.001": {
+   "nmae_oracle": 0.00863660376919138
+  },
+  "float/sweep/0.0001": {
+   "nmae_oracle": 0.0009433047586767015
+  },
+  "float/sweep/1e-06": {
+   "nmae_oracle": 1.366954120183516e-06
+  },
+  "float/sweep/0": {
+   "nmae_oracle": 8.632901760613421e-16
+  },
+  "png8/unsigned/sipers": {
+   "nmae": 0.19600382426347257,
+   "ms": 4.101147859998188,
+   "nmae_oracle": 0.0026017226873344033
+  },
+  "png8/unsigned/geometric": {
+   "nmae": 0.21042286171375374,
+   "ms": 1.5594059999830279,
+   "nmae_oracle": 0.0003710744709095674
+  },
+  "png8/signed/sipers": {
+   "nmae": 0.004174172430028678,
+   "ms": 4.074505379989357
+  },
+  "png8/signed/geometric": {
+   "nmae": 0.0009788767117151968,
+   "ms": 1.5486829200002223
+  },
+  "png8/sweep/0.01": {
+   "nmae_oracle": 0.04397643609637874
+  },
+  "png8/sweep/0.001": {
+   "nmae_oracle": 0.009237704753003314
+  },
+  "png8/sweep/0.0001": {
+   "nmae_oracle": 0.002601722687334403
+  },
+  "png8/sweep/1e-06": {
+   "nmae_oracle": 0.0031299074617912133
+  },
+  "png8/sweep/0": {
+   "nmae_oracle": 0.0034105481392143993
+  }
+ },
+ "pamap2": {
+  "series": 900,
+  "float/unsigned/sipers": {
+   "nmae": 0.1844526294372968,
+   "ms": 3.761520487789514,
+   "nmae_oracle": 0.001392197213713586
+  },
+  "float/unsigned/geometric": {
+   "nmae": 0.19993972067888977,
+   "ms": 1.2831687033329016,
+   "nmae_oracle": 7.907551177361793e-17
+  },
+  "float/signed/sipers": {
+   "nmae": 0.001392197213713586,
+   "ms": 3.7839213933228972
+  },
+  "float/signed/geometric": {
+   "nmae": 7.907551177361793e-17,
+   "ms": 1.2545778622206347
+  },
+  "float/sweep/0.01": {
+   "nmae_oracle": 0.029697414124841934
+  },
+  "float/sweep/0.001": {
+   "nmae_oracle": 0.007750572840761782
+  },
+  "float/sweep/0.0001": {
+   "nmae_oracle": 0.0013921972137135863
+  },
+  "float/sweep/1e-06": {
+   "nmae_oracle": 1.0433136870118626e-05
+  },
+  "float/sweep/0": {
+   "nmae_oracle": 9.55699541966739e-16
+  },
+  "png8/unsigned/sipers": {
+   "nmae": 0.18532880252743394,
+   "ms": 3.920895595550115,
+   "nmae_oracle": 0.003281825230906927
+  },
+  "png8/unsigned/geometric": {
+   "nmae": 0.18911415850050933,
+   "ms": 1.6374382555560867,
+   "nmae_oracle": 0.0006152026770444236
+  },
+  "png8/signed/sipers": {
+   "nmae": 0.004991225740916623,
+   "ms": 3.836833023322773
+  },
+  "png8/signed/geometric": {
+   "nmae": 0.0013841253099759474,
+   "ms": 1.5862783600007586
+  },
+  "png8/sweep/0.01": {
+   "nmae_oracle": 0.029635425237431033
+  },
+  "png8/sweep/0.001": {
+   "nmae_oracle": 0.008222347735746876
+  },
+  "png8/sweep/0.0001": {
+   "nmae_oracle": 0.0032818252309069263
+  },
+  "png8/sweep/1e-06": {
+   "nmae_oracle": 0.004160821389715384
+  },
+  "png8/sweep/0": {
+   "nmae_oracle": 0.00433803893592051
+  }
+ },
+ "esc50": {
+  "series": 88,
+  "float/unsigned/sipers": {
+   "nmae": 0.1972949710032799,
+   "ms": 4.333039068182064,
+   "nmae_oracle": 0.0016543664375428327
+  },
+  "float/unsigned/geometric": {
+   "nmae": 0.19425335930782248,
+   "ms": 1.5135592613649929,
+   "nmae_oracle": 1.0147587148616467e-16
+  },
+  "float/signed/sipers": {
+   "nmae": 0.001654366437542832,
+   "ms": 4.279577056841142
+  },
+  "float/signed/geometric": {
+   "nmae": 1.0147587148616467e-16,
+   "ms": 1.4645188295606781
+  },
+  "float/sweep/0.01": {
+   "nmae_oracle": 0.03424691487437767
+  },
+  "float/sweep/0.001": {
+   "nmae_oracle": 0.009434913360653774
+  },
+  "float/sweep/0.0001": {
+   "nmae_oracle": 0.0016543664375428342
+  },
+  "float/sweep/1e-06": {
+   "nmae_oracle": 1.0782823252172234e-05
+  },
+  "float/sweep/0": {
+   "nmae_oracle": 8.545369067734447e-16
+  },
+  "png8/unsigned/sipers": {
+   "nmae": 0.20280244991022445,
+   "ms": 4.338014875016101,
+   "nmae_oracle": 0.004056320575135068
+  },
+  "png8/unsigned/geometric": {
+   "nmae": 0.20744933776125352,
+   "ms": 1.9314327386206804,
+   "nmae_oracle": 0.0006380563278254797
+  },
+  "png8/signed/sipers": {
+   "nmae": 0.005395112658124896,
+   "ms": 4.355187000018387
+  },
+  "png8/signed/geometric": {
+   "nmae": 0.0013258211465096567,
+   "ms": 1.9573840454644265
+  },
+  "png8/sweep/0.01": {
+   "nmae_oracle": 0.034284218511784356
+  },
+  "png8/sweep/0.001": {
+   "nmae_oracle": 0.009932253342243812
+  },
+  "png8/sweep/0.0001": {
+   "nmae_oracle": 0.004056320575135068
+  },
+  "png8/sweep/1e-06": {
+   "nmae_oracle": 0.004931477908424439
+  },
+  "png8/sweep/0": {
+   "nmae_oracle": 0.004931477908424438
+  }
+ },
+ "ptbxl": {
+  "series": 1200,
+  "float/unsigned/sipers": {
+   "nmae": 0.25717432826878306,
+   "ms": 3.8551849966700047,
+   "nmae_oracle": 0.0006061966418608013
+  },
+  "float/unsigned/geometric": {
+   "nmae": 0.29594454088157524,
+   "ms": 1.3207831558315775,
+   "nmae_oracle": 9.476149644911151e-17
+  },
+  "float/signed/sipers": {
+   "nmae": 0.0006061966418608013,
+   "ms": 3.8408499583329103
+  },
+  "float/signed/geometric": {
+   "nmae": 9.476149644911151e-17,
+   "ms": 1.3006523916650774
+  },
+  "float/sweep/0.01": {
+   "nmae_oracle": 0.02165910305397766
+  },
+  "float/sweep/0.001": {
+   "nmae_oracle": 0.004293644247066518
+  },
+  "float/sweep/0.0001": {
+   "nmae_oracle": 0.0006061966418608013
+  },
+  "float/sweep/1e-06": {
+   "nmae_oracle": 5.328088029706828e-06
+  },
+  "float/sweep/0": {
+   "nmae_oracle": 2.9158813043390235e-06
+  },
+  "png8/unsigned/sipers": {
+   "nmae": 0.2583608878778927,
+   "ms": 3.888732690006312,
+   "nmae_oracle": 0.003470461372186307
+  },
+  "png8/unsigned/geometric": {
+   "nmae": 0.2886632001615451,
+   "ms": 1.6021149441674727,
+   "nmae_oracle": 0.0006796157312817129
+  },
+  "png8/signed/sipers": {
+   "nmae": 0.005397560784364586,
+   "ms": 3.8031200266622514
+  },
+  "png8/signed/geometric": {
+   "nmae": 0.0014248586843602765,
+   "ms": 1.5829346025009272
+  },
+  "png8/sweep/0.01": {
+   "nmae_oracle": 0.02160357576272607
+  },
+  "png8/sweep/0.001": {
+   "nmae_oracle": 0.005150700593353524
+  },
+  "png8/sweep/0.0001": {
+   "nmae_oracle": 0.003470461372186307
+  },
+  "png8/sweep/1e-06": {
+   "nmae_oracle": 0.005038389084109312
+  },
+  "png8/sweep/0": {
+   "nmae_oracle": 0.005439707701808238
+  }
+ },
+ "swarm": {
+  "series": 300,
+  "float/unsigned/sipers": {
+   "nmae": 0.28375965696079475,
+   "ms": 4.066109479996764,
+   "nmae_oracle": 0.0002115106389672116
+  },
+  "float/unsigned/geometric": {
+   "nmae": 0.26078223317452703,
+   "ms": 1.2508526733214846,
+   "nmae_oracle": 7.665348706728068e-17
+  },
+  "float/signed/sipers": {
+   "nmae": 0.0002115106389672116,
+   "ms": 4.049407266664578
+  },
+  "float/signed/geometric": {
+   "nmae": 7.665348706728068e-17,
+   "ms": 1.2300959700041858
+  },
+  "float/sweep/0.01": {
+   "nmae_oracle": 0.04096774696589255
+  },
+  "float/sweep/0.001": {
+   "nmae_oracle": 0.03840180469028237
+  },
+  "float/sweep/0.0001": {
+   "nmae_oracle": 0.0002115106389672116
+  },
+  "float/sweep/1e-06": {
+   "nmae_oracle": 5.379516391952907e-07
+  },
+  "float/sweep/0": {
+   "nmae_oracle": 3.369812600384506e-17
+  },
+  "png8/unsigned/sipers": {
+   "nmae": 0.2852094672952064,
+   "ms": 4.280579656642658,
+   "nmae_oracle": 0.0019440469834721933
+  },
+  "png8/unsigned/geometric": {
+   "nmae": 0.27735234434444805,
+   "ms": 1.4043206866502562,
+   "nmae_oracle": 0.00100151655071889
+  },
+  "png8/signed/sipers": {
+   "nmae": 0.004575480980007537,
+   "ms": 4.266758753337854
+  },
+  "png8/signed/geometric": {
+   "nmae": 0.0024902066676556187,
+   "ms": 1.5231837666685049
+  },
+  "png8/sweep/0.01": {
+   "nmae_oracle": 0.04101808429295445
+  },
+  "png8/sweep/0.001": {
+   "nmae_oracle": 0.03786336732638549
+  },
+  "png8/sweep/0.0001": {
+   "nmae_oracle": 0.0019440469834721933
+  },
+  "png8/sweep/1e-06": {
+   "nmae_oracle": 0.0019973548491761138
+  },
+  "png8/sweep/0": {
+   "nmae_oracle": 0.002024453025146593
+  }
+ },
+ "stead": {
+  "series": 296,
+  "float/unsigned/sipers": {
+   "nmae": 0.1862483742602417,
+   "ms": 3.5895845304210257,
+   "nmae_oracle": 0.00137675299096072
+  },
+  "float/unsigned/geometric": {
+   "nmae": 0.1835928553163904,
+   "ms": 1.2981421486461546,
+   "nmae_oracle": 9.559646754066313e-17
+  },
+  "float/signed/sipers": {
+   "nmae": 0.00137675299096072,
+   "ms": 3.629270138494453
+  },
+  "float/signed/geometric": {
+   "nmae": 9.559646754066313e-17,
+   "ms": 1.264089743252449
+  },
+  "float/sweep/0.01": {
+   "nmae_oracle": 0.027237955218183875
+  },
+  "float/sweep/0.001": {
+   "nmae_oracle": 0.007156134561041985
+  },
+  "float/sweep/0.0001": {
+   "nmae_oracle": 0.00137675299096072
+  },
+  "float/sweep/1e-06": {
+   "nmae_oracle": 1.5340332929173388e-05
+  },
+  "float/sweep/0": {
+   "nmae_oracle": 1.3076634294783269e-15
+  },
+  "png8/unsigned/sipers": {
+   "nmae": 0.18422559079350756,
+   "ms": 3.7370407635212604,
+   "nmae_oracle": 0.00403411827895056
+  },
+  "png8/unsigned/geometric": {
+   "nmae": 0.17621454048585494,
+   "ms": 1.6498065270380917,
+   "nmae_oracle": 0.0004883606934042604
+  },
+  "png8/signed/sipers": {
+   "nmae": 0.005406508011631591,
+   "ms": 3.7381289020173254
+  },
+  "png8/signed/geometric": {
+   "nmae": 0.001199940408819468,
+   "ms": 1.5986574763421748
+  },
+  "png8/sweep/0.01": {
+   "nmae_oracle": 0.02707710754921884
+  },
+  "png8/sweep/0.001": {
+   "nmae_oracle": 0.007756595010410314
+  },
+  "png8/sweep/0.0001": {
+   "nmae_oracle": 0.00403411827895056
+  },
+  "png8/sweep/1e-06": {
+   "nmae_oracle": 0.005463371050684176
+  },
+  "png8/sweep/0": {
+   "nmae_oracle": 0.006145317980829654
+  }
+ },
+ "emg_gestures": {
+  "series": 800,
+  "float/unsigned/sipers": {
+   "nmae": 0.17524781971731734,
+   "ms": 4.249161278748943,
+   "nmae_oracle": 3.578665145750252e-05
+  },
+  "float/unsigned/geometric": {
+   "nmae": 0.16575426075390204,
+   "ms": 1.306144644998426,
+   "nmae_oracle": 1.0443289607512757e-16
+  },
+  "float/signed/sipers": {
+   "nmae": 3.578665145750252e-05,
+   "ms": 4.263626319996661
+  },
+  "float/signed/geometric": {
+   "nmae": 1.0443289607512757e-16,
+   "ms": 1.270042474990305
+  },
+  "float/sweep/0.01": {
+   "nmae_oracle": 0.009261531268276056
+  },
+  "float/sweep/0.001": {
+   "nmae_oracle": 0.0007628399619273137
+  },
+  "float/sweep/0.0001": {
+   "nmae_oracle": 3.578665145750252e-05
+  },
+  "float/sweep/1e-06": {
+   "nmae_oracle": 4.245975155883325e-08
+  },
+  "float/sweep/0": {
+   "nmae_oracle": 9.497525250259428e-07
+  },
+  "png8/unsigned/sipers": {
+   "nmae": 0.177560203028543,
+   "ms": 4.455211199996825,
+   "nmae_oracle": 0.0015228361829731048
+  },
+  "png8/unsigned/geometric": {
+   "nmae": 0.1748445755036268,
+   "ms": 1.520202357510243,
+   "nmae_oracle": 0.0003237324418810957
+  },
+  "png8/signed/sipers": {
+   "nmae": 0.0038984345564268053,
+   "ms": 4.435712192502592
+  },
+  "png8/signed/geometric": {
+   "nmae": 0.0008448137700645543,
+   "ms": 1.4707000249973134
+  },
+  "png8/sweep/0.01": {
+   "nmae_oracle": 0.009332564900742735
+  },
+  "png8/sweep/0.001": {
+   "nmae_oracle": 0.0015997727463241795
+  },
+  "png8/sweep/0.0001": {
+   "nmae_oracle": 0.0015228361829731048
+  },
+  "png8/sweep/1e-06": {
+   "nmae_oracle": 0.0017037654156975446
+  },
+  "png8/sweep/0": {
+   "nmae_oracle": 0.0017037654156975446
+  }
+ }
+}
