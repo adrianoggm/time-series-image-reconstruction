@@ -42,25 +42,24 @@ def main():
     blocks = {k: v for k, v in bench.items() if not k.startswith("_") and v["windows_used"] >= MIN_WINDOWS}
     nums = {}
 
-    # Table: 8-bit NMAE of every decoder, with the orientation oracle on the unsigned RP; L = 128 in the
+    # Table: 8-bit NMAE of every decoder, real reconstructions only (no orientation oracle); L = 128 in the
     # manuscript, the other lengths in the supplement.
-    cols = ("RP_HIRATA", "RP_HIRATA_SIGNED", "RP_SIPERS", "RP_SIPERS_SIGNED", "RP_UNSIGNED", "ORACLE", "RP",
+    cols = ("RP_HIRATA", "RP_HIRATA_SIGNED", "RP_SIPERS", "RP_SIPERS_SIGNED", "RP_UNSIGNED", "RP",
             "GASF", "GADF", "MTF", "XIRP")
     for L in ("64", "128", "256"):
         rows = [r"\begin{tabular}{@{}l" + "r" * len(cols) + "@{}}", r"\toprule",
-                r"& \multicolumn{2}{c}{Hirata} & \multicolumn{2}{c}{Sipers} & \multicolumn{3}{c}{Geometric (ours)}"
+                r"& \multicolumn{2}{c}{Hirata} & \multicolumn{2}{c}{Sipers} & \multicolumn{2}{c}{Geometric (ours)}"
                 r" & & & & \\",
-                r"\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-8}",
-                r"Dataset & Uns. & Sig. & Uns. & Sig. & Uns. & Oracle & Sig. & GASF & GADF & MTF & XIRP \\",
+                r"\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}",
+                r"Dataset & Uns. & Sig. & Uns. & Sig. & Uns. & Sig. & GASF & GADF & MTF & XIRP \\",
                 r"\midrule"]
         for ds, name in NAMES.items():
             k = f"{ds}/L{L}"
             if k not in blocks:
                 rows.append(f"{name} & " + " & ".join(["--"] * len(cols)) + r" \\")
                 continue
-            s, e = bench[k], enc[k]["png8/unsigned/direct2d"]
-            cells = [fmt(e["nmae_oracle_mean"]) if r == "ORACLE" else
-                     fmt(s[f"{r}/png8"]["nmae"]["mean"]) if f"{r}/png8" in s else "--" for r in cols]
+            s = bench[k]
+            cells = [fmt(s[f"{r}/png8"]["nmae"]["mean"]) if f"{r}/png8" in s else "--" for r in cols]
             rows.append(f"{name} & " + " & ".join(cells) + r" \\")
         rows += [r"\bottomrule", r"\end{tabular}"]
         (OUT / ("tab_fidelity.tex" if L == "128" else f"tab_fidelity_L{L}.tex")).write_text(
@@ -217,6 +216,17 @@ def main():
         rows.append(f"{SHORT[r]} & " + " & ".join(cells) + r" \\")
     rows += [r"\bottomrule", r"\end{tabular}"]
     (OUT / "tab_spectral.tex").write_text("\n".join(rows) + "\n", encoding="utf-8")
+
+    # Reflection-invariant evidence for RQ2: the spectrum does not change under x -> -x, so it shows what each
+    # decoder keeps of the waveform without knowing the orientation (no oracle needed).
+    def span(r, m, d):
+        v = [bench[k][f"{r}/png8"][m]["mean"] for k in ks]
+        return fmt(min(v), d), fmt(max(v), d)
+
+    nums["psdGeoUnsMin"], nums["psdGeoUnsMax"] = span("RP_UNSIGNED", "psd_shape", 4)
+    nums["psdGeoSigMin"], nums["psdGeoSigMax"] = span("RP", "psd_shape", 4)
+    nums["psdHirMin"], nums["psdHirMax"] = span("RP_HIRATA", "psd_shape", 2)
+    nums["pearsonUnsAbsMax"] = fmt(max(abs(bench[k]["RP_UNSIGNED/png8"]["pearson"]["mean"]) for k in ks), 2)
 
     # Sign identifiability on the benchmark windows, and Hirata's recurrence-rate sweep.
     sid = load("results/_stats/sign_identifiability.json")
