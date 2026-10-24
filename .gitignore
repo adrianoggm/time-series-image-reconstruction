@@ -154,6 +154,7 @@ scripts/_*.py
 !scripts/_robustness_multi.py
 !scripts/_sampling_rate.py
 !scripts/_emit_infsci_tables.py
+!scripts/_make_infsci_figures.py
 !scripts/_rp_matrix.py
 !scripts/_rp_sign_information.py
 !scripts/_run_recon_grid.sh

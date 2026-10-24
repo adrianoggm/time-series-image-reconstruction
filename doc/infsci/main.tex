@@ -46,8 +46,8 @@
 \affiliation[alg]{organization={Department of Algebra, University of Granada}, country={Spain}}
 
 \begin{abstract}
-% <= 200 words. Findings in red are filled in from the M10 artefacts.
-Image-based representations of time series are widely used as classifier inputs and, increasingly, as the space in which signals are generated or restored, which requires mapping an image back to a series. We present a comparative analysis of how much of a time series each representation retains and can return. We study the most widely used representations, namely the recurrence plot (RP) in its binary, unsigned and signed forms, the Gramian angular summation and difference fields and the Markov transition field, together with the recently proposed extended intertemporal return plot (XIRP), whose diagonal stores the series itself. Each is decoded from its stored 8-bit image alone, with the published inverse where one exists and an operational decoder where none does, and decoding the floating-point matrix separates the loss of the representation from that of storage. On seven datasets from five domains and windows of 64 to 256 samples we measure temporal and spectral fidelity, computational cost, the conditions under which reconstruction is exact, and whether classifiers trained on original windows keep their accuracy on the reconstructions. \pending{key findings}
+% <= 200 words.
+Image-based representations of time series are used as classifier inputs and, increasingly, as the space in which signals are generated or restored, which requires mapping an image back to a series. We compare how much of a series each representation retains. We study the most widely used ones, the recurrence plot (RP) in its binary, unsigned and signed forms, the Gramian angular summation and difference fields (GASF, GADF) and the Markov transition field (MTF), together with the recently proposed XIRP, whose diagonal stores the series. Each is decoded from its 8-bit image alone, with the published inverse where one exists and an operational decoder where none does. On seven datasets from five domains, we measure temporal and spectral fidelity, robustness, cost, the conditions for exact reconstruction, and whether classifiers trained on original signals keep their accuracy on reconstructions. The signed RP with a geometric decoder, GASF, GADF and XIRP are exact in floating point and keep classifier accuracy, losing on average less than 0.1 percentage points; binary and unsigned RP and MTF lose most of the waveform. The sign recovers the RP's orientation, and the conditioning of its states, which degrades as the sampling rate grows, governs its error.
 \end{abstract}
 
 \begin{keyword}
@@ -255,6 +255,8 @@ Fidelity is measured per channel series with range-normalised errors, writing $r
 \]
 together with Pearson correlation, the range-normalised error of first differences, the $L_1$ distance between unit-mass Welch spectra~\cite{Welch1967}, the dominant-frequency error and the energy error. Constant series are counted and excluded. Each decoder is run on the floating-point operator and on the 8-bit image, which separates algorithmic from storage error. Cost is the single-thread time to encode and decode and the peak traced memory, measured for $T$ from 64 to 1\,024.
 
+Robustness follows a local-stability protocol: zero-mean Gaussian noise of $\sigma\in\{2,4,8,16\}$ intensity levels is added to every pixel of the stored image, which is clipped to $[0,255]$, rounded and decoded, with two independent replicates per level on 200 windows per dataset and length. The sampling-rate study reads the same 3\,000 PTB-XL records at 500\,Hz and resamples them with an anti-aliased polyphase filter to 250, 100 and 50\,Hz.
+
 Utility follows the train-on-original protocol: KNN, SVM, random forest, LSTM, GRU and a one-dimensional CNN are trained on original windows and evaluated on the original and on every reconstruction of the same held-out windows.
 
 \subsection{Statistical protocol}
@@ -292,7 +294,13 @@ Table~\ref{tab:rp} separates the two ingredients of RP reconstruction. On the un
 Remark~\ref{rem:conditioning} predicts that storage error is amplified when the states $(x_i,x_{i+1})$ are nearly collinear. Measured by the ratio $\sigma_2/\sigma_1$ of the singular values of the centred states, this is borne out across all datasets. None of the \condGoodSeries{} series with $\sigma_2/\sigma_1\ge0.1$ exceeds an 8-bit NMAE of $0.01$, whereas \condWorstRate\% of the series with $\sigma_2/\sigma_1<0.01$ do. The share of state pairs whose sign carries direction, by contrast, does not explain the error: slow series have almost all displacements along the diagonal, so their sign is informative in nearly every pair, yet their states are the most collinear. Swarm, sampled at 1\,Hz, is the limiting case, and it is the only dataset where the signed RP is not in the near-lossless group.
 
 \subsection{Robustness and computational cost}
-\pending{Robustness to noise on the stored image across the seven datasets (\#128).}
+Figure~\ref{fig:robustness_sampling}a shows how the near-lossless group degrades when the stored image is perturbed. With noise of $\sigma=16$ intensity levels, the mean 8-bit NMAE at $T=128$ rises to \robHighXIRP{} for XIRP, \robHighRP{} for the signed RP, and \robHighGASF{} and \robHighGADF{} for GASF and GADF. The signed RP degrades less than both angular fields on \robDatasetsRPBetter{} of the \robDatasets{} datasets; on Swarm, whose states are nearly collinear, the three are level. XIRP is the most stable because each sample is read from the diagonal and averaged over the proposals of every column. The lossy combinations are insensitive to the noise, which moves their error by at most \robLossyShift{}, because their error is already dominated by what the representation discards.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{images/robustness_sampling.pdf}
+\caption{(a) Mean 8-bit NMAE against Gaussian noise added to the stored image ($T=128$, mean over the seven datasets, two replicates per level). (b) 8-bit NMAE and (c) median conditioning $\sigma_2/\sigma_1$ of the RP states against the sampling rate (PTB-XL, $T=128$, anti-aliased resampling from 500\,Hz). Binary and unsigned RP decoders and MTF stay between 0.08 and 0.34 throughout and are omitted.}\label{fig:robustness_sampling}
+\end{figure}
 
 Table~\ref{tab:cost} reports single-thread cost against window length. Hirata's reconstruction grows fastest, with an exponent of about $2.6$ due to all-pairs shortest paths. The geometric decoder on the signed RP is \speedupMid{} times faster than Hirata on the same encoding at $T=256$ and \speedupLong{} times faster at $T=1024$. Its measured exponent is below the cubic cost of a dense eigendecomposition, because at these sizes building the matrix and the linear-algebra library dominate. GASF, GADF, XIRP and MTF are one to two orders of magnitude cheaper. Memory grows quadratically for all of them, and cost grows linearly with the number of channels.
 
@@ -317,14 +325,36 @@ The near-lossless group of the fidelity analysis is also the group that preserve
 \end{table}
 
 \subsection{Sampling rate}
-\pending{PTB-XL at 500, 250, 100 and 50\,Hz (\#87): error and $\sigma_2/\sigma_1$ against the sampling rate.}
+The sampling rate changes how far apart consecutive samples are, and therefore how collinear the states $(x_i,x_{i+1})$ become. Figure~\ref{fig:robustness_sampling}b--c shows the consequence on PTB-XL. From 50 to 500\,Hz, the median $\sigma_2/\sigma_1$ falls from \srColFifty{} to \srColFivehundred{}, and the share of series below $0.1$ grows from \srShareFifty\% to \srShareFivehundred\%. The 8-bit NMAE of the signed RP rises accordingly, from \srRPFifty{} to \srRPFivehundred{}, while GASF and GADF stay between \srGafMin{} and \srGafMax{} and XIRP is unaffected. The signed RP is thus the most accurate of the three at low rates and the least accurate at high rates, as Remark~\ref{rem:conditioning} predicts. The resampled 100\,Hz series and the 100\,Hz files distributed with the dataset give the same error (\srResampledRP{} and \srNativeRP{}), so the effect is not an artefact of the resampling.
 
 % ============================================================================================
 \section{Discussion}\label{sec:discussion}
-\pending{What the sign adds and what the decoder adds; conditioning and the collinear limit; sampling rate (\#87); limitations: controlled inputs only, shared calibration, 8-bit storage, dataset coverage.}
+
+\subsection{Three classes of representation}
+The results sort the compared combinations into three classes that agree across domains, window lengths and evaluation lenses. The first contains the signed RP with the geometric decoder, GASF, GADF and XIRP. Each is exact on the floating-point matrix, so its error after storage is the error of storage, and that error is small enough to leave classifiers trained on original signals unaffected. The second is the unsigned RP: it determines the shape of the series but not its reflection, so its reconstruction is exact up to a sign that no image-only decoder can fix. The third contains the binary RP, under either decoder, and MTF, which discard information the series needs: thresholding keeps only neighbourhoods, and quantile assignment keeps only states. No decoder can recover what these encodings do not store; for them the question is not how to invert but what representative to return.
+
+The classes follow from what each image determines (Table~\ref{tab:contract}), not from the domain. The same ordering holds for accelerometers, electrocardiograms, magnetometers, seismograms, electromyograms and audio, and for every classifier. This matters for image-domain generation: a model trained on the third class cannot produce images that map back to the signals it was trained on, whatever its quality.
+
+\subsection{What the sign and the decoder each add}
+Separating the encoding from the decoder shows that RP reconstruction needs both. The sign is what makes the problem well posed: on the unsigned RP, even an exact geometric decoder loses the orientation. The decoder is what exploits the information the matrix holds. Hirata's reconstruction was designed for the binary plot and sees only its neighbourhoods, so applying it to the signed RP gains the orientation but not the geometry. Using the full distances, the geometric decoder makes the signed RP as accurate as the angular fields on six of the seven datasets.
+
+\subsection{Conditioning and sampling rate}
+The signed RP is the only representation in the first class whose accuracy depends on the signal. Its decoder recovers the two-dimensional geometry of the states $(x_i,x_{i+1})$, so it is limited by how far that cloud is from a line. Slowly varying windows, whether from Swarm at 1\,Hz or from an ECG sampled at 500\,Hz, have consecutive samples that are nearly equal and states that are nearly collinear, and there storage error is amplified. The ratio $\sigma_2/\sigma_1$ makes this a measurable condition: above $0.1$, no series exceeded a normalised error of $0.01$. It also gives a practical rule. For signals sampled far above their bandwidth, the angular fields or XIRP are the safer choice, unless the signal is downsampled first. An embedding delay larger than one sample would also decorrelate the states, but we have not tested it.
+
+\subsection{XIRP and the cost of reconstruction}
+XIRP is the most accurate and the most robust representation in the comparison because it does not encode the series indirectly: the diagonal is the series, and inversion by mean averages $T$ independent proposals of each sample, which reduces quantisation and pixel noise. Its constraint is that the series must be strictly positive, which the shared calibration provides here. The angular fields and XIRP are also one to two orders of magnitude cheaper to decode than either RP decoder. Among the RP decoders, the geometric decoder is faster than Hirata's and scales better, because a single eigendecomposition replaces all-pairs shortest paths.
+
+\subsection{Limitations}
+\begin{itemize}
+\item \textbf{Controlled inputs.} Every image is the deterministic output of a known encoder. Noise on the stored image measures local stability only; structurally invalid or generated images are not evaluated.
+\item \textbf{Calibration and storage.} All decoders work from the image alone on the normalised domain, but physical units need the per-channel calibration $(x_{\max},x_{\min})$, which a generative setting would have to supply. Only 8-bit storage is evaluated.
+\item \textbf{Channels.} Every channel is an independent image, so representations that couple channels, and any information shared between them, are outside the study.
+\item \textbf{Sampling of data.} Fidelity uses 500 windows and classification up to 6\,000 windows per dataset and length. EMG at 256 samples is not reported (gestures last about three seconds), ESC-50 at 64--256 samples is too short for audio classification and is complemented by ESC-10, and the splits of PTB-XL and ESC-50 are grouped by patient and source recording rather than the official folds.
+\item \textbf{Reference implementation.} Hirata's reconstruction is our implementation of the published algorithm; the conversion from states to samples is ours, and the recurrence threshold is not prescribed by the method.
+\end{itemize}
 
 \section{Conclusions}\label{sec:conclusions}
-\pending{After M10.}
+We compared how much of a time series survives its image for the most widely used image representations and for XIRP, on seven datasets from five domains. Four representations are exactly invertible and keep what classifiers need: the signed recurrence plot decoded geometrically, the Gramian angular summation and difference fields, and XIRP. The unsigned recurrence plot loses its orientation, and the binary recurrence plot and the Markov transition field lose most of the waveform under any decoder. For recurrence plots both the sign and a decoder that uses the full distances are necessary, and the conditioning of the states decides when storage error stays negligible, which ties the choice of representation to the sampling rate of the signal. These results give image-domain generation a criterion that comes before any model: only images from an invertible representation can be mapped back to the signals they represent. Evaluating generated and structurally imperfect images is the next step.
 
 % ============================================================================================
 \section*{CRediT authorship contribution statement}
