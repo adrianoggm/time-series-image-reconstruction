@@ -25,6 +25,7 @@
 \newcommand{\citetodo}[1]{\textcolor{red}{[cite: #1]}}
 \newcommand{\pending}[1]{\textcolor{red}{[pending: #1]}}
 \setlength{\emergencystretch}{2em}
+\input{generated/numbers.tex}
 
 \journal{Information Sciences}
 
@@ -262,19 +263,60 @@ All comparisons are paired over the same series. Differences between decoders ar
 \section{Results}\label{sec:results}
 
 \subsection{Fidelity across representations and domains}
-\pending{Table 2: 8-bit NMAE of the eight decoders on seven datasets at $T=64,128,256$, from results/\_benchmark/summary.json and stats.json; Figure 4: reconstructions in each domain.}
+Table~\ref{tab:fidelity} gives the 8-bit reconstruction error of every combination at $T=128$; the other lengths behave alike and are in the Supplementary Material. Over the \benchBlocks{} reported dataset--length blocks, \benchSeries{} channel series were reconstructed by every combination, with no decoder failure.
 
-\subsection{Recurrence plots: decoder versus encoding}
-\pending{Figure 3 and Table 3, first block: Hirata and the proposed decoder on the unsigned and the signed RP, float and 8-bit, with the orientation oracle as a bound; from results/\_stats/rp\_encodings.json.}
+Decoding the floating-point matrix separates the representation from its storage. The geometric decoder on the signed RP, GASF, GADF and XIRP recover every series to machine precision: the median NMAE never exceeds \floatMaxRP{} for the signed RP and \floatMaxGASF, \floatMaxGADF{} and \floatMaxXIRP{} for GASF, GADF and XIRP. For these four the whole 8-bit error is therefore due to storage. The only exception is one ESC-50 window that is constant except for two samples, with an amplitude of about $3\times10^{-9}$.
+
+After 8-bit storage they form a near-lossless group. The signed RP stays between \rpEightMin{} and \rpEightMax{} on six datasets and rises to \rpEightSwarmMin--\rpEightSwarmMax{} on Swarm. GASF and GADF are of the same order. XIRP is an order of magnitude lower, because its diagonal stores the series with a fixed range and the decoder averages the proposals of all columns. Per series, the median difference to the signed RP is of order $10^{-3}$ in favour of GASF, GADF and XIRP on most datasets. The binary and unsigned RP decoders and MTF lose most of the waveform: their NMAE ranges from about $0.03$ to $0.34$, and the median per-series difference to the signed RP, averaged over datasets, is \macroDiffRPHIRATA{} for Hirata on the unsigned RP and \macroDiffMTF{} for MTF.
+
+\begin{table}[t]
+\centering
+\caption{Mean 8-bit NMAE of every encoding--decoder combination at $T=128$ (500 windows per dataset, every channel). Uns./sig.: unsigned and signed RP.}\label{tab:fidelity}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\input{generated/tab_fidelity.tex}
+\end{table}
+
+\subsection{Recurrence plots: encoding versus decoder}
+Table~\ref{tab:rp} separates the two ingredients of RP reconstruction. On the unsigned RP the geometric decoder recovers the shape of the series exactly but not its reflection: with the reflection chosen by an oracle that knows the original, its error falls to the level of the signed RP. The loss on the unsigned RP is therefore entirely a loss of orientation, which the sign restores without any external information. Hirata's reconstruction does not reach that level on either encoding, because its graph sees only the thresholded recurrence plot. The binary RP itself is the limit: even in floating point and with the oracle orientation, neither decoder brings its error below \binaryOracleMin{} (up to \binaryOracleMax{} across datasets). The sign improves Hirata as well, by choosing the reflection, but on the same signed RP the geometric decoder is one to two orders of magnitude more accurate on six datasets; on Swarm, where the states are nearly collinear, the gap narrows to a factor of about two.
+
+\begin{table}[t]
+\centering
+\caption{Recurrence plots, encoding versus decoder: mean 8-bit NMAE at $T=128$. ``Oracle'' picks the reflection using the original series and is an upper bound, not a reconstruction.}\label{tab:rp}
+\footnotesize
+\input{generated/tab_rp.tex}
+\end{table}
 
 \subsection{When is the signed RP decoder exact?}\label{sec:results_conditions}
-\pending{Error against $\sigma_2/\sigma_1$ of the states, pooled over all datasets; from results/\_stats/rp\_conditions.json. No series with $\sigma_2/\sigma_1\ge0.1$ exceeds NMAE 0.01; Swarm is the collinear limit.}
+Remark~\ref{rem:conditioning} predicts that storage error is amplified when the states $(x_i,x_{i+1})$ are nearly collinear. Measured by the ratio $\sigma_2/\sigma_1$ of the singular values of the centred states, this is borne out across all datasets. None of the \condGoodSeries{} series with $\sigma_2/\sigma_1\ge0.1$ exceeds an 8-bit NMAE of $0.01$, whereas \condWorstRate\% of the series with $\sigma_2/\sigma_1<0.01$ do. The share of state pairs whose sign carries direction, by contrast, does not explain the error: slow series have almost all displacements along the diagonal, so their sign is informative in nearly every pair, yet their states are the most collinear. Swarm, sampled at 1\,Hz, is the limiting case, and it is the only dataset where the signed RP is not in the near-lossless group.
 
 \subsection{Robustness and computational cost}
-\pending{Figure 5: robustness to image perturbation (\#128) and time and memory against $T$ (results/\_stats/cost\_scaling.json, \#90).}
+\pending{Robustness to noise on the stored image across the seven datasets (\#128).}
+
+Table~\ref{tab:cost} reports single-thread cost against window length. Hirata's reconstruction grows fastest, with an exponent of about $2.6$ due to all-pairs shortest paths. The geometric decoder on the signed RP is \speedupMid{} times faster than Hirata on the same encoding at $T=256$ and \speedupLong{} times faster at $T=1024$. Its measured exponent is below the cubic cost of a dense eigendecomposition, because at these sizes building the matrix and the linear-algebra library dominate. GASF, GADF, XIRP and MTF are one to two orders of magnitude cheaper. Memory grows quadratically for all of them, and cost grows linearly with the number of channels.
+
+\begin{table}[t]
+\centering
+\caption{Median single-thread time (ms) to encode, store and decode one channel (WISDM, 20 series per length), log--log slope of time against $T$, and peak traced memory at $T=1024$.}\label{tab:cost}
+\footnotesize
+\input{generated/tab_cost.tex}
+\end{table}
 
 \subsection{Preservation of classification utility}
-\pending{Table 3, second block: accuracy difference to the original for six classifiers on six labelled datasets and three lengths, with equivalence; ESC-10 per-clip accuracy; from results/\_classification and results/\_classification\_esc10.}
+Table~\ref{tab:utility} summarises the train-on-original experiment: six classifiers, six labelled datasets and three lengths, \clsCombos{} combinations on \clsWindows{} windows. ESC-50 is excluded from these combinations because 128 samples at 8\,kHz span only 16\,ms of sound, which leaves every classifier near chance. Audio is evaluated instead on ESC-10 at window lengths that span 64 to 512\,ms (\escWindows{} windows, \escCombos{} combinations), with accuracy scored per clip.
+
+The near-lossless group of the fidelity analysis is also the group that preserves utility. The signed RP with the geometric decoder, GASF, GADF and XIRP never lose more than $0.01$ of accuracy (or macro-F1 on the multilabel PTB-XL), and their difference to the original is statistically equivalent within $\pm0.01$ in almost every single-label combination. The binary and unsigned RP decoders and MTF lose between $0.08$ and $0.12$ on average and up to $0.40$, and are equivalent in only a minority of combinations. The pattern holds per clip on ESC-10.
+
+\begin{table}[t]
+\centering
+\caption{Drop from the original accuracy (macro-F1 on PTB-XL) for classifiers trained on original windows and tested on reconstructions. Equivalent: 95\% group-bootstrap interval within $\pm0.01$, counted over the single-label combinations.}\label{tab:utility}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\input{generated/tab_utility.tex}
+\end{table}
+
+\subsection{Sampling rate}
+\pending{PTB-XL at 500, 250, 100 and 50\,Hz (\#87): error and $\sigma_2/\sigma_1$ against the sampling rate.}
 
 % ============================================================================================
 \section{Discussion}\label{sec:discussion}
