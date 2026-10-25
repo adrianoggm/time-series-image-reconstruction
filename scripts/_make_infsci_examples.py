@@ -48,7 +48,7 @@ def windows():
         # first non-flat benchmark window whose first channel is not flat (ESC-50 has silent windows)
         idx = next(int(i) for i in np.load(Path("results/_benchmark") / f"{name}_L128.npz")["window_index"]
                    if np.ptp(X[i][:, 0]) > 1e-12)
-        out[name] = X[idx][:, 0].astype(float)
+        out[name] = X[idx].astype(float)                  # (T, C): the collage uses up to three channels
     return out
 
 
@@ -71,14 +71,26 @@ def save(fig, stem):
     print(IMAGES / f"{stem}.pdf")
 
 
+def composite(key, window):
+    """Stored images of the first three channels as R, G and B (each with its own calibration); a
+    single-channel dataset stays grey. A flat channel contributes a black plane."""
+    planes = []
+    for c in range(min(3, window.shape[1])):
+        x = window[:, c]
+        mm = (float(x.max()), float(x.min()))
+        planes.append(stored_image(key, x, mm) if np.ptp(x) > 1e-12 else None)
+    shape = next(p.shape for p in planes if p is not None)
+    planes = [np.zeros(shape, np.uint8) if p is None else p for p in planes]
+    return planes[0] if len(planes) == 1 else np.stack(planes + [planes[0] * 0] * (3 - len(planes)), axis=-1)
+
+
 def encoding_figure(xs):
     fig, axes = plt.subplots(len(ENCODINGS), len(DATASETS), figsize=(7.2, 7.6), constrained_layout=True)
     for col, (name, _) in enumerate(DATASETS):
-        x = xs[name]
-        mm = (float(x.max()), float(x.min()))
         for row, (key, label) in enumerate(ENCODINGS):
             ax = axes[row, col]
-            ax.imshow(stored_image(key, x, mm), cmap="gray", vmin=0, vmax=255, interpolation="nearest")
+            img = composite(key, xs[name])
+            ax.imshow(img, cmap="gray" if img.ndim == 2 else None, vmin=0, vmax=255, interpolation="nearest")
             ax.set_xticks([])
             ax.set_yticks([])
             for spine in ax.spines.values():
@@ -96,7 +108,7 @@ def reconstruction_figure(xs):
 
     fig, axes = plt.subplots(len(DATASETS), 2, figsize=(7.2, 9.4), sharex=True, constrained_layout=True)
     for row, (name, title) in enumerate(DATASETS):
-        x = xs[name]
+        x = xs[name][:, 0]                                  # the red channel of the collage
         mm = (float(x.max()), float(x.min()))
         for col, series in enumerate((LEFT, RIGHT)):
             ax = axes[row, col]
