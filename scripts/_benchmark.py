@@ -40,6 +40,14 @@ LABELS = {"RP_HIRATA": "Hirata · RP sin signo", "RP_HIRATA_SIGNED": "Hirata · 
           "RP_UNSIGNED": "RP nueva · RP sin signo", "RP": "RP nueva · Signed RP",
           "GASF": "GASF", "GADF": "GADF", "MTF": "MTF", "XIRP": "XIRP",
           "RP_SIPERS": "Sipers · RP sin signo (circular)", "RP_SIPERS_SIGNED": "Sipers · Signed RP (circular)"}
+# One colour per decoder family, one line style per RP encoding (solid: signed, dashed: unsigned), used by every
+# figure so a technique keeps its colour throughout. Dataviz reference slots, validated in the order of the
+# figure rows (Hirata, Sipers, geometric, GASF, GADF, MTF, XIRP); blue/violet and green/orange fail as all-pairs,
+# so those never share a panel or a legend.
+TECH_STYLE = {"RP_HIRATA": ("#6250d6", "--"), "RP_HIRATA_SIGNED": ("#6250d6", "-"),
+              "RP_SIPERS": ("#e87ba4", "--"), "RP_SIPERS_SIGNED": ("#e87ba4", "-"),
+              "RP_UNSIGNED": ("#2a78d6", "--"), "RP": ("#2a78d6", "-"),
+              "GASF": ("#eb6834", "-"), "GADF": ("#1baf7a", "-"), "MTF": ("#008300", "-"), "XIRP": ("#eda100", "-")}
 METRICS = ("nmae", "nrmse", "pearson", "dnmae", "psd_shape", "fdom_err", "energy_err", "enc_ms", "dec_ms")
 # Dataset-specific settings live here and nowhere else.
 DATASETS = {

@@ -7,10 +7,9 @@ column of the image collage corresponds to one row of the reconstruction figure.
 * encoding_examples.pdf: the stored 8-bit image of every encoding (binary RP at
   recurrence rate 0.75, unsigned RP, signed RP, GASF, GADF, MTF, XIRP), shown in grey
   levels exactly as stored (0 black, 255 white).
-* reconstruction_examples.pdf: one panel per dataset and decoder (geometric decoder on the
-  signed and on the unsigned RP, Hirata on the unsigned RP, MTF): the original as a grey
-  band, the reconstruction on top and the panel's NMAE. GASF, GADF and XIRP overlap the
-  original at this scale and are left out. Each colour is alone in its panel against grey.
+* reconstruction_examples.pdf: every encoding-decoder combination of the fidelity table (rows)
+  on every dataset (columns): the original as a grey band, the reconstruction on top in one
+  colour, and the panel's NMAE above it.
 
     python -m scripts._make_infsci_examples        (needs the datasets: run in WSL)
 Writes doc/infsci/images/{encoding,reconstruction}_examples.{pdf,png}.
@@ -31,8 +30,11 @@ SHORT = {"wisdm": "WISDM", "pamap2": "PAMAP2", "esc50": "ESC-50", "ptbxl": "PTB-
          "stead": "STEAD", "emg_gestures": "EMG"}
 ENCODINGS = (("BINARY", "Binary RP"), ("RP_UNSIGNED", "Unsigned RP"), ("RP", "Signed RP"), ("GASF", "GASF"),
              ("GADF", "GADF"), ("MTF", "MTF"), ("XIRP", "XIRP"))
-COLUMNS = (("RP", "Signed RP, geometric (ours)", "#2a78d6"), ("RP_UNSIGNED", "Unsigned RP, geometric (ours)", "#e34948"),
-           ("RP_HIRATA", "Unsigned RP, Hirata", "#e87ba4"), ("MTF", "MTF representative", "#008300"))
+# Every encoding-decoder combination of the fidelity table, in its order.
+ROWS = (("RP_HIRATA", "Hirata\nunsigned"), ("RP_HIRATA_SIGNED", "Hirata\nsigned"),
+        ("RP_SIPERS", "Sipers\nunsigned"), ("RP_SIPERS_SIGNED", "Sipers\nsigned"),
+        ("RP_UNSIGNED", "Geometric\nunsigned"), ("RP", "Geometric\nsigned"),
+        ("GASF", "GASF"), ("GADF", "GADF"), ("MTF", "MTF"), ("XIRP", "XIRP"))
 ORIGINAL = "#bdbdbd"          # the original is a light band; the reconstruction is drawn on top of it
 INK, MUTED = "#0b0b0b", "#52514e"
 IMAGES = Path("doc/infsci/images")
@@ -104,38 +106,42 @@ def encoding_figure(xs):
 
 
 def reconstruction_figure(xs):
-    """One panel per dataset (row) and decoder (column): the original as a grey band, the reconstruction
-    on top in the column's colour, and the panel's NMAE, so each technique is read on its own."""
+    """One panel per combination (row, in the order of the fidelity table) and dataset (column): the original
+    as a grey band, the reconstruction on top and the panel's NMAE above the frame."""
+    from scripts._benchmark import TECH_STYLE
     from src.representations import REPRESENTATIONS
 
-    fig, axes = plt.subplots(len(DATASETS), len(COLUMNS), figsize=(7.2, 9.0), sharex=True, sharey="row",
+    fig, axes = plt.subplots(len(ROWS), len(DATASETS), figsize=(7.2, 9.6), sharex=True, sharey="col",
                              constrained_layout=True)
-    for row, (name, _) in enumerate(DATASETS):
+    for col, (name, _) in enumerate(DATASETS):
         x = xs[name][:, 0]                                  # the red channel of the collage
         mm = (float(x.max()), float(x.min()))
-        for col, (key, label, color) in enumerate(COLUMNS):
+        for row, (key, label) in enumerate(ROWS):
             ax = axes[row, col]
             rep = REPRESENTATIONS[key]
             r = rep.decode(rep.from_uint8(rep.to_uint8(rep.encode(x, mm))), mm)
             nmae = float(np.mean(np.abs(r - x)) / np.ptp(x))
-            ax.plot(x, color=ORIGINAL, linewidth=2.4, solid_capstyle="round")
-            ax.plot(r, color=color, linewidth=0.9)
-            ax.text(1.0, 1.02, f"NMAE {nmae:.3f}", transform=ax.transAxes, fontsize=6, color=MUTED,
-                    ha="right", va="bottom")                # above the frame, never over the data
-            for side in ("top", "right"):
-                ax.spines[side].set_visible(False)
-            ax.spines["left"].set_color(MUTED)
-            ax.spines["bottom"].set_color(MUTED)
-            ax.tick_params(colors=MUTED, labelsize=5.5)
+            ax.plot(x, color=ORIGINAL, linewidth=1.8, solid_capstyle="round")
+            color, style = TECH_STYLE[key]                  # colour by decoder, dashed for the unsigned RP
+            ax.plot(r, color=color, linestyle=style, linewidth=0.7)
+            ax.text(1.0, 1.02, f"{nmae:.3f}", transform=ax.transAxes, fontsize=5.5, color=MUTED,
+                    ha="right", va="bottom")                # NMAE, above the frame
+            ax.set_xticks([])
+            ax.set_yticks([])
+            for spine in ax.spines.values():
+                spine.set_color(MUTED)
+                spine.set_linewidth(0.4)
+            ax.spines["left"].set_color(color)            # the left edge is the row's colour key
+            ax.spines["left"].set_linewidth(2.5)
             if row == 0:
-                ax.set_title(label, fontsize=7, color=INK, pad=12)
+                ax.set_title(SHORT[name], fontsize=7, color=INK, pad=9)
             if col == 0:
-                ax.set_ylabel(SHORT[name], fontsize=7.5, color=INK)
-    for ax in axes[-1]:
-        ax.set_xlabel("Sample", color=INK, fontsize=7)
-    handles = [plt.Line2D([], [], color=ORIGINAL, linewidth=2.4, label="Original"),
-               plt.Line2D([], [], color=INK, linewidth=0.9, label="Reconstruction (colour of the column)")]
-    fig.legend(handles=handles, loc="outside lower center", ncol=2, frameon=False, fontsize=7)
+                ax.set_ylabel(label, fontsize=6.5, color=INK, rotation=0, ha="right", va="center", labelpad=6)
+    handles = [plt.Line2D([], [], color=ORIGINAL, linewidth=1.8, label="Original"),
+               plt.Line2D([], [], color=INK, linewidth=0.8, label="Signed RP or non-RP encoding"),
+               plt.Line2D([], [], color=INK, linewidth=0.8, linestyle="--", label="Unsigned RP"),
+               plt.Line2D([], [], color="none", label="Number above each panel: NMAE")]
+    fig.legend(handles=handles, loc="outside lower center", ncol=4, frameon=False, fontsize=6.5)
     save(fig, "reconstruction_examples")
 
 

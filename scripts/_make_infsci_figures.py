@@ -19,9 +19,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
-SERIES = (("RP", "Signed RP (ours)", "#2a78d6", "o"), ("GASF", "GASF", "#eb6834", "s"),
-          ("GADF", "GADF", "#1baf7a", "^"), ("XIRP", "XIRP", "#eda100", "D"),
-          ("RP_SIPERS_SIGNED", "Signed RP (Sipers)", "#e87ba4", "v"))   # slots 1-5, validated together
+from scripts._benchmark import TECH_STYLE  # noqa: E402  (shared colours: a technique keeps its colour everywhere)
+
+SERIES = tuple((k, label, TECH_STYLE[k][0], marker) for k, label, marker in (
+    ("RP", "Signed RP (ours)", "o"), ("GASF", "GASF", "s"), ("GADF", "GADF", "^"), ("XIRP", "XIRP", "D"),
+    ("RP_SIPERS_SIGNED", "Signed RP (Sipers)", "v")))   # these five validated together
 INK, MUTED = "#0b0b0b", "#52514e"
 OUT = Path("doc/infsci/images/robustness_sampling.pdf")
 
