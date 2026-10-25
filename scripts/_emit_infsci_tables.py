@@ -68,7 +68,24 @@ def main():
     # Exactness in floating point and the 8-bit range of each exact decoder.
     for r, macro in (("RP", "RP"), ("GASF", "GASF"), ("GADF", "GADF"), ("XIRP", "XIRP")):
         nums[f"floatMax{macro}"] = f"{max(v[f'{r}/float']['nmae']['median'] for v in blocks.values()):.1e}"
-    # the one degenerate ESC-50 window (126 zeros, amplitude ~3e-9) lifts that block's mean; the medians do not move
+    # Largest floating-point error over every series of every reported block (needs the per-series .npz arrays,
+    # which scripts/_benchmark.py regenerates; they are not tracked).
+    import glob
+
+    from scripts._benchmark import CONDS, METRICS
+    from scripts._benchmark import REPS as BREPS
+    fi, ni = CONDS.index("float"), METRICS.index("nmae")
+    for r, macro in (("RP", "RP"), ("GASF", "GASF"), ("GADF", "GADF"), ("XIRP", "XIRP")):
+        worst = 0.0
+        for f in glob.glob("results/_benchmark/*_L*.npz"):
+            z = np.load(f)
+            if len(z["window_index"]) < MIN_WINDOWS:
+                continue
+            v = z["values"][:, BREPS.index(r), fi, :, ni]
+            worst = max(worst, float(np.nanmax(np.where(np.isfinite(v), v, np.nan))))
+        nums[f"floatWorst{macro}"] = f"{worst:.1e}"
+    # an earlier 500-window ESC-50 sample held one degenerate window (126 zeros, amplitude ~3e-9); the
+    # 3000-window sample does not
     nums["floatBlocksExactRP"] = str(sum(v["RP/float"]["nmae"]["mean"] < 1e-12 for v in blocks.values()))
     rp8 = [v["RP/png8"]["nmae"]["mean"] for k, v in blocks.items() if not k.startswith("swarm")]
     nums["rpEightMin"], nums["rpEightMax"] = fmt(min(rp8)), fmt(max(rp8))

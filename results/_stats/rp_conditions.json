@@ -234,115 +234,115 @@
   ]
  },
  "esc50/L64": {
-  "series": 500,
-  "informative_mean": 0.7361811865980049,
-  "informative_p10": 0.5378392217101894,
-  "flat": 47,
-  "tiny_range": 2,
-  "collinear": 0,
-  "rp_png8_nmae_above": 6,
-  "bad_and_collinear": 0,
+  "series": 3000,
+  "informative_mean": 0.7361126695878576,
+  "informative_p10": 0.516794674859191,
+  "flat": 296,
+  "tiny_range": 5,
+  "collinear": 1,
+  "rp_png8_nmae_above": 71,
+  "bad_and_collinear": 1,
   "bad_and_tiny": 0,
-  "bad_unexplained": 6,
-  "spearman_informative_vs_nmae": 0.7686757096651201,
-  "spearman_collinearity_vs_nmae": -0.7834840359682865,
-  "collinearity_median_bad": 0.04529875793053411,
-  "collinearity_median_ok": 0.3756946328117504,
+  "bad_unexplained": 70,
+  "spearman_informative_vs_nmae": 0.7894706458131093,
+  "spearman_collinearity_vs_nmae": -0.7944693163212232,
+  "collinearity_median_bad": 0.042345272223945,
+  "collinearity_median_ok": 0.36927675548761024,
   "bands_series_bad": [
    [
-    0,
+    1,
+    1
+   ],
+   [
+    18,
+    18
+   ],
+   [
+    193,
+    52
+   ],
+   [
+    902,
     0
    ],
    [
-    0,
-    0
-   ],
-   [
-    36,
-    6
-   ],
-   [
-    149,
-    0
-   ],
-   [
-    268,
+    1590,
     0
    ]
   ]
  },
  "esc50/L128": {
-  "series": 500,
-  "informative_mean": 0.7490256070784498,
-  "informative_p10": 0.5128108986376703,
-  "flat": 43,
-  "tiny_range": 4,
+  "series": 3000,
+  "informative_mean": 0.7512460480666886,
+  "informative_p10": 0.5330083739532558,
+  "flat": 296,
+  "tiny_range": 5,
   "collinear": 1,
-  "rp_png8_nmae_above": 20,
+  "rp_png8_nmae_above": 94,
   "bad_and_collinear": 1,
   "bad_and_tiny": 0,
-  "bad_unexplained": 19,
-  "spearman_informative_vs_nmae": 0.7601828122858219,
-  "spearman_collinearity_vs_nmae": -0.7667979945755574,
-  "collinearity_median_bad": 0.044990487628697506,
-  "collinearity_median_ok": 0.33653679162376504,
+  "bad_unexplained": 93,
+  "spearman_informative_vs_nmae": 0.7514925847160249,
+  "spearman_collinearity_vs_nmae": -0.762596330657902,
+  "collinearity_median_bad": 0.04443927413554683,
+  "collinearity_median_ok": 0.34857342787664414,
   "bands_series_bad": [
    [
     1,
     1
    ],
    [
-    4,
-    4
+    17,
+    17
    ],
    [
-    39,
-    15
+    250,
+    76
    ],
    [
-    165,
+    933,
     0
    ],
    [
-    248,
+    1503,
     0
    ]
   ]
  },
  "esc50/L256": {
-  "series": 500,
-  "informative_mean": 0.7534808649336163,
-  "informative_p10": 0.5191137872471824,
-  "flat": 46,
-  "tiny_range": 1,
-  "collinear": 2,
-  "rp_png8_nmae_above": 24,
-  "bad_and_collinear": 2,
+  "series": 3000,
+  "informative_mean": 0.7538963218300808,
+  "informative_p10": 0.526780917091246,
+  "flat": 301,
+  "tiny_range": 3,
+  "collinear": 1,
+  "rp_png8_nmae_above": 148,
+  "bad_and_collinear": 1,
   "bad_and_tiny": 0,
-  "bad_unexplained": 22,
-  "spearman_informative_vs_nmae": 0.7127955595627182,
-  "spearman_collinearity_vs_nmae": -0.7070592621778546,
-  "collinearity_median_bad": 0.047288952018526766,
-  "collinearity_median_ok": 0.3491064391808689,
+  "bad_unexplained": 147,
+  "spearman_informative_vs_nmae": 0.6796122071373283,
+  "spearman_collinearity_vs_nmae": -0.6729513891654497,
+  "collinearity_median_bad": 0.04506135633859706,
+  "collinearity_median_ok": 0.35960836192875784,
   "bands_series_bad": [
-   [
-    2,
-    2
-   ],
    [
     1,
     1
    ],
    [
-    56,
+    21,
     21
    ],
    [
-    147,
+    289,
+    126
+   ],
+   [
+    884,
     0
    ],
    [
-    248,
+    1504,
     0
    ]
   ]
@@ -810,22 +810,22 @@
    "bad_rate": 0.8520168275179411
   },
   "[0.01, 0.03)": {
-   "series": 355,
-   "bad": 355,
+   "series": 406,
+   "bad": 406,
    "bad_rate": 1.0
   },
   "[0.03, 0.1)": {
-   "series": 1991,
-   "bad": 428,
-   "bad_rate": 0.21496735308890005
+   "series": 2592,
+   "bad": 640,
+   "bad_rate": 0.24691358024691357
   },
   "[0.1, 0.3)": {
-   "series": 12643,
+   "series": 14901,
    "bad": 0,
    "bad_rate": 0.0
   },
   "[0.3, inf)": {
-   "series": 35306,
+   "series": 39139,
    "bad": 0,
    "bad_rate": 0.0
   }

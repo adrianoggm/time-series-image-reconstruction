@@ -1,6 +1,6 @@
 """Encoded images and reconstructed series, one window per dataset, for the Information Sciences manuscript.
 
-One channel of the first benchmark window (results/_benchmark/<dataset>_L128.npz) of
+One channel of the first non-flat benchmark window (results/_benchmark/<dataset>_L128.npz) of
 each of the seven datasets. Both figures use the same window and channel, so every
 column of the image collage corresponds to one row of the reconstruction figure.
 
@@ -44,8 +44,11 @@ def windows():
 
     out = {}
     for name, _ in DATASETS:
-        idx = int(np.load(Path("results/_benchmark") / f"{name}_L128.npz")["window_index"][0])
-        out[name] = make_windows(get(name, **CFG[name]), 128, dtype=np.float32).X[idx][:, 0].astype(float)
+        X = make_windows(get(name, **CFG[name]), 128, dtype=np.float32).X
+        # first non-flat benchmark window whose first channel is not flat (ESC-50 has silent windows)
+        idx = next(int(i) for i in np.load(Path("results/_benchmark") / f"{name}_L128.npz")["window_index"]
+                   if np.ptp(X[i][:, 0]) > 1e-12)
+        out[name] = X[idx][:, 0].astype(float)
     return out
 
 

@@ -52,22 +52,22 @@
   "min_share": 0.4499614018835881
  },
  "esc50/L64": {
-  "series": 453,
+  "series": 2704,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.08499743983614952
+  "min_share": 0.0701484895033282
  },
  "esc50/L128": {
-  "series": 457,
+  "series": 2704,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.0837395325584302
+  "min_share": 0.06399200099987501
  },
  "esc50/L256": {
-  "series": 454,
+  "series": 2699,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.11403427512737378
+  "min_share": 0.09776130924810869
  },
  "ptbxl/L64": {
   "series": 6000,
@@ -136,7 +136,7 @@
   "min_share": 0.2720067930936881
  },
  "_total": {
-  "series": 54340,
+  "series": 61083,
   "no_informative_pair": 0,
   "below_1pct": 0
  }

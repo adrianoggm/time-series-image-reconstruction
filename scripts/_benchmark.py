@@ -53,6 +53,9 @@ DATASETS = {
 }
 OUT = Path("results/_benchmark")
 MIN_WINDOWS = 200     # blocks with fewer windows stay in summary.json but out of the tables and statistics
+# Single-channel datasets get more windows so that every block has a comparable number of channel series
+# (ESC-50: 500 windows gave ~450 series against 1500-6000 elsewhere, too few to separate the exact decoders).
+N_WINDOWS = {"esc50": 3000}
 
 
 def series_metrics(x: np.ndarray, r: np.ndarray) -> list[float]:
@@ -157,7 +160,8 @@ def main():
     summary = json.loads(summary_path.read_text()) if summary_path.exists() else {}
     n_windows = summary.get("_design", {}).get("n_windows", args.n) if args.only else args.n
     summary["_design"] = {"representations": REPS, "conditions": CONDS, "metrics": METRICS, "datasets": DATASETS,
-                          "n_windows": n_windows, "seed": 0, "doc": __doc__.split("\n\n")[1].strip()}
+                          "n_windows": n_windows, "n_windows_by_dataset": N_WINDOWS, "seed": 0,
+                          "doc": __doc__.split("\n\n")[1].strip()}
     only = tuple(args.only.split(",")) if args.only else REPS
     for name in args.datasets.split(","):
         adapter = get(name, **DATASETS[name])
@@ -169,7 +173,8 @@ def main():
                 old = np.load(OUT / f"{name}_L{L}.npz")
                 idx = old["window_index"]
             else:
-                idx = np.sort(np.random.default_rng(0).choice(len(w.X), size=min(args.n, len(w.X)), replace=False))
+                n = N_WINDOWS.get(name, args.n)
+                idx = np.sort(np.random.default_rng(0).choice(len(w.X), size=min(n, len(w.X)), replace=False))
             with ProcessPoolExecutor(args.workers) as ex:
                 new = np.stack(list(ex.map(partial(window_row, reps=only), [w.X[i] for i in idx], chunksize=2)))
             probe = next(w.X[i][:, c].astype(float) for i in idx for c in range(w.X.shape[2])
