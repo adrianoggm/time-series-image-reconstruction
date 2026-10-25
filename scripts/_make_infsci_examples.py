@@ -7,11 +7,10 @@ column of the image collage corresponds to one row of the reconstruction figure.
 * encoding_examples.pdf: the stored 8-bit image of every encoding (binary RP at
   recurrence rate 0.75, unsigned RP, signed RP, GASF, GADF, MTF, XIRP), shown in grey
   levels exactly as stored (0 black, 255 white).
-* reconstruction_examples.pdf: original and decoded series. Left column: the geometric
-  decoder on the signed and on the unsigned RP; right column: Hirata on the unsigned RP
-  and MTF. GASF, GADF and XIRP overlap the original at this scale and are left out.
-  Palettes validated per panel with the dataviz validator (blue/red, magenta/green;
-  magenta gets a direct label for contrast).
+* reconstruction_examples.pdf: one panel per dataset and decoder (geometric decoder on the
+  signed and on the unsigned RP, Hirata on the unsigned RP, MTF): the original as a grey
+  band, the reconstruction on top and the panel's NMAE. GASF, GADF and XIRP overlap the
+  original at this scale and are left out. Each colour is alone in its panel against grey.
 
     python -m scripts._make_infsci_examples        (needs the datasets: run in WSL)
 Writes doc/infsci/images/{encoding,reconstruction}_examples.{pdf,png}.
@@ -32,8 +31,9 @@ SHORT = {"wisdm": "WISDM", "pamap2": "PAMAP2", "esc50": "ESC-50", "ptbxl": "PTB-
          "stead": "STEAD", "emg_gestures": "EMG"}
 ENCODINGS = (("BINARY", "Binary RP"), ("RP_UNSIGNED", "Unsigned RP"), ("RP", "Signed RP"), ("GASF", "GASF"),
              ("GADF", "GADF"), ("MTF", "MTF"), ("XIRP", "XIRP"))
-LEFT = (("RP", "Signed RP (ours)", "#2a78d6", "-"), ("RP_UNSIGNED", "Unsigned RP (ours)", "#e34948", "--"))
-RIGHT = (("RP_HIRATA", "Hirata, unsigned RP", "#e87ba4", "-"), ("MTF", "MTF", "#008300", "-"))
+COLUMNS = (("RP", "Signed RP, geometric (ours)", "#2a78d6"), ("RP_UNSIGNED", "Unsigned RP, geometric (ours)", "#e34948"),
+           ("RP_HIRATA", "Unsigned RP, Hirata", "#e87ba4"), ("MTF", "MTF representative", "#008300"))
+ORIGINAL = "#bdbdbd"          # the original is a light band; the reconstruction is drawn on top of it
 INK, MUTED = "#0b0b0b", "#52514e"
 IMAGES = Path("doc/infsci/images")
 
@@ -104,30 +104,38 @@ def encoding_figure(xs):
 
 
 def reconstruction_figure(xs):
+    """One panel per dataset (row) and decoder (column): the original as a grey band, the reconstruction
+    on top in the column's colour, and the panel's NMAE, so each technique is read on its own."""
     from src.representations import REPRESENTATIONS
 
-    fig, axes = plt.subplots(len(DATASETS), 2, figsize=(7.2, 9.4), sharex=True, constrained_layout=True)
-    for row, (name, title) in enumerate(DATASETS):
+    fig, axes = plt.subplots(len(DATASETS), len(COLUMNS), figsize=(7.2, 9.0), sharex=True, sharey="row",
+                             constrained_layout=True)
+    for row, (name, _) in enumerate(DATASETS):
         x = xs[name][:, 0]                                  # the red channel of the collage
         mm = (float(x.max()), float(x.min()))
-        for col, series in enumerate((LEFT, RIGHT)):
+        for col, (key, label, color) in enumerate(COLUMNS):
             ax = axes[row, col]
-            ax.plot(x, color=INK, linewidth=1.8, alpha=0.35, label="Original")
-            for key, label, color, style in series:
-                rep = REPRESENTATIONS[key]
-                r = rep.decode(rep.from_uint8(rep.to_uint8(rep.encode(x, mm))), mm)
-                ax.plot(r, color=color, linewidth=1.1, linestyle=style, label=label)
-            ax.set_title(title, fontsize=7.5, loc="left", color=INK, pad=16 if row == 0 else 4)
+            rep = REPRESENTATIONS[key]
+            r = rep.decode(rep.from_uint8(rep.to_uint8(rep.encode(x, mm))), mm)
+            nmae = float(np.mean(np.abs(r - x)) / np.ptp(x))
+            ax.plot(x, color=ORIGINAL, linewidth=2.4, solid_capstyle="round")
+            ax.plot(r, color=color, linewidth=0.9)
+            ax.text(1.0, 1.02, f"NMAE {nmae:.3f}", transform=ax.transAxes, fontsize=6, color=MUTED,
+                    ha="right", va="bottom")                # above the frame, never over the data
             for side in ("top", "right"):
                 ax.spines[side].set_visible(False)
             ax.spines["left"].set_color(MUTED)
             ax.spines["bottom"].set_color(MUTED)
-            ax.tick_params(colors=MUTED, labelsize=6)
+            ax.tick_params(colors=MUTED, labelsize=5.5)
             if row == 0:
-                ax.legend(fontsize=6.5, frameon=False, loc="lower left", bbox_to_anchor=(0.0, 1.0), ncol=3,
-                          borderaxespad=0.2, handlelength=2.2)        # above the data, below the row title
+                ax.set_title(label, fontsize=7, color=INK, pad=12)
+            if col == 0:
+                ax.set_ylabel(SHORT[name], fontsize=7.5, color=INK)
     for ax in axes[-1]:
-        ax.set_xlabel("Sample", color=INK)
+        ax.set_xlabel("Sample", color=INK, fontsize=7)
+    handles = [plt.Line2D([], [], color=ORIGINAL, linewidth=2.4, label="Original"),
+               plt.Line2D([], [], color=INK, linewidth=0.9, label="Reconstruction (colour of the column)")]
+    fig.legend(handles=handles, loc="outside lower center", ncol=2, frameon=False, fontsize=7)
     save(fig, "reconstruction_examples")
 
 
