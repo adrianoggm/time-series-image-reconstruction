@@ -162,6 +162,11 @@ def main():
     nums["escCombos"] = str(n_esc)
     nums["clsMaxDropExact"] = fmt(max(max(main_d[r]) for r in EXACT), 3)
     nums["escMaxDropExact"] = fmt(max(max(esc_d[r]) for r in EXACT), 3)
+    if main_d.get("RP_SIPERS_SIGNED"):                       # Sipers with the sign, added later with --only
+        nums["sipersSigMaxDrop"] = fmt(max(main_d["RP_SIPERS_SIGNED"]), 3)
+        nums["sipersSigEq"] = str(main_eq["RP_SIPERS_SIGNED"])
+        nums["sipersSigEscEq"] = str(esc_eq["RP_SIPERS_SIGNED"])
+    nums["clsEqRP"] = str(main_eq["RP"])
     if len(main_d["RP_SIPERS_SIGNED"]) == n_main and len(esc_d["RP_SIPERS_SIGNED"]) == n_esc:
         nums["clsMaxDropSipers"] = fmt(max(main_d["RP_SIPERS_SIGNED"]), 3)
         nums["clsEqSipers"] = str(main_eq["RP_SIPERS_SIGNED"])
