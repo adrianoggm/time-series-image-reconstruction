@@ -69,5 +69,5 @@ All the others are design parameters (T, sigma, rates, durations).
 
 - Check the sign convention against Lu and Tong's paper (pi/4 here).
 - The algebra co-author should review the proof in supplementary Section S13.
-- DOI of the archived code (#137) and the declaration of generative-AI use (#138).
+- Closed: the code is cited by its GitHub URL only, with no Zenodo DOI (#137); the declaration of generative-AI use is the authors' text (#138).
 - The manuscript is 39 pages, against a target of about 35. Moving the counterexamples and the conditioning paragraph to S13 would save about one page.
