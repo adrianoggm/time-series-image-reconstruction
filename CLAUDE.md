@@ -180,8 +180,28 @@ for SVM, `randomforestvalidation`, `lstmvalidation`, `gruvalidation`,
 `audit_manuscripts`.
 
 **Multi-dataset benchmark (M7)** — `_benchmark`, `_benchmark_stats`,
-`_rp_encodings`, `_rp_matrix`, `_classification` (classifiers trained on
+`_rp_encodings`, `_rp_matrix`, `_rp_conditions` (when the signed RP decoder is exact:
+sign information and state conditioning sigma2/sigma1), `_cost_scaling` (time and memory
+against length), `_robustness_multi` (noise on the stored image, seven datasets),
+`_sampling_rate` (PTB-XL resampled from 500 Hz), `_sipers_calibration` (Sipers' frequency
+threshold chosen on windows outside every evaluated sample), `_check_image_only` (the calibration enters
+every decoder only as the final affine map), `_check_sign_identifiability` (hypotheses of Proposition 1 on
+every benchmark series; audit in `docs/audit/infsci_reproducibility.md`), `_emit_infsci_tables` and
+`_make_infsci_figures` (every table, figure and quoted number of doc/infsci/main.tex,
+from the artefacts above), `_make_infsci_examples` (encoded-image collage and reconstruction
+examples, same windows), `_check_sign_identifiability` and `_hirata_threshold_sweep` (sources of
+quoted numbers), `_classification` (classifiers trained on
 originals, tested on 8-bit reconstructions; writes `results/_classification/`).
+`_sipers_pilot` compares the Fourier-domain URP decoder of Sipers et al. (2017, `src/rp_sipers.py`)
+with ours on the same circular RP and sweeps its node threshold. The InfSci paper is scoped to images
+built from relations between pairs of instants; spectrograms and scalograms were tried and left out.
+
+Adding a technique to the M7 framework: register it in `src/representations.py`, append it to `REPS`
+(`_benchmark.py`) and `TECHS` (`_classification.py`), then run each stage with `--only <names>`: the
+new columns are merged into the stored results and the published ones are not recomputed.
+`_classification` keeps every trained model under `<out>/models/<dataset>_L<T>/<clf>_fold<k>.{joblib,h5}`
+(untracked, a few GB) and reuses them, so after the Sipers run a new technique needs predictions only. Sipers was
+added this way; it needs the circular embedding, so `RP_SIPERS*` encode the circular variant of the RP.
 
 **Statistics and ablations** — `_stat_tests`, `_stat_per_subject`,
 `_gadf_pivot_stats`, `_mtf_controlled_ablation`, `_ablation_mtf_q_full`, `_ablation_rp_2d`,

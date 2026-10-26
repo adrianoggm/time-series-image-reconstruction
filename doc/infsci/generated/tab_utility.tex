@@ -1,0 +1,18 @@
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+& \multicolumn{4}{c}{Five datasets, $T\in\{64,128,256\}$} & \multicolumn{2}{c}{ESC-10, per clip} \\
+\cmidrule(lr){2-5}\cmidrule(l){6-7}
+Decoder & Mean drop & Max drop & $|\Delta|\le0.01$ & Equivalent & Mean drop & Equivalent \\
+\midrule
+Hirata\,/\,uns. & 0.120 & 0.376 & 19\% & 11/66 & 0.071 & 0/36 \\
+Hirata\,/\,sig. & 0.080 & 0.283 & 26\% & 12/66 & 0.060 & 0/36 \\
+Sipers\,/\,uns. & 0.098 & 0.371 & 19\% & 13/66 & 0.021 & 0/36 \\
+Sipers\,/\,sig. & 0.000 & 0.008 & 100\% & 59/66 & 0.001 & 28/36 \\
+Ours\,/\,uns. & 0.099 & 0.359 & 21\% & 13/66 & 0.024 & 0/36 \\
+Ours\,/\,sig. & 0.000 & 0.007 & 100\% & 63/66 & 0.001 & 33/36 \\
+GASF & 0.000 & 0.005 & 100\% & 63/66 & 0.001 & 34/36 \\
+GADF & 0.000 & 0.002 & 100\% & 63/66 & 0.000 & 32/36 \\
+MTF & 0.099 & 0.400 & 19\% & 7/66 & 0.106 & 0/36 \\
+XIRP & 0.000 & 0.002 & 100\% & 65/66 & 0.000 & 36/36 \\
+\bottomrule
+\end{tabular}

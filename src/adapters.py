@@ -127,16 +127,22 @@ class ESC50Adapter(DatasetAdapter):
     resamples with SciPy's polyphase filter (anti-aliased), since a 128-sample
     window at 44.1 kHz spans only 2.9 ms. The dataset's own 5 folds are in the
     ``fold`` column of meta/esc50.csv if a run must match published splits.
+    ``esc10=True`` keeps the dataset's official 10-class ESC-10 subset (400 clips).
     """
 
     NATIVE_FS = 44100
 
-    def __init__(self, root: str | Path = "~/datasets/ESC-50/ESC-50-master", target_fs: int | None = None):
+    def __init__(self, root: str | Path = "~/datasets/ESC-50/ESC-50-master", target_fs: int | None = None,
+                 esc10: bool = False):
         self.root = str(Path(root).expanduser())
         self.target_fs = target_fs
+        self.esc10 = esc10
         meta = pd.read_csv(Path(self.root) / "meta" / "esc50.csv")
+        if esc10:
+            meta = meta[meta.esc10].copy()
         classes = meta.drop_duplicates("target").sort_values("target").category.tolist()
-        self.spec = DatasetSpec(name="esc50", fs=float(target_fs or self.NATIVE_FS), channels=("audio",),
+        meta["label"] = meta.target.map({t: i for i, t in enumerate(sorted(meta.target.unique()))})
+        self.spec = DatasetSpec(name="esc10" if esc10 else "esc50", fs=float(target_fs or self.NATIVE_FS), channels=("audio",),
                                 units=("a.u.",), classes=tuple(classes))
         self._meta = meta
 
@@ -160,7 +166,7 @@ class ESC50Adapter(DatasetAdapter):
                 g = gcd(self.target_fs, fs)
                 x = resample_poly(x, self.target_fs // g, fs // g)
             yield Recording(data=x[:, None], group=str(row.src_file), rec_id=row.filename,
-                            labels=np.full(len(x), row.target))
+                            labels=np.full(len(x), row.label))
 
 
 PTBXL_SUPERCLASSES = ("NORM", "MI", "STTC", "CD", "HYP")
@@ -184,12 +190,17 @@ class PTBXLAdapter(DatasetAdapter):
                        classes=PTBXL_SUPERCLASSES)
 
     def __init__(self, root: str | Path = "~/datasets/PTB-XL", fs: int = 100, max_records: int | None = None,
-                 seed: int = 0):
+                 seed: int = 0, resample_to: int | None = None):
+        """``resample_to`` reads the 500 Hz records and resamples them with SciPy's anti-aliased polyphase
+        filter, for the sampling-rate study; ``fs`` must then be 500."""
         if fs not in (100, 500):
             raise ValueError("PTB-XL ships 100 Hz and 500 Hz records only")
+        if resample_to and fs != 500:
+            raise ValueError("resample_to starts from the 500 Hz records")
         self.root, self.fs, self.max_records, self.seed = str(Path(root).expanduser()), fs, max_records, seed
-        self.spec = DatasetSpec(name="ptbxl", fs=float(fs), channels=PTBXLAdapter.spec.channels, units=("mV",) * 12,
-                                task="multilabel", classes=PTBXL_SUPERCLASSES)
+        self.resample_to = resample_to
+        self.spec = DatasetSpec(name="ptbxl", fs=float(resample_to or fs), channels=PTBXLAdapter.spec.channels,
+                                units=("mV",) * 12, task="multilabel", classes=PTBXL_SUPERCLASSES)
 
     def fingerprint(self) -> str:
         return files_fingerprint([Path(self.root) / "ptbxl_database.csv", Path(self.root) / "scp_statements.csv"])
@@ -220,8 +231,16 @@ class PTBXLAdapter(DatasetAdapter):
             base_ = np.array([float(ln.split()[2].split("(")[1].split(")")[0]) if "(" in ln.split()[2] else 0.0
                               for ln in lines[1:1 + n_sig]])
             raw = np.fromfile(base.with_suffix(".dat"), dtype="<i2").reshape(n_samp, n_sig)
-            yield Recording(data=(raw - base_) / gain, group=str(int(row.patient_id)), rec_id=str(row.ecg_id),
-                            labels=np.repeat(y[i][None, :], n_samp, axis=0))
+            data = (raw - base_) / gain
+            if self.resample_to and self.resample_to != self.fs:
+                from math import gcd
+
+                from scipy.signal import resample_poly
+
+                g = gcd(self.resample_to, self.fs)
+                data = resample_poly(data, self.resample_to // g, self.fs // g, axis=0)
+            yield Recording(data=data, group=str(int(row.patient_id)), rec_id=str(row.ecg_id),
+                            labels=np.repeat(y[i][None, :], len(data), axis=0))
 
 
 @register

@@ -22,7 +22,7 @@ from pathlib import Path
 import numpy as np
 from scipy.stats import wilcoxon
 
-from scripts._benchmark import CONDS, LABELS, METRICS, REPS
+from scripts._benchmark import CONDS, LABELS, METRICS, MIN_WINDOWS, REPS, stored_reps
 
 OUT = Path("results/_benchmark")
 B = 2000
@@ -57,20 +57,24 @@ def main():
     args = ap.parse_args()
     mi, ci = METRICS.index(args.metric), CONDS.index(args.cond)
     rng = np.random.default_rng(0)
-    others = [r for r in REPS if r != "RP"]
 
     stats, per_dataset = {"_design": {"metric": args.metric, "cond": args.cond, "bootstrap": B, "seed": 0,
                                       "reference": "RP", "doc": __doc__.split("\n\n")[1].strip()}}, {}
     for f in sorted(OUT.glob("*_L*.npz")):
         z = np.load(f, allow_pickle=False)
         vals, groups = z["values"], z["group"]                    # (n, reps, conds, C, metrics), (n,)
+        if len(vals) < MIN_WINDOWS:                               # EMG at L = 256: 20 windows, gestures last ~3 s
+            stats.setdefault("_not_reported", []).append(f.stem)
+            continue
         C = vals.shape[3]
         g_series = np.repeat(groups, C)
         key = f.stem.replace("_L", "/L")
+        names = stored_reps(z)
+        others = [r for r in names if r != "RP"]
         entry, pvals = {}, []
         for other in others:
-            a = vals[:, REPS.index("RP"), ci, :, mi].reshape(-1)
-            b = vals[:, REPS.index(other), ci, :, mi].reshape(-1)
+            a = vals[:, names.index("RP"), ci, :, mi].reshape(-1)
+            b = vals[:, names.index(other), ci, :, mi].reshape(-1)
             ok = np.isfinite(a) & np.isfinite(b)
             d = b[ok] - a[ok]
             p = float(wilcoxon(d).pvalue) if np.any(d != 0) else 1.0
@@ -83,6 +87,8 @@ def main():
         stats[key] = entry
         per_dataset.setdefault(key.split("/")[1], {})[key.split("/")[0]] = {o: entry[o]["median_diff"] for o in others}
 
+    others = sorted({o for ds in per_dataset.values() for v in ds.values() for o in v},
+                    key=lambda o: REPS.index(o))
     stats["_macro"] = {L: {o: float(np.mean([v[o] for v in ds.values()])) for o in others} | {"datasets": len(ds)}
                        for L, ds in sorted(per_dataset.items(), key=lambda kv: int(kv[0][1:]))}
     (OUT / "stats.json").write_text(json.dumps(stats, indent=1) + "\n")

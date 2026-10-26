@@ -187,6 +187,25 @@ def _rp_unsigned_decode(D, mm):
 
 
 
+# ---- Sipers et al. (2017): Fourier-domain URP reconstruction, on the circular variant of the RP -------
+def _rp_circular_encode(x, mm):
+    from src.rp_sipers import circular_rp
+
+    return circular_rp(x)
+
+
+def _rp_sipers_decode(D, mm):
+    from src.rp_sipers import decode_unsigned
+
+    return decode_unsigned(D, mm)
+
+
+def _rp_sipers_signed_decode(R, mm):
+    from src.rp_sipers import decode_signed
+
+    return decode_signed(R, mm)
+
+
 REPRESENTATIONS: dict[str, Representation] = {
     r.name: r for r in (
         Representation("RP", _rp_encode, _rp_to_uint8, _rp_from_uint8, _rp_decode),
@@ -199,6 +218,10 @@ REPRESENTATIONS: dict[str, Representation] = {
         Representation("RP_HIRATA", _rp_encode, _rp_unsigned_to_uint8, _rp_unsigned_from_uint8, _rp_hirata_decode),
         Representation("RP_HIRATA_SIGNED", _rp_encode, _rp_to_uint8, _rp_from_uint8, _rp_hirata_signed_decode),
         Representation("RP_UNSIGNED", _rp_encode, _rp_unsigned_to_uint8, _rp_unsigned_from_uint8, _rp_unsigned_decode),
+        # Sipers et al. need the circular embedding: same states plus the wrap state, same 8-bit storage maps.
+        Representation("RP_SIPERS", _rp_circular_encode, _rp_unsigned_to_uint8, _rp_unsigned_from_uint8,
+                       _rp_sipers_decode),
+        Representation("RP_SIPERS_SIGNED", _rp_circular_encode, _rp_to_uint8, _rp_from_uint8, _rp_sipers_signed_decode),
     )
 }
 

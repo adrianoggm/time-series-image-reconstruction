@@ -1,0 +1,295 @@
+{
+ "_design": {
+  "lengths": [
+   64,
+   128,
+   256,
+   512,
+   1024
+  ],
+  "series_per_length": 20,
+  "dataset": "wisdm",
+  "channel": 0,
+  "doc": "Real WISDM series (first channel of seeded windows) at 64 to 1024 samples. Per\nrepresentation and length: median single-thread time to encode, store as 8 bits\nand decode, peak traced memory of one encode+decode, and the log-log slope of\ntime against length (empirical complexity exponent). Cost against the number of\nchannels is linear by construction, since every channel is encoded and decoded\non its own. Run it on an idle machine: timings under load are not comparable."
+ },
+ "RP_HIRATA": {
+  "64": {
+   "ms_median": 1.9550915003492264,
+   "peak_mb": 0.33794689178466797,
+   "series": 20
+  },
+  "128": {
+   "ms_median": 10.105563002070994,
+   "peak_mb": 1.3363580703735352,
+   "series": 20
+  },
+  "256": {
+   "ms_median": 58.463031500650686,
+   "peak_mb": 5.3895463943481445,
+   "series": 20
+  },
+  "512": {
+   "ms_median": 401.1352609995811,
+   "peak_mb": 21.632043838500977,
+   "series": 20
+  },
+  "1024": {
+   "ms_median": 2871.214731998407,
+   "peak_mb": 86.7335901260376,
+   "series": 20
+  },
+  "time_exponent": 2.635128595743742
+ },
+ "RP_HIRATA_SIGNED": {
+  "64": {
+   "ms_median": 2.2503595009766286,
+   "peak_mb": 0.338134765625,
+   "series": 20
+  },
+  "128": {
+   "ms_median": 11.364889998731087,
+   "peak_mb": 1.3350696563720703,
+   "series": 20
+  },
+  "256": {
+   "ms_median": 71.79364250077924,
+   "peak_mb": 5.412051200866699,
+   "series": 20
+  },
+  "512": {
+   "ms_median": 445.30442700124695,
+   "peak_mb": 21.66432476043701,
+   "series": 20
+  },
+  "1024": {
+   "ms_median": 2880.0574245015014,
+   "peak_mb": 86.58977508544922,
+   "series": 20
+  },
+  "time_exponent": 2.593558906453598
+ },
+ "RP_UNSIGNED": {
+  "64": {
+   "ms_median": 0.6105920001573395,
+   "peak_mb": 0.2779045104980469,
+   "series": 20
+  },
+  "128": {
+   "ms_median": 2.131658999132924,
+   "peak_mb": 1.1143302917480469,
+   "series": 20
+  },
+  "256": {
+   "ms_median": 13.089061500068055,
+   "peak_mb": 4.474681854248047,
+   "series": 20
+  },
+  "512": {
+   "ms_median": 58.675467498687794,
+   "peak_mb": 17.945438385009766,
+   "series": 20
+  },
+  "1024": {
+   "ms_median": 398.1821959987428,
+   "peak_mb": 71.88684463500977,
+   "series": 20
+  },
+  "time_exponent": 2.3480717481055944
+ },
+ "RP": {
+  "64": {
+   "ms_median": 1.315043500653701,
+   "peak_mb": 0.3187875747680664,
+   "series": 20
+  },
+  "128": {
+   "ms_median": 4.389676500068163,
+   "peak_mb": 1.1440744400024414,
+   "series": 20
+  },
+  "256": {
+   "ms_median": 25.08513150132785,
+   "peak_mb": 4.4970550537109375,
+   "series": 20
+  },
+  "512": {
+   "ms_median": 122.20981199970993,
+   "peak_mb": 17.990314483642578,
+   "series": 20
+  },
+  "1024": {
+   "ms_median": 552.0454474990402,
+   "peak_mb": 71.9768295288086,
+   "series": 20
+  },
+  "time_exponent": 2.222616710531125
+ },
+ "GASF": {
+  "64": {
+   "ms_median": 0.08057050035858992,
+   "peak_mb": 0.130615234375,
+   "series": 20
+  },
+  "128": {
+   "ms_median": 0.2065444987238152,
+   "peak_mb": 0.5006561279296875,
+   "series": 20
+  },
+  "256": {
+   "ms_median": 1.0212265005975496,
+   "peak_mb": 2.0006561279296875,
+   "series": 20
+  },
+  "512": {
+   "ms_median": 3.4542469984444324,
+   "peak_mb": 8.000656127929688,
+   "series": 20
+  },
+  "1024": {
+   "ms_median": 11.962854498051456,
+   "peak_mb": 32.00065612792969,
+   "series": 20
+  },
+  "time_exponent": 1.8492035201123256
+ },
+ "GADF": {
+  "64": {
+   "ms_median": 0.13132000094628893,
+   "peak_mb": 0.13059234619140625,
+   "series": 20
+  },
+  "128": {
+   "ms_median": 0.2808955014188541,
+   "peak_mb": 0.5006561279296875,
+   "series": 20
+  },
+  "256": {
+   "ms_median": 1.0072815002786228,
+   "peak_mb": 2.0006561279296875,
+   "series": 20
+  },
+  "512": {
+   "ms_median": 4.338026499681291,
+   "peak_mb": 8.000656127929688,
+   "series": 20
+  },
+  "1024": {
+   "ms_median": 12.99311100046907,
+   "peak_mb": 32.00065612792969,
+   "series": 20
+  },
+  "time_exponent": 1.720596629647735
+ },
+ "MTF": {
+  "64": {
+   "ms_median": 0.5262764989311108,
+   "peak_mb": 0.1273956298828125,
+   "series": 20
+  },
+  "128": {
+   "ms_median": 0.6960390019230545,
+   "peak_mb": 0.440338134765625,
+   "series": 20
+  },
+  "256": {
+   "ms_median": 1.4667735013063066,
+   "peak_mb": 1.566314697265625,
+   "series": 20
+  },
+  "512": {
+   "ms_median": 5.467584000143688,
+   "peak_mb": 6.068294525146484,
+   "series": 20
+  },
+  "1024": {
+   "ms_median": 12.790305499947863,
+   "peak_mb": 24.072200775146484,
+   "series": 20
+  },
+  "time_exponent": 1.2179835309176168
+ },
+ "XIRP": {
+  "64": {
+   "ms_median": 0.05867549953109119,
+   "peak_mb": 0.15856170654296875,
+   "series": 20
+  },
+  "128": {
+   "ms_median": 0.15016299948911183,
+   "peak_mb": 0.5652313232421875,
+   "series": 20
+  },
+  "256": {
+   "ms_median": 0.6070465005905135,
+   "peak_mb": 2.0662078857421875,
+   "series": 20
+  },
+  "512": {
+   "ms_median": 4.108031500436482,
+   "peak_mb": 8.068161010742188,
+   "series": 20
+  },
+  "1024": {
+   "ms_median": 12.787498000761843,
+   "peak_mb": 32.07206726074219,
+   "series": 20
+  },
+  "time_exponent": 2.0309366125868955
+ },
+ "RP_SIPERS": {
+  "64": {
+   "ms_median": 1.144452000005458,
+   "peak_mb": 0.6125106811523438,
+   "series": 20
+  },
+  "128": {
+   "ms_median": 7.285731500004999,
+   "peak_mb": 2.180525779724121,
+   "series": 20
+  },
+  "256": {
+   "ms_median": 27.10650450000429,
+   "peak_mb": 8.583189964294434,
+   "series": 20
+  },
+  "512": {
+   "ms_median": 184.6252189999973,
+   "peak_mb": 31.182169914245605,
+   "series": 20
+  },
+  "1024": {
+   "ms_median": 1172.716731499996,
+   "peak_mb": 111.85268020629883,
+   "series": 20
+  },
+  "time_exponent": 2.4665345799867175
+ },
+ "RP_SIPERS_SIGNED": {
+  "64": {
+   "ms_median": 1.4516810000060332,
+   "peak_mb": 0.6122398376464844,
+   "series": 20
+  },
+  "128": {
+   "ms_median": 5.877267000002462,
+   "peak_mb": 2.1313657760620117,
+   "series": 20
+  },
+  "256": {
+   "ms_median": 29.86443700000052,
+   "peak_mb": 8.583239555358887,
+   "series": 20
+  },
+  "512": {
+   "ms_median": 202.4957224999966,
+   "peak_mb": 29.955931663513184,
+   "series": 20
+  },
+  "1024": {
+   "ms_median": 1193.0558339999989,
+   "peak_mb": 111.85272979736328,
+   "series": 20
+  },
+  "time_exponent": 2.4472044949111313
+ }
+}

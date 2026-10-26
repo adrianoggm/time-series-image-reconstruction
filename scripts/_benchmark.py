@@ -28,15 +28,26 @@ import os
 import time
 import tracemalloc
 from concurrent.futures import ProcessPoolExecutor
+from functools import partial
 from pathlib import Path
 
 import numpy as np
 
-REPS = ("RP_HIRATA", "RP_HIRATA_SIGNED", "RP_UNSIGNED", "RP", "GASF", "GADF", "MTF", "XIRP")   # RP = Direct-2D, signed
+REPS = ("RP_HIRATA", "RP_HIRATA_SIGNED", "RP_UNSIGNED", "RP", "GASF", "GADF", "MTF", "XIRP",   # RP = Direct-2D, signed
+        "RP_SIPERS", "RP_SIPERS_SIGNED")                       # added later: --only fills them into existing results
 CONDS = ("float", "png8")
 LABELS = {"RP_HIRATA": "Hirata · RP sin signo", "RP_HIRATA_SIGNED": "Hirata · Signed RP",
           "RP_UNSIGNED": "RP nueva · RP sin signo", "RP": "RP nueva · Signed RP",
-          "GASF": "GASF", "GADF": "GADF", "MTF": "MTF", "XIRP": "XIRP"}
+          "GASF": "GASF", "GADF": "GADF", "MTF": "MTF", "XIRP": "XIRP",
+          "RP_SIPERS": "Sipers · RP sin signo (circular)", "RP_SIPERS_SIGNED": "Sipers · Signed RP (circular)"}
+# One colour per decoder family, one line style per RP encoding (solid: signed, dashed: unsigned), used by every
+# figure so a technique keeps its colour throughout. Dataviz reference slots, validated in the order of the
+# figure rows (Hirata, Sipers, geometric, GASF, GADF, MTF, XIRP); blue/violet and green/orange fail as all-pairs,
+# so those never share a panel or a legend.
+TECH_STYLE = {"RP_HIRATA": ("#6250d6", "--"), "RP_HIRATA_SIGNED": ("#6250d6", "-"),
+              "RP_SIPERS": ("#e87ba4", "--"), "RP_SIPERS_SIGNED": ("#e87ba4", "-"),
+              "RP_UNSIGNED": ("#2a78d6", "--"), "RP": ("#2a78d6", "-"),
+              "GASF": ("#eb6834", "-"), "GADF": ("#1baf7a", "-"), "MTF": ("#008300", "-"), "XIRP": ("#eda100", "-")}
 METRICS = ("nmae", "nrmse", "pearson", "dnmae", "psd_shape", "fdom_err", "energy_err", "enc_ms", "dec_ms")
 # Dataset-specific settings live here and nowhere else.
 DATASETS = {
@@ -49,6 +60,10 @@ DATASETS = {
     "emg_gestures": {},
 }
 OUT = Path("results/_benchmark")
+MIN_WINDOWS = 200     # blocks with fewer windows stay in summary.json but out of the tables and statistics
+# Single-channel datasets get more windows so that every block has a comparable number of channel series
+# (ESC-50: 500 windows gave ~450 series against 1500-6000 elsewhere, too few to separate the exact decoders).
+N_WINDOWS = {"esc50": 3000}
 
 
 def series_metrics(x: np.ndarray, r: np.ndarray) -> list[float]:
@@ -67,18 +82,18 @@ def series_metrics(x: np.ndarray, r: np.ndarray) -> list[float]:
     return [float(np.mean(np.abs(d))) / rng, float(np.sqrt(np.mean(d ** 2))) / rng, pearson, dn, shape, fdom, energy]
 
 
-def window_row(window: np.ndarray) -> np.ndarray:
+def window_row(window: np.ndarray, reps: tuple = REPS) -> np.ndarray:
     """(T, C) window -> (reps, conds, C, metrics); NaN for flat channels, inf in nmae for failures."""
     from src.representations import REPRESENTATIONS
 
     T, C = window.shape
-    out = np.full((len(REPS), len(CONDS), C, len(METRICS)), np.nan)
+    out = np.full((len(reps), len(CONDS), C, len(METRICS)), np.nan)
     for c in range(C):
         x = window[:, c].astype(float)
         if x.max() - x.min() < 1e-12:
             continue
         mm = (float(x.max()), float(x.min()))
-        for ri, name in enumerate(REPS):
+        for ri, name in enumerate(reps):
             rep = REPRESENTATIONS[name]
             try:
                 t0 = time.perf_counter()
@@ -110,11 +125,11 @@ def peak_memory_mb(name: str, x: np.ndarray) -> float:
     return peak / 2 ** 20
 
 
-def summarise(vals: np.ndarray) -> dict:
+def summarise(vals: np.ndarray, reps: tuple = REPS) -> dict:
     """vals: (n_windows, reps, conds, C, metrics) -> nested summary."""
     s = {}
-    flat = np.moveaxis(vals, 3, 1).reshape(-1, len(REPS), len(CONDS), len(METRICS))   # (series, reps, conds, m)
-    for ri, rep in enumerate(REPS):
+    flat = np.moveaxis(vals, 3, 1).reshape(-1, len(reps), len(CONDS), len(METRICS))   # (series, reps, conds, m)
+    for ri, rep in enumerate(reps):
         for ci, cond in enumerate(CONDS):
             v = flat[:, ri, ci]
             fail = np.isinf(v[:, 0])
@@ -131,12 +146,19 @@ def summarise(vals: np.ndarray) -> dict:
     return s
 
 
+def stored_reps(npz) -> tuple:
+    """Representation order of a stored values array (files written before the names were stored hold the first 8)."""
+    return tuple(npz["reps"]) if "reps" in npz.files else REPS[:npz["values"].shape[1]]
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--datasets", default=",".join(DATASETS))
     ap.add_argument("--lengths", default="64,128,256")
     ap.add_argument("--n", type=int, default=300, help="windows per dataset and length (seed 0)")
     ap.add_argument("--workers", type=int, default=max(1, (os.cpu_count() or 2) - 4))
+    ap.add_argument("--only", default="", help="compute only these representations, on the stored windows, and merge "
+                                               "them into the existing results; the others are left untouched")
     args = ap.parse_args()
 
     from src.datasets import get, make_windows
@@ -144,25 +166,41 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     summary_path = OUT / "summary.json"
     summary = json.loads(summary_path.read_text()) if summary_path.exists() else {}
+    n_windows = summary.get("_design", {}).get("n_windows", args.n) if args.only else args.n
     summary["_design"] = {"representations": REPS, "conditions": CONDS, "metrics": METRICS, "datasets": DATASETS,
-                          "n_windows": args.n, "seed": 0, "doc": __doc__.split("\n\n")[1].strip()}
+                          "n_windows": n_windows, "n_windows_by_dataset": N_WINDOWS, "seed": 0,
+                          "doc": __doc__.split("\n\n")[1].strip()}
+    only = tuple(args.only.split(",")) if args.only else REPS
     for name in args.datasets.split(","):
         adapter = get(name, **DATASETS[name])
         for L in map(int, args.lengths.split(",")):
             t0 = time.perf_counter()
             w = make_windows(adapter, L, dtype=np.float32)
-            idx = np.sort(np.random.default_rng(0).choice(len(w.X), size=min(args.n, len(w.X)), replace=False))
+            key = f"{name}/L{L}"
+            if args.only:
+                old = np.load(OUT / f"{name}_L{L}.npz")
+                idx = old["window_index"]
+            else:
+                n = N_WINDOWS.get(name, args.n)
+                idx = np.sort(np.random.default_rng(0).choice(len(w.X), size=min(n, len(w.X)), replace=False))
             with ProcessPoolExecutor(args.workers) as ex:
-                vals = np.stack(list(ex.map(window_row, [w.X[i] for i in idx], chunksize=2)))
+                new = np.stack(list(ex.map(partial(window_row, reps=only), [w.X[i] for i in idx], chunksize=2)))
             probe = next(w.X[i][:, c].astype(float) for i in idx for c in range(w.X.shape[2])
                          if np.ptp(w.X[i][:, c]) > 0)
-            mem = {rep: peak_memory_mb(rep, probe) for rep in REPS}
-            np.savez_compressed(OUT / f"{name}_L{L}.npz", values=vals, window_index=idx, rec_id=w.rec_id[idx],
-                                start=w.start[idx], group=w.groups[idx], y=w.y[idx])
-            key = f"{name}/L{L}"
+            mem = {rep: peak_memory_mb(rep, probe) for rep in only}
+            if args.only:
+                have = stored_reps(old)
+                vals = np.stack([new[:, only.index(r)] if r in only else old["values"][:, have.index(r)]
+                                 for r in REPS], axis=1)
+                mem = summary[key]["peak_memory_mb"] | mem
+                wall = summary[key]["wall_s"] + time.perf_counter() - t0
+            else:
+                vals, wall = new, time.perf_counter() - t0
+            np.savez_compressed(OUT / f"{name}_L{L}.npz", values=vals, reps=np.array(REPS), window_index=idx,
+                                rec_id=w.rec_id[idx], start=w.start[idx], group=w.groups[idx], y=w.y[idx])
             summary[key] = {"fs": w.meta["fs"], "channels": w.meta["channels"], "duration_s": w.meta["duration_s"],
                             "windows_available": int(len(w.X)), "windows_used": int(len(idx)),
-                            "peak_memory_mb": mem, "wall_s": time.perf_counter() - t0, **summarise(vals)}
+                            "peak_memory_mb": mem, "wall_s": wall, **summarise(vals)}
             summary_path.write_text(json.dumps(summary, indent=1, default=float) + "\n")
             line = "  ".join(f"{r} {summary[key][f'{r}/float']['nmae']['mean']:.1e}/"
                              f"{summary[key][f'{r}/png8']['nmae']['mean']:.4f}" for r in REPS
@@ -178,11 +216,15 @@ def write_markdown(summary: dict) -> None:
     for key, s in summary.items():
         if key.startswith("_"):
             continue
+        if s["windows_used"] < MIN_WINDOWS:
+            continue
         ds, L = key.split("/")
-        nm = [f"{s[f'{r}/png8']['nmae']['mean']:.4f}" if "nmae" in s[f"{r}/png8"] else "—" for r in REPS]
-        ms = [f"{s[f'{r}/png8']['dec_ms']['mean']:.1f}" if "dec_ms" in s[f"{r}/png8"] else "—" for r in REPS]
+        nm = [f"{s[f'{r}/png8']['nmae']['mean']:.4f}" if "nmae" in s.get(f"{r}/png8", {}) else "—" for r in REPS]
+        ms = [f"{s[f'{r}/png8']['dec_ms']['mean']:.1f}" if "dec_ms" in s.get(f"{r}/png8", {}) else "—" for r in REPS]
         rows.append(f"| {ds} | {L[1:]} | " + " | ".join(nm) + " | " + " | ".join(ms) + " |")
-    (OUT / "summary.md").write_text("# M7 benchmark: mean NMAE (8-bit) and decode time per series\n\n"
+    small = [k for k, s in summary.items() if not k.startswith("_") and s["windows_used"] < MIN_WINDOWS]
+    note = f"Not reported (fewer than {MIN_WINDOWS} windows): {', '.join(small)}.\n\n" if small else ""
+    (OUT / "summary.md").write_text("# M7 benchmark: mean NMAE (8-bit) and decode time per series\n\n" + note
                                     + "\n".join(rows) + "\n")
 
 

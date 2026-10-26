@@ -53,8 +53,8 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/adrianoggm/TFG-Tratamiento-de-Series-Temporales"
-Repository = "https://github.com/adrianoggm/TFG-Tratamiento-de-Series-Temporales"
+Homepage = "https://github.com/adrianoggm/time-series-image-reconstruction"
+Repository = "https://github.com/adrianoggm/time-series-image-reconstruction"
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]
