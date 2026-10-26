@@ -205,6 +205,7 @@ results/_stats/*
 !results/_stats/sipers_pilot.md
 !results/_stats/sipers_calibration.json
 !results/_stats/sipers_calibration.md
+!results/_stats/image_only.json
 !results/_stats/sipers_checks.json
 !results/_stats/rp_geometry_ablation.tex
 !results/_stats/rp_metadata_ablation.json

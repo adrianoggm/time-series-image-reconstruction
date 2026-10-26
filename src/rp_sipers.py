@@ -68,8 +68,8 @@ def decode_signed(R: np.ndarray, mm) -> np.ndarray:
     R = np.asarray(R, dtype=float)
     xh = sipers_decode(0.5 * (np.abs(R) + np.abs(R).T))
     best = None
-    for cand in (to_range(xh, mm), to_range(-xh, mm)):
+    for cand in (to_range(xh, (1.0, 0.0)), to_range(-xh, (1.0, 0.0))):   # unit range: the image alone decides
         Rc = circular_rp(cand)
         e = np.linalg.norm(Rc / np.linalg.norm(Rc) - R / np.linalg.norm(R))
         best = (e, cand) if best is None or e < best[0] else best
-    return best[1]
+    return to_range(best[1], mm)

@@ -118,14 +118,15 @@ python -m scripts._sipers_pilot                      # Sipers vs geometric decod
 python -m scripts._sipers_calibration                # Sipers' threshold on windows outside every evaluated sample
 python -m scripts._classification                    # 6 classifiers trained on originals, tested on reconstructions
 python -m scripts._classification --out results/_classification_esc10 \
-       --lengths 512,1024 --datasets esc10_2k,esc10_4k,esc10_8k   # audio: ESC-10, accuracy per clip
+       --lengths 512,1024 --max-windows 3000 --datasets esc10_2k,esc10_4k,esc10_8k   # audio: ESC-10, per clip
 ```
 
 Checks behind specific claims of the manuscript:
 
 ```bash
 python -m scripts._check_sign_identifiability        # hypotheses of Proposition 1 on every benchmark series
-python -m scripts._check_image_only                  # the calibration enters every decoder only as the final affine map
+python -m scripts._check_image_only                  # the calibration enters every decoder only as the final affine map,
+                                                     # including an exact tie between x and -x
 python -m scripts._check_representations             # new API bit-identical to the legacy WISDM pipeline
 ```
 
@@ -146,6 +147,13 @@ bash scripts/_build_infsci.sh              # main <-> supplementary through xr; 
 No number in [doc/infsci/main.tex](doc/infsci/main.tex) is typed by hand except design parameters; they come from
 `generated/numbers.tex`. The audit of the Sipers threshold, the proposition's hypotheses, image-only decoding and
 the hand-written ranges is in [docs/audit/infsci_reproducibility.md](docs/audit/infsci_reproducibility.md).
+
+The supplement is organised in three parts: **A** set-up (datasets, 8-bit storage and image-only decoding, fixed
+parameters, classifiers), **B** the proof of Proposition 1 and its hypotheses checked per dataset, and **C** the
+additional results in the order of the research questions (other lengths, spectral fidelity, Hirata's sensitivity,
+Sipers on the same image and its calibration, sampling rate, robustness, classification and cost per dataset).
+
+All `.sh` files are checked out with LF line endings (`.gitattributes`), so the WSL scripts run from a Windows clone.
 
 ### Stored results
 

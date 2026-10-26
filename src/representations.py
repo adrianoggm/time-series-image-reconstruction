@@ -173,9 +173,10 @@ def _rp_hirata_signed_decode(R, mm):
     from src.rp_decoders import signed_rp_error
 
     R = np.asarray(R, dtype=float)
-    x = _rp_hirata_decode(R, mm)
-    mirrored = mm[0] + mm[1] - x
-    return mirrored if signed_rp_error(R, mirrored, True) < signed_rp_error(R, x, True) else x
+    x = _rp_hirata_decode(R, (1.0, 0.0))               # chosen on the unit range: the image alone decides
+    mirrored = 1.0 - x
+    x = mirrored if signed_rp_error(R, mirrored, True) < signed_rp_error(R, x, True) else x
+    return mm[1] + x * (mm[0] - mm[1])
 
 
 def _rp_unsigned_decode(D, mm):

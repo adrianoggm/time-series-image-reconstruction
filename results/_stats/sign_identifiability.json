@@ -16,8 +16,8 @@
   ],
   "identical_signed_rp": true,
   "informative_share": 0.0,
-  "float_nmae_x": 4.838896579026625e-15,
-  "float_nmae_minus_x": 4.8179489747884144e-15,
+  "float_nmae_x": 0.8867924528301901,
+  "float_nmae_minus_x": 4.838896579026625e-15,
   "margins_a_R_F_rank3": [
    0.0018153010340751607,
    1.924528301886792,

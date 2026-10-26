@@ -40,6 +40,15 @@ Every decoder receives the stored image and the channel calibration (max, min) o
 
 `scripts/_check_image_only.py` decodes the same 8-bit image with the true calibration and with an unrelated one. For all ten combinations, the second result equals the first after the affine change of range, with a maximum relative deviation of 2.5e-16. The calibration therefore enters only as the final map to physical units; it never chooses a reflection, branch or threshold.
 
+**Tie between reflections (found and fixed 2026-10-26).** The first version of this check only used series with
+sign-informative pairs. On the counterexample of the main text (no informative pair, so x and -x give the same
+signed RP), the three signed decoders still returned both x and -x correctly. They chose the reflection after
+mapping the candidates to physical units, so in an exact tie the rounding of the calibration decided. They now
+compare the candidates on the unit range and apply the calibration to the winner only. The check now includes
+that series and fails on the old code (deviation 1.0 for the signed RP). On 2 000 benchmark series the change
+moves the reconstructions by at most 5.7e-14 of the range, and the M0 baseline still matches (52/52 arrays), so
+no reported number changes.
+
 The RP images are invariant to increasing affine maps of the series (the binary RP because its threshold follows a per-window recurrence rate, `eps_for_rate` in `src/representations.py`). The text now states that the RP decoders return the trajectory mapped onto [0, 1], and that the calibration is applied afterwards.
 
 ## 4. Calibrations, splits and tables

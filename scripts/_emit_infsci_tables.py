@@ -409,6 +409,21 @@ def main():
     nums["hypMinA"] = f"{hyp['min_a']:.1e}"
     nums["hypMinF"] = f"{hyp['min_F']:.1e}"
     nums["hypMinR"] = fmt(hyp["min_R"], 2)
+    sid_all = load("results/_stats/sign_identifiability.json")
+    rows = []
+    for ds, name in NAMES.items():
+        blocks = [v for k, v in sid_all.items() if k.startswith(ds + "/")]
+        if blocks:
+            rows.append(f"{name} & {sum(b['series'] for b in blocks):,}".replace(",", "\\,") + " & "
+                        + " & ".join(f"{min(b[k] for b in blocks):.1e}" for k in ("min_a", "min_R", "min_F", "min_rank3"))
+                        + f" & {fmt(min(b['min_share'] for b in blocks), 3)} & {sum(b['fails_any_abc'] for b in blocks)}")
+    write_table("tab_hypotheses.tex", "Dataset & Series & (a) & (R) & (F) & Rank 3 & Sign-inf. share & Failures",
+                rows, "lrrrrrrr")
+
+    # Image-only decoding (scripts/_check_image_only.py): deviation from the final affine map.
+    img = load("results/_stats/image_only.json")
+    nums["imgOnlyMax"] = f"{max(img['max_relative_deviation'].values()):.1e}"
+    nums["imgOnlySeries"] = str(img["series"])
 
     # Encoder vs decoder on the same windows (scripts/_sipers_checks.py): Swarm, 8-bit signed RP.
     checks_path = Path("results/_stats/sipers_checks.json")
