@@ -1,14 +1,14 @@
 [project]
 name = "tfg-tsd"
 version = "0.1.0"
-description = "Time-series reconstruction from image-based encodings (RP, GASF, GADF, MTF) on WISDM."
+description = "How much of a time series survives its image: reconstruction from RP, GASF, GADF, MTF and XIRP images on seven datasets."
 readme = "README.md"
 requires-python = ">=3.10,<3.12"
 license = { text = "MIT" }
 authors = [
     { name = "Adriano García-Giralda" },
 ]
-keywords = ["time-series", "recurrence-plot", "gramian-angular-field", "markov-transition-field", "wisdm"]
+keywords = ["time-series", "time-series-imaging", "reconstruction", "recurrence-plot", "gramian-angular-field", "markov-transition-field", "xirp", "benchmark"]
 classifiers = [
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
