@@ -159,6 +159,9 @@ scripts/_*.py
 !scripts/_check_sign_identifiability.py
 !scripts/_hirata_threshold_sweep.py
 !scripts/_sipers_pilot.py
+!scripts/_sipers_calibration.py
+!scripts/_check_image_only.py
+!scripts/_build_infsci.sh
 !scripts/_sipers_checks.py
 !scripts/_rp_matrix.py
 !scripts/_rp_sign_information.py
@@ -200,6 +203,8 @@ results/_stats/*
 !results/_stats/sign_identifiability.json
 !results/_stats/sipers_pilot.json
 !results/_stats/sipers_pilot.md
+!results/_stats/sipers_calibration.json
+!results/_stats/sipers_calibration.md
 !results/_stats/sipers_checks.json
 !results/_stats/rp_geometry_ablation.tex
 !results/_stats/rp_metadata_ablation.json

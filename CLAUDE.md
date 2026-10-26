@@ -183,7 +183,10 @@ for SVM, `randomforestvalidation`, `lstmvalidation`, `gruvalidation`,
 `_rp_encodings`, `_rp_matrix`, `_rp_conditions` (when the signed RP decoder is exact:
 sign information and state conditioning sigma2/sigma1), `_cost_scaling` (time and memory
 against length), `_robustness_multi` (noise on the stored image, seven datasets),
-`_sampling_rate` (PTB-XL resampled from 500 Hz), `_emit_infsci_tables` and
+`_sampling_rate` (PTB-XL resampled from 500 Hz), `_sipers_calibration` (Sipers' frequency
+threshold chosen on windows outside every evaluated sample), `_check_image_only` (the calibration enters
+every decoder only as the final affine map), `_check_sign_identifiability` (hypotheses of Proposition 1 on
+every benchmark series; audit in `docs/audit/infsci_reproducibility.md`), `_emit_infsci_tables` and
 `_make_infsci_figures` (every table, figure and quoted number of doc/infsci/main.tex,
 from the artefacts above), `_make_infsci_examples` (encoded-image collage and reconstruction
 examples, same windows), `_check_sign_identifiability` and `_hirata_threshold_sweep` (sources of

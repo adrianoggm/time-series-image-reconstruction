@@ -1,4 +1,8 @@
 {
+ "_design": {
+  "tolerance": 1e-09,
+  "doc": "Proposition 1 (doc/infsci/main.tex) gives sufficient conditions for the geometric decoder to recover a\nseries exactly from its floating-point signed RP:\n  (a) the centred states (x_i, x_{i+1}) span the plane: sigma_2 / sigma_1 > 0;\n  (b) no relation (R) x_i + x_{i+2} = kappa, nor (F) alpha (x_{i+2} - x_i) = beta x_{i+1} + kappa with\n      (alpha, beta) != (0, 0), holds for all i;\n  (c) at least one pair of states is sign-informative (displacement within pi/4 of +-(1, 1)).\nThis script"
+ },
  "counterexample": {
   "x": [
    1.0,
@@ -13,131 +17,327 @@
   "identical_signed_rp": true,
   "informative_share": 0.0,
   "float_nmae_x": 4.838896579026625e-15,
-  "float_nmae_minus_x": 4.8179489747884144e-15
+  "float_nmae_minus_x": 4.8179489747884144e-15,
+  "margins_a_R_F_rank3": [
+   0.0018153010340751607,
+   1.924528301886792,
+   0.03469486002329384,
+   1.1581336840638125e-16
+  ]
  },
  "wisdm/L64": {
   "series": 1500,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.22950819672131148
+  "min_share": 0.22950819672131148,
+  "fails_a": 0,
+  "fails_R": 0,
+  "fails_F": 0,
+  "fails_rank3": 0,
+  "fails_any_abc": 0,
+  "min_a": 0.05579996589481491,
+  "min_R": 0.6282827998338294,
+  "min_F": 0.0007506172029361554,
+  "min_rank3": 0.03828247219811431
  },
  "wisdm/L128": {
   "series": 1500,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.311625
+  "min_share": 0.311625,
+  "fails_a": 0,
+  "fails_R": 0,
+  "fails_F": 0,
+  "fails_rank3": 0,
+  "fails_any_abc": 0,
+  "min_a": 0.05243232628954423,
+  "min_R": 0.6520763108745324,
+  "min_F": 0.0007184135594190381,
+  "min_rank3": 0.018759232922101392
  },
  "wisdm/L256": {
   "series": 1500,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.33376571234442076
+  "min_share": 0.33376571234442076,
+  "fails_a": 0,
+  "fails_R": 0,
+  "fails_F": 0,
+  "fails_rank3": 0,
+  "fails_any_abc": 0,
+  "min_a": 0.023008784696952406,
+  "min_R": 0.5541684761998037,
+  "min_F": 0.000814270297103936,
+  "min_rank3": 0.009870572509446006
  },
  "pamap2/L64": {
   "series": 4500,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.35995903737839224
+  "min_share": 0.35995903737839224,
+  "fails_a": 0,
+  "fails_R": 0,
+  "fails_F": 0,
+  "fails_rank3": 0,
+  "fails_any_abc": 0,
+  "min_a": 0.03302727116614526,
+  "min_R": 0.6762113209704582,
+  "min_F": 0.0023844363275566864,
+  "min_rank3": 0.009433285865215411
  },
  "pamap2/L128": {
   "series": 4500,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.42532183477065366
+  "min_share": 0.42532183477065366,
+  "fails_a": 0,
+  "fails_R": 0,
+  "fails_F": 0,
+  "fails_rank3": 0,
+  "fails_any_abc": 0,
+  "min_a": 0.029301383547216096,
+  "min_R": 0.7526734380080812,
+  "min_F": 0.00236207085908147,
+  "min_rank3": 0.011905796794587045
  },
  "pamap2/L256": {
   "series": 4500,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.4499614018835881
+  "min_share": 0.4499614018835881,
+  "fails_a": 0,
+  "fails_R": 0,
+  "fails_F": 0,
+  "fails_rank3": 0,
+  "fails_any_abc": 0,
+  "min_a": 0.023080262086055115,
+  "min_R": 0.7671066392494041,
+  "min_F": 0.00275362692693072,
+  "min_rank3": 0.012012728256577959
  },
  "esc50/L64": {
   "series": 2704,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.0701484895033282
+  "min_share": 0.0701484895033282,
+  "fails_a": 0,
+  "fails_R": 0,
+  "fails_F": 0,
+  "fails_rank3": 0,
+  "fails_any_abc": 0,
+  "min_a": 0.006678966661895579,
+  "min_R": 0.13703131521578213,
+  "min_F": 3.095495767313028e-06,
+  "min_rank3": 0.001066268889263829
  },
  "esc50/L128": {
   "series": 2704,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.06399200099987501
+  "min_share": 0.06399200099987501,
+  "fails_a": 0,
+  "fails_R": 0,
+  "fails_F": 0,
+  "fails_rank3": 0,
+  "fails_any_abc": 0,
+  "min_a": 0.008168805531342646,
+  "min_R": 0.13761585461442627,
+  "min_F": 3.2825019966357185e-06,
+  "min_rank3": 0.0012954912651038926
  },
  "esc50/L256": {
   "series": 2699,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.09776130924810869
+  "min_share": 0.09776130924810869,
+  "fails_a": 0,
+  "fails_R": 0,
+  "fails_F": 0,
+  "fails_rank3": 0,
+  "fails_any_abc": 0,
+  "min_a": 0.008898891766125546,
+  "min_R": 0.1036418139093211,
+  "min_F": 3.299955529167569e-06,
+  "min_rank3": 0.0010663232027096803
  },
  "ptbxl/L64": {
   "series": 6000,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.4764344262295082
+  "min_share": 0.4764344262295082,
+  "fails_a": 0,
+  "fails_R": 0,
+  "fails_F": 0,
+  "fails_rank3": 0,
+  "fails_any_abc": 0,
+  "min_a": 0.0335102375124523,
+  "min_R": 0.6651131849940628,
+  "min_F": 0.0185606188266437,
+  "min_rank3": 0.00849492534153406
  },
  "ptbxl/L128": {
   "series": 6000,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.6012998375203099
+  "min_share": 0.6012998375203099,
+  "fails_a": 0,
+  "fails_R": 0,
+  "fails_F": 0,
+  "fails_rank3": 0,
+  "fails_any_abc": 0,
+  "min_a": 0.04120977066899726,
+  "min_R": 0.7860824900639402,
+  "min_F": 0.10696491820542237,
+  "min_rank3": 0.013681084143047712
  },
  "ptbxl/L256": {
   "series": 6000,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.5902353159162498
+  "min_share": 0.5902353159162498,
+  "fails_a": 0,
+  "fails_R": 0,
+  "fails_F": 0,
+  "fails_rank3": 0,
+  "fails_any_abc": 0,
+  "min_a": 0.040139051606458746,
+  "min_R": 0.8311688187909907,
+  "min_F": 0.04280930008868106,
+  "min_rank3": 0.01890592985937173
  },
  "swarm/L64": {
   "series": 1500,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.830005120327701
+  "min_share": 0.830005120327701,
+  "fails_a": 0,
+  "fails_R": 0,
+  "fails_F": 0,
+  "fails_rank3": 0,
+  "fails_any_abc": 0,
+  "min_a": 1.056567489047293e-05,
+  "min_R": 1.3172331813097171,
+  "min_F": 2.192638873432532e-05,
+  "min_rank3": 4.420438039388071e-06
  },
  "swarm/L128": {
   "series": 1500,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.8926384201974753
+  "min_share": 0.8926384201974753,
+  "fails_a": 0,
+  "fails_R": 0,
+  "fails_F": 0,
+  "fails_rank3": 0,
+  "fails_any_abc": 0,
+  "min_a": 8.17364174434846e-06,
+  "min_R": 1.435344233615127,
+  "min_F": 4.6317455345417503e-05,
+  "min_rank3": 2.1355272827511274e-06
  },
  "swarm/L256": {
   "series": 1500,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.9263856723791879
+  "min_share": 0.9263856723791879,
+  "fails_a": 0,
+  "fails_R": 0,
+  "fails_F": 0,
+  "fails_rank3": 0,
+  "fails_any_abc": 0,
+  "min_a": 5.737986994786264e-06,
+  "min_R": 1.7916304058149435,
+  "min_F": 0.00016199812995851154,
+  "min_rank3": 1.2245717333898308e-06
  },
  "stead/L64": {
   "series": 1494,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.2263184843830005
+  "min_share": 0.2263184843830005,
+  "fails_a": 0,
+  "fails_R": 0,
+  "fails_F": 0,
+  "fails_rank3": 0,
+  "fails_any_abc": 0,
+  "min_a": 0.00696332036584599,
+  "min_R": 0.5594199841458235,
+  "min_F": 0.09111161831634126,
+  "min_rank3": 1.887509368914344e-05
  },
  "stead/L128": {
-  "series": 1492,
+  "series": 1488,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.22597175353080864
+  "min_share": 0.22597175353080864,
+  "fails_a": 0,
+  "fails_R": 0,
+  "fails_F": 0,
+  "fails_rank3": 0,
+  "fails_any_abc": 0,
+  "min_a": 0.009470911545204588,
+  "min_R": 0.5750005590166263,
+  "min_F": 0.19073344363926542,
+  "min_rank3": 0.0004888747155379872
  },
  "stead/L256": {
   "series": 1490,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.21290721012814576
+  "min_share": 0.21290721012814576,
+  "fails_a": 0,
+  "fails_R": 0,
+  "fails_F": 0,
+  "fails_rank3": 0,
+  "fails_any_abc": 0,
+  "min_a": 0.009371399475670337,
+  "min_R": 0.4997978616809836,
+  "min_F": 0.1969835369750037,
+  "min_rank3": 2.458019228796054e-05
  },
  "emg_gestures/L64": {
   "series": 4000,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.23076923076923078
+  "min_share": 0.23076923076923078,
+  "fails_a": 0,
+  "fails_R": 0,
+  "fails_F": 0,
+  "fails_rank3": 0,
+  "fails_any_abc": 0,
+  "min_a": 0.3074970217956992,
+  "min_R": 0.7692307692307693,
+  "min_F": 0.3351078017874923,
+  "min_rank3": 0.22034039042481077
  },
  "emg_gestures/L128": {
   "series": 4000,
   "no_informative_pair": 0,
   "below_1pct": 0,
-  "min_share": 0.2720067930936881
+  "min_share": 0.2720067930936881,
+  "fails_a": 0,
+  "fails_R": 0,
+  "fails_F": 0,
+  "fails_rank3": 0,
+  "fails_any_abc": 0,
+  "min_a": 0.4496936040705853,
+  "min_R": 0.8387096596269509,
+  "min_F": 0.33040767769332635,
+  "min_rank3": 0.3069751003015898
  },
  "_total": {
-  "series": 61083,
+  "series": 61079,
   "no_informative_pair": 0,
-  "below_1pct": 0
+  "below_1pct": 0,
+  "fails_a": 0,
+  "fails_R": 0,
+  "fails_F": 0,
+  "fails_rank3": 0,
+  "fails_any_abc": 0,
+  "min_share": 0.06399200099987501,
+  "min_a": 5.737986994786264e-06,
+  "min_R": 0.1036418139093211,
+  "min_F": 3.095495767313028e-06,
+  "min_rank3": 1.2245717333898308e-06
  }
 }

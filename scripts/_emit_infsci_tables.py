@@ -30,7 +30,81 @@ def load(p):
 
 
 def fmt(v, d=4):
-    return f"{v:.{d}f}"
+    s = f"{v:.{d}f}"
+    return s[1:] if s == "-0." + "0" * d else s          # a value that rounds to zero is printed without a sign
+
+
+def write_table(name, header, rows, cols):
+    lines = [r"\begin{tabular}{@{}" + cols + "@{}}", r"\toprule", header + r" \\", r"\midrule"]
+    lines += [r + r" \\" for r in rows] + [r"\bottomrule", r"\end{tabular}"]
+    (OUT / name).write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def supplement_tables(bench, cls, esc, rob):
+    """Supplementary tables built from the stored results: sample sizes, robustness and utility per dataset."""
+    Ls = (64, 128, 256)
+    # Sample sizes: fidelity windows and channel series, classification windows.
+    rows = []
+    for ds, name in NAMES.items():
+        fid = [bench.get(f"{ds}/L{L}") for L in Ls]
+        fcell = [f"{f['windows_used']} / {f['RP/png8']['series']}" if f and f["windows_used"] >= MIN_WINDOWS else "--"
+                 for f in fid]
+        ccell = []
+        for L in Ls:
+            b = cls.get(f"{ds}_L{L}")
+            ccell.append(str(b["windows"]) if b and b["windows"] >= MIN_WINDOWS and not ds.startswith("esc50") else "--")
+        rows.append(f"{name} & " + " & ".join(fcell) + " & " + " & ".join(ccell))
+    write_table("tab_samples.tex", "& \\multicolumn{3}{c}{Fidelity: windows / channel series} & "
+                "\\multicolumn{3}{c}{Classification: windows} \\\\ \\cmidrule(lr){2-4}\\cmidrule(l){5-7}\n"
+                "Dataset & $T=64$ & $T=128$ & $T=256$ & $T=64$ & $T=128$ & $T=256$", rows, "lrrrrrr")
+
+    # Robustness per dataset at T = 128: clean and sigma = 16.
+    near = ("RP", "RP_SIPERS_SIGNED", "GASF", "GADF", "XIRP")
+    rows = []
+    for ds, name in NAMES.items():
+        e = rob.get(f"{ds}/L128")
+        if e:
+            rows.append(f"{name} & " + " & ".join(f"{fmt(e[r]['nmae']['0.0']['mean'])} / {fmt(e[r]['nmae']['16.0']['mean'], 3)}"
+                                                  for r in near if r in e))
+    write_table("tab_robustness.tex", "Dataset & " + " & ".join(SHORT[r] for r in near), rows, "l" + "r" * len(near))
+
+    # Classification: original score per dataset and classifier (T = 128), and mean drop per technique.
+    labelled = [ds for ds in NAMES if f"{ds}_L128" in cls and not ds.startswith("esc50")]
+    rows = []
+    for ds in labelled:
+        b = cls[f"{ds}_L128"]
+        m = "macro_f1" if b["multilabel"] else "accuracy"
+        rows.append(f"{NAMES[ds]} & " + " & ".join(fmt(b[c]["original"][m], 3) for c in CLFS))
+    write_table("tab_cls_original.tex", "Dataset & " + " & ".join(c.upper() if c != "rf" else "RF" for c in CLFS),
+                rows, "l" + "r" * len(CLFS))
+    rows = []
+    for ds in labelled:
+        drops = {r: [] for r in REPS}
+        for L in Ls:
+            b = cls.get(f"{ds}_L{L}")
+            if not b or b["windows"] < MIN_WINDOWS:
+                continue
+            m = "macro_f1" if b["multilabel"] else "accuracy"
+            for c in CLFS:
+                for r in REPS:
+                    if r in b[c]:
+                        drops[r].append(b[c]["original"][m] - b[c][r][m])
+        rows.append(f"{NAMES[ds]} & " + " & ".join(fmt(float(np.mean(drops[r])), 3) for r in REPS))
+    write_table("tab_cls_drop.tex", "Dataset & " + " & ".join(SHORT[r] for r in REPS), rows, "l" + "r" * len(REPS))
+
+    # ESC-10: mean per-clip accuracy of the original over classifiers, and mean drop per technique.
+    rows = []
+    for k, b in sorted(esc.items(), key=lambda kv: (kv[1].get("length", 0), kv[0])):
+        if k.startswith("_"):
+            continue
+        fs = k.split("_")[1]
+        orig = float(np.mean([b[c]["original"]["clip_accuracy"] for c in CLFS]))
+        cells = [fmt(float(np.mean([b[c]["original"]["clip_accuracy"] - b[c][r]["clip_accuracy"] for c in CLFS])), 3)
+                 for r in REPS]
+        rate = fs.replace("k", r"\,kHz")
+        rows.append(f"{rate}, $T={b['length']}$ & {fmt(orig, 3)} & " + " & ".join(cells))
+    write_table("tab_esc10.tex", "Block & Original & " + " & ".join(SHORT[r] for r in REPS), rows,
+                "ll" + "r" * len(REPS))
 
 
 def main():
@@ -161,8 +235,8 @@ def main():
         d, e = np.array(main_d[r]), np.array(esc_d[r])
         if len(d) < n_main or len(e) < n_esc:                   # still being computed: leave it out
             continue
-        rows.append(f"{SHORT[r]} & {d.mean():.3f} & {d.max():.3f} & {100 * np.mean(np.abs(d) <= 0.01):.0f}\\% & "
-                    f"{main_eq[r]}/{n_main_eq} & {e.mean():.3f} & {esc_eq[r]}/{n_esc} \\\\")
+        rows.append(f"{SHORT[r]} & {fmt(d.mean(), 3)} & {fmt(d.max(), 3)} & {100 * np.mean(np.abs(d) <= 0.01):.0f}\\% & "
+                    f"{main_eq[r]}/{n_main_eq} & {fmt(e.mean(), 3)} & {esc_eq[r]}/{n_esc} \\\\")
     rows += [r"\bottomrule", r"\end{tabular}"]
     (OUT / "tab_utility.tex").write_text("\n".join(rows) + "\n", encoding="utf-8")
     nums["clsCombos"] = str(n_main)
@@ -299,7 +373,7 @@ def main():
         tols = [f"{t:g}" for t in pilot["_design"]["tols"]]
         rows = [r"\begin{tabular}{@{}lrrrr" + "r" * len(tols) + "@{}}", r"\toprule",
                 r"& \multicolumn{2}{c}{Unsigned, oracle sign} & \multicolumn{2}{c}{Signed}"
-                r" & \multicolumn{" + str(len(tols)) + r"}{c}{Sipers, unsigned, oracle sign, node threshold} \\",
+                r" & \multicolumn{" + str(len(tols)) + r"}{c}{Sipers, unsigned, oracle sign, frequency threshold} \\",
                 r"\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(l){6-" + str(5 + len(tols)) + "}",
                 "Dataset & Sipers & Geometric & Sipers & Geometric & " + " & ".join(tols) + r" \\", r"\midrule"]
         gaps = []
@@ -318,6 +392,24 @@ def main():
         fl = [pilot[ds]["float/sweep/0.01"]["nmae_oracle"] for ds in NAMES if ds in pilot]
         nums["sipPaperTolMin"], nums["sipPaperTolMax"] = fmt(min(fl), 3), fmt(max(fl), 3)
 
+    # Sipers' frequency threshold chosen on calibration windows outside every evaluated sample
+    # (scripts/_sipers_calibration.py).
+    cal_path = Path("results/_stats/sipers_calibration.json")
+    if cal_path.exists():
+        cal = load(cal_path)
+        nums["calTolOracle"] = cal["_choice_unsigned_oracle"]["chosen"]
+        nums["calTolSigned"] = cal["_choice_signed"]["chosen"]
+        nums["calDatasets"] = str(len(cal["_choice_unsigned_oracle"]["datasets"]))
+        nums["calWindows"] = str(cal["_design"]["windows"])
+
+    # Hypotheses of Proposition 1 checked on every benchmark series (scripts/_check_sign_identifiability.py).
+    hyp = load("results/_stats/sign_identifiability.json")["_total"]
+    nums["hypSeries"] = f"{hyp['series']:,}".replace(",", "\\,")
+    nums["hypFails"] = str(hyp["fails_any_abc"])
+    nums["hypMinA"] = f"{hyp['min_a']:.1e}"
+    nums["hypMinF"] = f"{hyp['min_F']:.1e}"
+    nums["hypMinR"] = fmt(hyp["min_R"], 2)
+
     # Encoder vs decoder on the same windows (scripts/_sipers_checks.py): Swarm, 8-bit signed RP.
     checks_path = Path("results/_stats/sipers_checks.json")
     if checks_path.exists():
@@ -335,6 +427,7 @@ def main():
         nums["sipZeroMaxPtb"] = f"{ch['ptbxl']['sipers_float_tol0']['max']:.1e}"
         nums["sipZeroPtbSeries"] = f"{ch['ptbxl']['series']:,}".replace(",", "\\,")
 
+    supplement_tables(bench, cls, esc, rob)
     (OUT / "numbers.tex").write_text("% generated by scripts/_emit_infsci_tables.py; do not edit\n" + "".join(
         f"\\newcommand{{\\{k}}}{{{v}}}\n" for k, v in nums.items()), encoding="utf-8")
     print("\n".join(f"{k} = {v}" for k, v in nums.items()))

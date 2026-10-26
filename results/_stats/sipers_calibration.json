@@ -1,0 +1,144 @@
+{
+ "_design": {
+  "T": 128,
+  "windows": 100,
+  "seed": 1,
+  "tols": [
+   0.01,
+   0.001,
+   0.0001,
+   1e-06,
+   0.0
+  ],
+  "doc": "The threshold tol = 1e-4 in src/rp_sipers.py was first chosen with scripts/_sipers_pilot.py on the first 100\nbenchmark windows of each dataset at T = 128, which are also evaluated. This script repeats the choice on\ncalibration windows that no evaluation uses at T = 128: windows outside both the fidelity sample\n(results/_benchmark/<dataset>_L128.npz) and the classification sample (scripts/_classification.py: up to\n6000 windows, seed 0; ESC-10 uses other audio settings and is not affected). They are drawn with seed 1 and\nmay come from the same recordings as evaluated windows."
+ },
+ "wisdm": {
+  "calibration_windows": 100,
+  "series": 300,
+  "overlap_with_evaluated": 0,
+  "unsigned_oracle/0.01": 0.0402820645416606,
+  "signed/0.01": 0.039841013009268754,
+  "unsigned_oracle/0.001": 0.008325085024721816,
+  "signed/0.001": 0.00867429438222876,
+  "unsigned_oracle/0.0001": 0.0026347515252486877,
+  "signed/0.0001": 0.004046040571655298,
+  "unsigned_oracle/1e-06": 0.0031137029384692037,
+  "signed/1e-06": 0.005722622864186003,
+  "unsigned_oracle/0": 0.0038996113221926613,
+  "signed/0": 0.0059794511036914
+ },
+ "pamap2": {
+  "calibration_windows": 100,
+  "series": 900,
+  "overlap_with_evaluated": 0,
+  "unsigned_oracle/0.01": 0.029505982945647942,
+  "signed/0.01": 0.029387801877077582,
+  "unsigned_oracle/0.001": 0.007690851708385058,
+  "signed/0.001": 0.0081417318141019,
+  "unsigned_oracle/0.0001": 0.0030531569224606,
+  "signed/0.0001": 0.004735872119727207,
+  "unsigned_oracle/1e-06": 0.0038373181365163214,
+  "signed/1e-06": 0.006110099114925838,
+  "unsigned_oracle/0": 0.004159929285158153,
+  "signed/0": 0.006328077628287914
+ },
+ "esc50": {
+  "calibration_windows": 100,
+  "series": 88,
+  "overlap_with_evaluated": 0,
+  "unsigned_oracle/0.01": 0.03495726927892672,
+  "signed/0.01": 0.03485489334933871,
+  "unsigned_oracle/0.001": 0.01075218701614823,
+  "signed/0.001": 0.01074905131607289,
+  "unsigned_oracle/0.0001": 0.003976408769214775,
+  "signed/0.0001": 0.005671422611384748,
+  "unsigned_oracle/1e-06": 0.0044649229087961725,
+  "signed/1e-06": 0.007143645969480722,
+  "unsigned_oracle/0": 0.005242064298059152,
+  "signed/0": 0.00930033531831828
+ },
+ "ptbxl": {
+  "calibration_windows": 100,
+  "series": 1200,
+  "overlap_with_evaluated": 0,
+  "unsigned_oracle/0.01": 0.01872790511545238,
+  "signed/0.01": 0.018434350983902566,
+  "unsigned_oracle/0.001": 0.004623573556925249,
+  "signed/0.001": 0.005878564085000688,
+  "unsigned_oracle/0.0001": 0.0034193135125789084,
+  "signed/0.0001": 0.005395375430900625,
+  "unsigned_oracle/1e-06": 0.00544096576661537,
+  "signed/1e-06": 0.0073651336137040705,
+  "unsigned_oracle/0": 0.006005734679788712,
+  "signed/0": 0.007526230955508333
+ },
+ "swarm": {
+  "calibration_windows": 100,
+  "series": 300,
+  "overlap_with_evaluated": 0,
+  "unsigned_oracle/0.01": 0.04117981895290854,
+  "signed/0.01": 0.04122054443275162,
+  "unsigned_oracle/0.001": 0.03824044313620618,
+  "signed/0.001": 0.03773943015368881,
+  "unsigned_oracle/0.0001": 0.002008557118285591,
+  "signed/0.0001": 0.004437190626593036,
+  "unsigned_oracle/1e-06": 0.001922089741788372,
+  "signed/1e-06": 0.005217644345875829,
+  "unsigned_oracle/0": 0.0020515532521635555,
+  "signed/0": 0.005217644345875829
+ },
+ "stead": {
+  "calibration_windows": 100,
+  "series": 298,
+  "overlap_with_evaluated": 0,
+  "unsigned_oracle/0.01": 0.024398423725620844,
+  "signed/0.01": 0.023943644078305702,
+  "unsigned_oracle/0.001": 0.00644200777311376,
+  "signed/0.001": 0.007021118052055878,
+  "unsigned_oracle/0.0001": 0.003525460179434162,
+  "signed/0.0001": 0.005098788939320208,
+  "unsigned_oracle/1e-06": 0.00512058632311734,
+  "signed/1e-06": 0.007236710486930933,
+  "unsigned_oracle/0": 0.005656930296071336,
+  "signed/0": 0.007236710486930933
+ },
+ "emg_gestures": {
+  "calibration_windows": 0
+ },
+ "_choice_unsigned_oracle": {
+  "mean_over_datasets": {
+   "0.01": 0.03150857742670284,
+   "0.001": 0.012679024702583383,
+   "0.0001": 0.003102941337870454,
+   "1e-06": 0.003983264302550463,
+   "0": 0.0045026371889055955
+  },
+  "chosen": "0.0001",
+  "datasets": [
+   "wisdm",
+   "pamap2",
+   "esc50",
+   "ptbxl",
+   "swarm",
+   "stead"
+  ]
+ },
+ "_choice_signed": {
+  "mean_over_datasets": {
+   "0.01": 0.03128037462177415,
+   "0.001": 0.013034031633858153,
+   "0.0001": 0.00489744838326352,
+   "1e-06": 0.006465976065850566,
+   "0": 0.006931408306435449
+  },
+  "chosen": "0.0001",
+  "datasets": [
+   "wisdm",
+   "pamap2",
+   "esc50",
+   "ptbxl",
+   "swarm",
+   "stead"
+  ]
+ }
+}
