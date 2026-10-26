@@ -277,13 +277,17 @@ def decode_channel(R_obs, minmax_c, source, dims=2, recover="overlap",
     # overlap-error orientations, pick the one whose regenerated signed RP is
     # closest to the observed one. The closed-form path has only four
     # candidates; ``top_k`` remains useful for the optional grid ablation.
+    # With scale_invariant the candidates are compared on the unit range and the calibration is applied only
+    # to the winner, so the choice depends on the image alone (an exact tie, when no pair is sign-informative,
+    # is no longer broken by the rounding of the physical-unit rescale).
+    ref = (1.0, 0.0) if scale_invariant else minmax_c
     best = None
     for e_ov, a, b in cands[:top_k]:
-        x = _rescale(reconstruct_signal_from_states(a, b), minmax_c)[:n_out]
+        x = _rescale(reconstruct_signal_from_states(a, b), ref)[:n_out]
         e_sig = signed_rp_error(R_obs, x, scale_invariant=scale_invariant)
         if best is None or e_sig < best[0]:
             best = (e_sig, x)
-    return best[1]
+    return _rescale(best[1], minmax_c) if scale_invariant else best[1]
 
 
 def overlap_error_abs(a, b):

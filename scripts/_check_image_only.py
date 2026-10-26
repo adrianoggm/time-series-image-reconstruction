@@ -10,6 +10,9 @@ Decoders never receive the series: src/representations.py passes them the image 
 
     python -m scripts._check_image_only
 """
+import json
+from pathlib import Path
+
 import numpy as np
 
 
@@ -17,7 +20,10 @@ def main():
     from src.representations import REPRESENTATIONS
 
     rng = np.random.default_rng(0)
-    series = [np.cumsum(rng.normal(size=128)), rng.normal(size=128), np.sin(np.linspace(0, 9, 128)) + 0.1 * rng.normal(size=128)]
+    # The last series has no sign-informative pair, so x and -x give the same signed RP: an exact tie between
+    # the two reflections, which a decoder must break without the calibration.
+    series = [np.cumsum(rng.normal(size=128)), rng.normal(size=128), np.sin(np.linspace(0, 9, 128)) + 0.1 * rng.normal(size=128),
+              np.array([1, -1.05, 1.10, -1.15, 1.20, -1.25, 1.30, -1.35])]
     worst = {}
     for name, rep in REPRESENTATIONS.items():
         err = 0.0
@@ -34,6 +40,9 @@ def main():
     bad = {k: v for k, v in worst.items() if v > 1e-9}
     assert not bad, f"calibration used beyond the final affine map: {bad}"
     print("image-only check ok: the calibration is only the final affine map for every decoder")
+    Path("results/_stats/image_only.json").write_text(json.dumps(
+        {"series": len(series), "lengths": [len(s) for s in series], "tie_case": "last series", "calibration_2": [7.5, -3.0], "tolerance": 1e-9,
+         "max_relative_deviation": worst}, indent=1) + "\n")
 
 
 if __name__ == "__main__":

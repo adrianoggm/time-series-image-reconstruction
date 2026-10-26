@@ -122,7 +122,7 @@ def main():
     ap.add_argument("--classifiers", default=",".join(CLASSIFIERS))
     ap.add_argument("--max-windows", type=int, default=6000)
     ap.add_argument("--folds", type=int, default=3)
-    ap.add_argument("--epochs", type=int, default=30)
+    ap.add_argument("--epochs", type=int, default=20)   # the stored runs used 20 (summary.json)
     ap.add_argument("--workers", type=int, default=20)
     ap.add_argument("--out", default=str(OUT))
     ap.add_argument("--only", default="", help="add these techniques to the existing results: classifiers are "

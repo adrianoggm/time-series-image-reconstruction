@@ -39,7 +39,8 @@ for T, C in ((64, 1), (200, 5), (256, 12)):
     row = []
     for name in REPRESENTATIONS:
         img = encode_window(name, win)
-        H = T - 1 if name.startswith("RP") else T          # RP variants work on the N-1 adjacent states
+        # RP variants work on the N-1 adjacent states; the circular RP of Sipers' decoder adds the wrap state
+        H = T if name.startswith("RP_SIPERS") or not name.startswith("RP") else T - 1
         assert img.shape == (C, H, H) and img.dtype == np.uint8, (name, img.shape)
         nm = {}
         for cond, stack in (("float", encode_window(name, win, quantize=False)), ("8bit", img)):
