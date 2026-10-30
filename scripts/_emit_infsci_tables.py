@@ -34,6 +34,14 @@ def fmt(v, d=4):
     return s[1:] if s == "-0." + "0" * d else s          # a value that rounds to zero is printed without a sign
 
 
+def sci(v, d=1):
+    """Scientific notation typeset the same way in text and in math mode: 5.7e-06 -> 5.7\\times10^{-6}."""
+    if v == 0:
+        return "0"
+    m, e = f"{v:.{d}e}".split("e")
+    return rf"\ensuremath{{{m}\times10^{{{int(e)}}}}}"
+
+
 def write_table(name, header, rows, cols):
     lines = [r"\begin{tabular}{@{}" + cols + "@{}}", r"\toprule", header + r" \\", r"\midrule"]
     lines += [r + r" \\" for r in rows] + [r"\bottomrule", r"\end{tabular}"]
@@ -141,7 +149,7 @@ def main():
 
     # Exactness in floating point and the 8-bit range of each exact decoder.
     for r, macro in (("RP", "RP"), ("GASF", "GASF"), ("GADF", "GADF"), ("XIRP", "XIRP")):
-        nums[f"floatMax{macro}"] = f"{max(v[f'{r}/float']['nmae']['median'] for v in blocks.values()):.1e}"
+        nums[f"floatMax{macro}"] = sci(max(v[f'{r}/float']['nmae']['median'] for v in blocks.values()))
     # Largest floating-point error over every series of every reported block (needs the per-series .npz arrays,
     # which scripts/_benchmark.py regenerates; they are not tracked).
     import glob
@@ -157,7 +165,20 @@ def main():
                 continue
             v = z["values"][:, BREPS.index(r), fi, :, ni]
             worst = max(worst, float(np.nanmax(np.where(np.isfinite(v), v, np.nan))))
-        nums[f"floatWorst{macro}"] = f"{worst:.1e}"
+        nums[f"floatWorst{macro}"] = sci(worst)
+    # Spread behind Table 3: median and interquartile range of the per-series 8-bit NMAE at T = 128.
+    pi8 = CONDS.index("png8")
+    spread = {}
+    for ds in NAMES:
+        z = np.load(f"results/_benchmark/{ds}_L128.npz")
+        for r in REPS:
+            v = z["values"][:, BREPS.index(r), pi8, :, ni].ravel()
+            v = v[np.isfinite(v)]
+            if v.size:
+                spread[ds, r] = np.percentile(v, [25, 50, 75])
+    rows = [f"{SHORT[r]} & " + " & ".join(f"{fmt(spread[ds, r][1])} [{fmt(spread[ds, r][2] - spread[ds, r][0])}]"
+                                          if (ds, r) in spread else "--" for ds in NAMES) for r in REPS]
+    write_table("tab_fidelity_spread.tex", "Decoder & " + " & ".join(NAMES.values()), rows, "l" + "r" * len(NAMES))
     # an earlier 500-window ESC-50 sample held one degenerate window (126 zeros, amplitude ~3e-9); the
     # 3000-window sample does not
     nums["floatBlocksExactRP"] = str(sum(v["RP/float"]["nmae"]["mean"] < 1e-12 for v in blocks.values()))
@@ -172,7 +193,7 @@ def main():
             nums[f"macroDiff{r.replace('_', '')}"] = fmt(stats["_macro"]["L128"][r], 4 if "SIPERS" in r else 3)
     # Sipers et al. on the circular RP: exactness in floating point and 8-bit range with the sign
     if all("RP_SIPERS_SIGNED/png8" in v for v in blocks.values()):
-        nums["floatMaxSIPERS"] = f"{max(v['RP_SIPERS_SIGNED/float']['nmae']['median'] for v in blocks.values()):.1e}"
+        nums["floatMaxSIPERS"] = sci(max(v['RP_SIPERS_SIGNED/float']['nmae']['median'] for v in blocks.values()))
         sp = [v["RP_SIPERS_SIGNED/png8"]["nmae"]["mean"] for v in blocks.values()]
         nums["sipEightMin"], nums["sipEightMax"] = fmt(min(sp)), fmt(max(sp))
         nums["sipBetterBlocks"] = str(sum(v["RP_SIPERS_SIGNED/png8"]["nmae"]["mean"] < v["RP/png8"]["nmae"]["mean"]
@@ -181,6 +202,7 @@ def main():
     bin_float = [enc[k][f"float/binary/{d}"]["nmae_oracle_mean"] for k in enc if not k.startswith("_")
                  for d in ("hirata", "direct2d")]
     nums["binaryOracleMin"], nums["binaryOracleMax"] = fmt(min(bin_float), 2), fmt(max(bin_float), 2)
+    nums["binaryWindows"] = str(enc["_design"]["n_windows"])
     # same binary input, two decoders: how far apart they stay
     nums["binaryGapMax"] = fmt(max(abs(enc[k]["float/binary/hirata"]["nmae_oracle_mean"]
                                        - enc[k]["float/binary/direct2d"]["nmae_oracle_mean"])
@@ -406,8 +428,8 @@ def main():
     hyp = load("results/_stats/sign_identifiability.json")["_total"]
     nums["hypSeries"] = f"{hyp['series']:,}".replace(",", "\\,")
     nums["hypFails"] = str(hyp["fails_any_abc"])
-    nums["hypMinA"] = f"{hyp['min_a']:.1e}"
-    nums["hypMinF"] = f"{hyp['min_F']:.1e}"
+    nums["hypMinA"] = sci(hyp['min_a'])
+    nums["hypMinF"] = sci(hyp['min_F'])
     nums["hypMinR"] = fmt(hyp["min_R"], 2)
     sid_all = load("results/_stats/sign_identifiability.json")
     rows = []
@@ -415,14 +437,14 @@ def main():
         blocks = [v for k, v in sid_all.items() if k.startswith(ds + "/")]
         if blocks:
             rows.append(f"{name} & {sum(b['series'] for b in blocks):,}".replace(",", "\\,") + " & "
-                        + " & ".join(f"{min(b[k] for b in blocks):.1e}" for k in ("min_a", "min_R", "min_F", "min_rank3"))
+                        + " & ".join(sci(min(b[k] for b in blocks)) for k in ("min_a", "min_R", "min_F", "min_rank3"))
                         + f" & {fmt(min(b['min_share'] for b in blocks), 3)} & {sum(b['fails_any_abc'] for b in blocks)}")
     write_table("tab_hypotheses.tex", "Dataset & Series & (a) & (R) & (F) & Rank 3 & Sign-inf. share & Failures",
                 rows, "lrrrrrrr")
 
     # Image-only decoding (scripts/_check_image_only.py): deviation from the final affine map.
     img = load("results/_stats/image_only.json")
-    nums["imgOnlyMax"] = f"{max(img['max_relative_deviation'].values()):.1e}"
+    nums["imgOnlyMax"] = sci(max(img['max_relative_deviation'].values()))
     nums["imgOnlySeries"] = str(img["series"])
 
     # Encoder vs decoder on the same windows (scripts/_sipers_checks.py): Swarm, 8-bit signed RP.
@@ -438,8 +460,8 @@ def main():
         nums["encGapMax"] = fmt(max(abs(ch[d]["geo_circular_8bit"]["mean"] - ch[d]["geo_noncircular_8bit"]["mean"])
                                     for d in others), 4)
         clean = [d for d in ch if not d.startswith("_") and d != "ptbxl"]
-        nums["sipZeroMaxClean"] = f"{max(ch[d]['sipers_float_tol0']['max'] for d in clean):.0e}"
-        nums["sipZeroMaxPtb"] = f"{ch['ptbxl']['sipers_float_tol0']['max']:.1e}"
+        nums["sipZeroMaxClean"] = sci(max(ch[d]['sipers_float_tol0']['max'] for d in clean), 0)
+        nums["sipZeroMaxPtb"] = sci(ch['ptbxl']['sipers_float_tol0']['max'])
         nums["sipZeroPtbSeries"] = f"{ch['ptbxl']['series']:,}".replace(",", "\\,")
 
     supplement_tables(bench, cls, esc, rob)

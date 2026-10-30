@@ -146,7 +146,7 @@ def reconstruction_figure(xs):
 
 
 def main():
-    plt.rcParams.update({"font.family": "serif", "font.size": 7})
+    plt.rcParams.update({"font.family": "serif", "font.size": 7, "pdf.fonttype": 42})
     xs = windows()
     encoding_figure(xs)
     reconstruction_figure(xs)

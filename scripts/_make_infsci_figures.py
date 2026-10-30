@@ -45,7 +45,8 @@ def main():
     blocks = [k for k in rob if k.endswith("/L128")]
     rates = [500, 250, 100, 50]
 
-    plt.rcParams.update({"font.family": "serif", "font.size": 8})
+    plt.rcParams.update({"font.family": "serif", "font.size": 8, "mathtext.fontset": "dejavuserif",
+                         "pdf.fonttype": 42})   # TrueType with a Unicode map: sigma survives text extraction
     fig, axes = plt.subplots(1, 3, figsize=(7.2, 2.4), constrained_layout=True)
     a, b, c = axes
     for key, label, color, marker in SERIES:

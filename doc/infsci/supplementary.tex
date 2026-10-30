@@ -66,7 +66,7 @@ Table~\ref{tab:s_storage} lists, for every representation, the normalised domain
 \toprule
 Representation & Series domain & Stored image & Decoder input \\
 \midrule
-Signed RP (conventional and circular) & window as recorded & min--max of the matrix over its non-zero entries, per image & matrix re-centred at its diagonal level, up to a positive factor \\
+Signed RP (conventional and circular) & window as recorded & min--max of the matrix, per image (contains the zero diagonal) & matrix re-centred at its diagonal level, up to a positive factor \\
 Unsigned RP (conventional and circular) & window as recorded & divided by its maximum & distances up to a positive factor \\
 GASF & $[0,1]$ & fixed range $[-1,1]$ & matrix \\
 GADF & $[-0.7,0.7]$ & fixed range $[-1,1]$ & matrix \\
@@ -79,7 +79,7 @@ XIRP & $[1,2]$ & fixed ranges: $[1,2]$ on the diagonal, $[-\log2,\log2]$ off it 
 Every decoder receives the stored image and the channel calibration $(x_{\max},x_{\min})$, never the series. Whether the calibration is used for anything but the final map to physical units can be tested: if it chose a reflection, a branch or a threshold, decoding the same image with another calibration would not give an affine transform of the first decoding. The script \texttt{\_check\_image\_only.py} decodes the 8-bit images of \imgOnlySeries{} series with their own calibration and with an unrelated one, for all ten combinations; the largest deviation from the affine transform is \imgOnlyMax{} of the range. One of the series has no sign-informative pair, so its two reflections tie exactly. In an earlier version, the three signed decoders broke that tie after mapping the candidates to physical units, so the rounding of the calibration decided it; they now compare the candidates on the unit range. On the benchmark windows, where no exact tie occurs, the change moves the reconstructions by less than $10^{-13}$ of the range, below the precision of every reported number.
 
 \section{Fixed method parameters}\label{sec:s_params}
-No parameter of the encoders or decoders is tuned on the evaluated windows except where stated. The GADF interval $[-0.7,0.7]$ follows from the branch condition $\alpha<1/\sqrt2$ (Section~\ref{M-sec:formulation}). The number of GADF pivots (five) and of MTF states ($Q=4$) were fixed in our earlier single-dataset study on WISDM, which is also one of the seven datasets here, and were not changed for this benchmark. Hirata's recurrence rate ($0.75$) was fixed before the benchmark; its sensitivity is reported in Section~\ref{sec:s_hirata}. Sipers' frequency threshold ($10^{-4}$) was first chosen in an exploratory sweep on evaluated windows (Section~\ref{sec:s_sipers}) and confirmed on calibration windows outside the evaluated samples (Section~\ref{sec:s_calibration}).
+No parameter of the encoders or decoders is tuned on the evaluated windows except where stated. The GADF interval $[-0.7,0.7]$ follows from the branch condition $\alpha<1/\sqrt2$ (Section~\ref{M-sec:formulation}). The number of GADF pivots (five) and of MTF states ($Q=4$) were fixed in our earlier single-dataset study on WISDM, which is also one of the seven datasets here, and were not changed for this benchmark. The MTF encoder uses $Q=4$ quantile states; the decoder uses the same $Q$. It normalises the image rows to unit length and clusters them by $k$-means with cosine similarity, initialised by farthest-point sampling from a fixed seed (0), for at most 50 Lloyd iterations; an empty cluster is re-seeded with the row farthest from every centroid. The transition matrix $\hat W$ is the mean of each block of the image, normalised by rows, and the clusters are sorted by the Fiedler vector of the unnormalised Laplacian of $(\hat W+\hat W^\top)/2$ with the sign returned by the eigensolver. Hirata's recurrence rate ($0.75$) was fixed before the benchmark; its sensitivity is reported in Section~\ref{sec:s_hirata}. Sipers' frequency threshold ($10^{-4}$) was first chosen in an exploratory sweep on evaluated windows (Section~\ref{sec:s_sipers}) and confirmed on calibration windows outside the evaluated samples (Section~\ref{sec:s_calibration}).
 
 \section{Classifier settings}\label{sec:s_classifiers}
 All classifiers are trained on original windows, standardised per channel with the statistics of the training fold, and evaluated on the original and on every reconstruction of the same held-out windows. KNN ($k=5$), an RBF SVM ($C=1$, Platt probabilities, one-vs-rest for the multilabel PTB-XL) and a random forest (300 trees) take the flattened window. The LSTM and GRU (64 and 32 units, dropout $0.2$) and a one-dimensional CNN (convolutions of 32 and 64 filters of width 5, max pooling, global average pooling and a 64-unit dense layer) take the $(T,C)$ window and are trained with Adam, batch size 64 and at most 20 epochs, with early stopping (patience 4) on the last 10\% of the training fold. No hyperparameter is tuned. Metrics are computed per fold and averaged over the three folds; the equivalence intervals resample the groups of the split.
@@ -88,7 +88,7 @@ All classifiers are trained on original windows, standardised per channel with t
 \partheading{Part B. Proposition~\ref{M-prop:rp}}
 
 \section{Proof of Proposition~\ref{M-prop:rp}}\label{sec:s_proof}
-We use the notation of Section~\ref{M-sec:rp_encodings} and the decoder steps of Section~\ref{M-sec:rp_decoder} of the main text. Let $S\in\mathbb R^{(T-1)\times2}$ have rows $s_i=(x_i,x_{i+1})$, and write $O(2)$ for the orthogonal $2\times2$ matrices. The proof follows the decoder: geometry (step~2), overlap (step~3), translation and scale (step~5), and sign (step~4).
+We use the notation of Section~\ref{M-sec:rp_encodings} and the decoder steps of Section~\ref{M-sec:rp_decoder} of the main text. Let $S\in\mathbb R^{(T-1)\times2}$ have rows $s_i=(x_i,x_{i+1})$, and write $O(2)$ for the orthogonal $2\times2$ matrices. The proof follows the decoder: geometry (step~2), overlap (step~3), translation and scale (step~4), and sign (step~5).
 
 \paragraph{Step 1: geometry}
 By (a), the centred states have affine rank two, so classical multidimensional scaling applied to the exact distance matrix $|R|$ returns
@@ -117,10 +117,10 @@ Conversely, if (R) holds, every rotation satisfies~\eqref{eq:s_rot} and the corr
 If the centred triples $(x_i,x_{i+1},x_{i+2})$ have rank three, no nontrivial affine relation among three consecutive samples holds for all $i$, so neither (R) nor (F) can hold; this is the sufficient criterion of the proposition.
 
 \paragraph{Step 4: translation and scale}
-Step~5 of the decoder removes the residual translation $\delta^\star$ and assembles the samples; the final range map removes the remaining translation and positive scale. Both candidates are therefore $\pm x$ on the normalised domain.
+Step~4 of the decoder removes the residual translation $\delta^\star$ and assembles the samples of every candidate; the final range map removes the remaining translation and positive scale. The two candidates of the parity that satisfies the overlap are therefore $\pm x$ on the normalised domain.
 
 \paragraph{Step 5: sign}
-In step~4 the candidate $x$ reproduces the observed matrix exactly after both are normalised to unit Frobenius norm. Any candidate whose signed RP also reproduces it has states whose distance matrix is proportional to $|R|$ and satisfies the overlap by construction, so it is $\pm x$ up to scale and translation by Steps~1--4. Reflecting the series maps $s_i-s_j$ to $s_j-s_i$, so $\sigma_{ij}$ becomes $\sigma_{ji}$ in~\eqref{M-eq:signed_rp}: on a sign-informative pair the entry changes sign, and on a non-informative pair it does not. The signed RPs of $x$ and $-x$ therefore differ if and only if (c) holds. Under (c) the selected candidate is $x$; without (c) the two are indistinguishable from the image. $\square$
+In step~5 the assembled series of every candidate is re-encoded, and the candidate $x$ reproduces the observed matrix exactly after both are normalised to unit Frobenius norm. Any candidate whose signed RP also reproduces it has states whose distance matrix is proportional to $|R|$ and, being the states of a series, satisfies the overlap by construction, so it is $\pm x$ up to scale and translation by Steps~1--4. Reflecting the series maps $s_i-s_j$ to $s_j-s_i$, so $\sigma_{ij}$ becomes $\sigma_{ji}$ in~\eqref{M-eq:signed_rp}: on a sign-informative pair the entry changes sign, and on a non-informative pair it does not. The signed RPs of $x$ and $-x$ therefore differ if and only if (c) holds. Under (c) the selected candidate is $x$; without (c) the two are indistinguishable from the image. $\square$
 
 \section{Hypotheses on the benchmark series}\label{sec:s_hypotheses}
 The script \texttt{\_check\_sign\_identifiability.py} evaluates the hypotheses of Proposition~\ref{M-prop:rp} on every channel series of the benchmark, with a relative tolerance of $10^{-9}$ and the same exclusion of constant series as the benchmark. Each hypothesis is measured by a scale-free margin, and holds when its margin exceeds the tolerance:
@@ -138,7 +138,7 @@ Table~\ref{tab:s_hypotheses} gives the smallest margin per dataset over its thre
 \caption{Hypotheses of Proposition~\ref{M-prop:rp} on every benchmark series: smallest margin per dataset over $T\in\{64,128,256\}$, and number of series that fail any of (a)--(c).}\label{tab:s_hypotheses}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
-\input{generated/tab_hypotheses.tex}
+\resizebox{\textwidth}{!}{\input{generated/tab_hypotheses.tex}}
 \end{table}
 
 % ============================================================================================
@@ -161,6 +161,17 @@ Tables~\ref{tab:s_l64} and~\ref{tab:s_l256} repeat Table~\ref{M-tab:fidelity} of
 \scriptsize
 \setlength{\tabcolsep}{2.5pt}
 \input{generated/tab_fidelity_L256.tex}
+\end{table}
+
+\section{Spread of the per-series error (RQ1)}\label{sec:s_spread}
+Table~\ref{M-tab:fidelity} of the main text reports means, which a few poorly conditioned series can dominate. Table~\ref{tab:s_spread} gives the median and the interquartile range of the same per-series errors. For the unsigned RP the distribution is bimodal, according to whether the reflection is returned, so its median is not representative.
+
+\begin{table}[h]
+\centering
+\caption{Median [interquartile range] of the per-series 8-bit NMAE at $T=128$, on the series of Table~\ref{M-tab:fidelity}.}\label{tab:s_spread}
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\resizebox{\textwidth}{!}{\input{generated/tab_fidelity_spread.tex}}
 \end{table}
 
 \section{Spectral and correlational fidelity (RQ1)}\label{sec:s_spectral}
