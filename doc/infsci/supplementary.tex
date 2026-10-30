@@ -12,11 +12,19 @@
 \usepackage{microtype}
 \usepackage{xurl}
 \usepackage{graphicx}
+\usepackage{float}
 \usepackage{xr}
+\usepackage[section]{placeins}
 \externaldocument[M-]{main}
 \renewcommand{\thetable}{S\arabic{table}}
 \renewcommand{\thesection}{S\arabic{section}}
 \renewcommand{\theequation}{S\arabic{equation}}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.8}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{4}
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 \newcommand{\partheading}[1]{\bigskip\noindent{\large\bfseries #1}\par\nobreak\smallskip}
 \input{generated/numbers.tex}
@@ -46,7 +54,7 @@ All datasets are public. Each recording is cut into non-overlapping windows of $
 \item \textbf{EMG}~\cite{krilova2018emg}. Eight-channel armband surface EMG, 36 subjects, static gestures of 3\,s. Pauses (label 0) and the extended-palm gesture (label 7, performed by few subjects) are excluded, leaving six gestures. The logged time advances in 1\,ms steps by repeating values while the signal changes about 100 times per second, so each file is resampled by sample-and-hold onto a uniform 100\,Hz grid. Group: subject.
 \end{itemize}
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Sample sizes. Fidelity: windows drawn per dataset and length (seed 0) and the non-constant channel series they contain. Classification: windows drawn per dataset and length; ESC-50 is evaluated as ESC-10 instead (Table~\ref{tab:s_esc10}) and Swarm is unlabelled. ``--'': fewer than 200 windows available.}\label{tab:s_samples}
 \footnotesize
@@ -57,7 +65,7 @@ All datasets are public. Each recording is cut into non-overlapping windows of $
 \section{Storage and image-only decoding}\label{sec:s_storage}
 Table~\ref{tab:s_storage} lists, for every representation, the normalised domain of the series, the 8-bit storage rule $\mathcal Q_m$ and what the decoder recovers from the image before the calibration is applied (Section~\ref{M-sec:storage}). Fixed storage ranges depend only on the method; the per-image ranges of the RP are never passed to a decoder.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Normalisation and 8-bit storage of each representation. Rounding is to the nearest of 256 levels.}\label{tab:s_storage}
 \footnotesize
@@ -133,7 +141,7 @@ The script \texttt{\_check\_sign\_identifiability.py} evaluates the hypotheses o
 \end{itemize}
 Table~\ref{tab:s_hypotheses} gives the smallest margin per dataset over its three lengths. No series fails any hypothesis. The smallest margins, on Swarm for (a) and on ESC-50 for (F), are those of nearly collinear states, which is the regime where storage error grows (Section~\ref{M-sec:results_conditions}). The check is numerical evidence that the benchmark meets the hypotheses, not a substitute for the proof. The same script confirms, with the production encoder, that the alternating series of the main text and its negative have identical signed RPs.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Hypotheses of Proposition~\ref{M-prop:rp} on every benchmark series: smallest margin per dataset over $T\in\{64,128,256\}$, and number of series that fail any of (a)--(c).}\label{tab:s_hypotheses}
 \footnotesize
@@ -147,7 +155,7 @@ Table~\ref{tab:s_hypotheses} gives the smallest margin per dataset over its thre
 \section{Fidelity at the other window lengths (RQ1)}\label{sec:s_lengths}
 Tables~\ref{tab:s_l64} and~\ref{tab:s_l256} repeat Table~\ref{M-tab:fidelity} of the main text for $T=64$ and $T=256$. EMG at $T=256$ has fewer than 200 windows and is not reported.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Mean 8-bit NMAE of every encoding--decoder combination at $T=64$. Uns./Sig.: unsigned and signed RP.}\label{tab:s_l64}
 \scriptsize
@@ -155,7 +163,7 @@ Tables~\ref{tab:s_l64} and~\ref{tab:s_l256} repeat Table~\ref{M-tab:fidelity} of
 \input{generated/tab_fidelity_L64.tex}
 \end{table}
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{As Table~\ref{tab:s_l64}, at $T=256$.}\label{tab:s_l256}
 \scriptsize
@@ -166,7 +174,7 @@ Tables~\ref{tab:s_l64} and~\ref{tab:s_l256} repeat Table~\ref{M-tab:fidelity} of
 \section{Spread of the per-series error (RQ1)}\label{sec:s_spread}
 Table~\ref{M-tab:fidelity} of the main text reports means, which a few poorly conditioned series can dominate. Table~\ref{tab:s_spread} gives the median and the interquartile range of the same per-series errors. For the unsigned RP the distribution is bimodal, according to whether the reflection is returned, so its median is not representative.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Median [interquartile range] of the per-series 8-bit NMAE at $T=128$, on the series of Table~\ref{M-tab:fidelity}.}\label{tab:s_spread}
 \scriptsize
@@ -177,7 +185,7 @@ Table~\ref{M-tab:fidelity} of the main text reports means, which a few poorly co
 \section{Spectral and correlational fidelity (RQ1)}\label{sec:s_spectral}
 Table~\ref{tab:s_spectral} separates the two reasons for a large pointwise error discussed in Section~\ref{M-sec:results_fidelity}: decoders that return the reflection keep the spectrum and the energy, while those that lose the waveform distort them.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Spectral and correlational fidelity after 8-bit storage: range of the dataset means over the seven datasets at $T=128$. Pearson: correlation with the original; PSD shape: $L_1$ distance between unit-mass Welch spectra; Energy: relative error of total power.}\label{tab:s_spectral}
 \footnotesize
@@ -187,7 +195,7 @@ Table~\ref{tab:s_spectral} separates the two reasons for a large pointwise error
 \section{Recurrence-rate sensitivity of Hirata's reconstruction (RQ2)}\label{sec:s_hirata}
 Table~\ref{tab:s_hirata} gives the 8-bit NMAE of Hirata's reconstruction~\cite{hirata2008reproduction} against the recurrence rate used to threshold the image ($T=128$, 100 benchmark windows per dataset, every channel). The rate of $0.75$ used in the main text was fixed in advance; choosing the best rate per dataset with knowledge of the result lowers the error by at most \hirataGainUns{} on the unsigned and \hirataGainSig{} on the signed RP. Because this sweep uses evaluated windows, it is reported as a sensitivity analysis, not used to choose the rate.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Hirata's reconstruction: 8-bit NMAE against the recurrence rate.}\label{tab:s_hirata}
 \scriptsize
@@ -202,7 +210,7 @@ Table~\ref{tab:s_sipers} removes the difference of encoding: both decoders recei
 
 Sipers' decoder discards frequencies whose power, estimated from the image, is below a share of the largest; this frequency threshold does not use the original series. With a threshold of zero the implementation is exact in floating point (median error $0$; maximum \sipZeroMaxClean{} on WISDM, Swarm and STEAD, and \sipZeroMaxPtb{} for the worst of \sipZeroPtbSeries{} PTB-XL series, where near-zero Fourier coefficients enter the division of Eq.~(15) of Sipers et al.). With the threshold of $0.01$ used by its authors, the error is \sipPaperTolMin{} to \sipPaperTolMax{} even in floating point, because our windows are broadband. The last columns of Table~\ref{tab:s_sipers} sweep the threshold on these evaluated windows. This exploratory sweep is where the value used throughout, $10^{-4}$, was first chosen, so it is not independent of the evaluation; Section~\ref{sec:s_calibration} confirms it on separate calibration windows.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Mean 8-bit NMAE on the same circular RP ($T=128$, first 100 benchmark windows per dataset). Unsigned: reflection fixed with the original series, a bound on the geometry alone. Signed: reflection chosen from the image by the sign, as in the main text. Last columns: Sipers' decoder on the unsigned image against the frequency threshold.}\label{tab:s_sipers}
 \scriptsize
@@ -216,7 +224,7 @@ The threshold first chosen in Section~\ref{sec:s_sipers} is checked on \calWindo
 \section{Sampling rate at a fixed length and at a fixed duration (RQ3)}\label{sec:s_sampling}
 Table~\ref{tab:s_sampling} separates the sampling rate from the window duration on PTB-XL. With 128 samples, a higher rate also means a shorter window; with a fixed duration of 1.28\,s, the number of samples grows with the rate. In both settings the conditioning $\sigma_2/\sigma_1$ falls and the error of the signed RP rises with the rate, while GASF, GADF and XIRP do not follow that trend. The ``native'' rows use the 100\,Hz files distributed with the dataset instead of resampling the 500\,Hz records.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{PTB-XL, anti-aliased resampling from 500\,Hz: median $\sigma_2/\sigma_1$ of the RP states, share of series below $0.1$, and mean 8-bit NMAE.}\label{tab:s_sampling}
 \scriptsize
@@ -227,7 +235,7 @@ Table~\ref{tab:s_sampling} separates the sampling rate from the window duration 
 \section{Robustness per dataset (RQ3)}\label{sec:s_robustness}
 Table~\ref{tab:s_robustness} gives, for each dataset, the clean 8-bit error and the error with Gaussian noise of $\sigma=16$ intensity levels on the stored image, which Figure~\ref{M-fig:robustness_sampling}a averages over datasets.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Mean 8-bit NMAE at $T=128$: clean / with noise of $\sigma=16$ (200 windows per dataset, two replicates). Sipers' decoder reads the circular RP.}\label{tab:s_robustness}
 \scriptsize
@@ -238,14 +246,14 @@ Table~\ref{tab:s_robustness} gives, for each dataset, the clean 8-bit error and 
 \section{Classification per dataset (RQ4)}\label{sec:s_classification}
 Table~\ref{tab:s_cls_original} gives the score of the classifiers on the original windows at $T=128$, and Table~\ref{tab:s_cls_drop} the drop of each combination per dataset, averaged over classifiers and lengths; Table~\ref{M-tab:utility} of the main text aggregates them. Table~\ref{tab:s_esc10} gives the per-clip results on ESC-10.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Score on the original windows at $T=128$: accuracy, or macro-F1 for the multilabel PTB-XL.}\label{tab:s_cls_original}
 \footnotesize
 \input{generated/tab_cls_original.tex}
 \end{table}
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Drop from the original score, averaged over the six classifiers and the three lengths.}\label{tab:s_cls_drop}
 \scriptsize
@@ -253,7 +261,7 @@ Table~\ref{tab:s_cls_original} gives the score of the classifiers on the origina
 \resizebox{\textwidth}{!}{\input{generated/tab_cls_drop.tex}}
 \end{table}
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{ESC-10: per-clip accuracy of the original, averaged over the six classifiers, and drop of each combination (3\,000 windows per block).}\label{tab:s_esc10}
 \scriptsize
@@ -264,7 +272,7 @@ Table~\ref{tab:s_cls_original} gives the score of the classifiers on the origina
 \section{Computational cost (RQ4)}\label{sec:s_cost}
 Table~\ref{tab:s_cost} gives the single-thread cost of every combination against the window length. Times were measured on an otherwise idle Intel Core i7-14650HX (12 cores, 24 threads) under WSL2 (Linux 6.6), with Python 3.10.20, NumPy 1.26.4 and SciPy 1.14.0, one series at a time and multi-threaded linear algebra disabled; classifiers used scikit-learn 1.5.1 and TensorFlow 2.11.0.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Median single-thread time (ms) to encode, store and decode one channel (WISDM, 20 series per length), log--log slope of time against $T$, and peak traced memory at $T=1024$.}\label{tab:s_cost}
 \footnotesize
